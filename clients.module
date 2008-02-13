@@ -1,0 +1,9 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Parallel to the Services module, provides the ability to implement
+ * pluggable clients to external web services (including external
+ * Drupal sites running the Services module).
+ */
