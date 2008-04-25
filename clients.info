@@ -1,0 +1,6 @@
+; $Id$
+name = Web Service Clients
+description =  Provides methods for working with external web services.
+package = Clients
+
+

@@ -1,0 +1,7 @@
+; $Id$
+name = Actions Clients
+description =  Enables the creation of actions associated with web service calls.
+dependencies = clients custom_actions_ops
+package = Clients
+
+

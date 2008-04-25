@@ -7,3 +7,85 @@
  * pluggable clients to external web services (including external
  * Drupal sites running the Services module).
  */
+
+/**
+ * Implementation of hook_help().
+ */
+function clients_help($section) {
+  switch ($section) {
+    case 'admin/help#services':
+      return '<p>' . t('Visit the <a href="@handbook_url">Web Service Clients Handbook</a> for help and information.', array('@handbook_url' => 'http://drupal.org/node/109782')) . '</p>';
+    
+    case 'admin/build/clients':
+    case 'admin/build/clients/browse':
+      $output = '<p>' . t('Clients are collections of methods available from remote applications. They are defined in modules, and may be accessed in a number of ways through client modules. Visit the <a href="@handbook_url">Web Service Clients Handbook</a> for help and information.', array('@handbook_url' => 'http://drupal.org/node/109782')) . '</p>';
+      $output.= '<p>' . t('All enabled services and methods are shown. Click on any method to view information or test.') . '</p>';
+      return $output;
+      
+    case 'admin/build/clients/keys':
+      return t('An API key is required to allow an application to access Drupal remotely.');
+      
+  }
+}
+
+/**
+ * Implementation of hook_perm()
+ */
+function clients_perm() { 
+  return array('access clients', 'administer clients'); 
+}
+
+/**
+ * Return an array of data on all registered clients.
+ */
+function clients_get_all() {
+  static $clients = NULL;
+  if (is_null($clients)) {
+    $clients = module_invoke_all('client');
+  }
+  return $clients;
+}
+
+/**
+ * Return an array of entity types and their associated fields
+ * suitable for use in the #options property of a select form element.
+ */
+function clients_get_fields() {
+  static $fields = NULL;
+  if (is_null($fields)) {
+    $fields = array();
+    $clients = clients_get_all();
+    foreach ($clients as $client) {
+      if (isset($client['#entities'])) {
+        foreach ($client['#entities'] as $entity_key => $entity) {
+          if (isset($entity['#fields']) && !empty($entity['#fields'])) {
+            $fields[$entity['#title']] = array();
+            foreach ($entity['#fields'] as $field_key => $field) {
+              $fields[$entity['#title']][$entity_key .'_'. $field_key] = $field['#title'];
+            }
+          }
+        }
+      }
+    }
+  }
+  return $fields;
+}
+
+/**
+ * Return an array of methods.
+ */
+function clients_get_methods() {
+  static $methods = NULL;
+  if (is_null($methods)) {
+    $methods = array();
+    $clients = clients_get_all();
+    foreach ($clients as $name => $client) {
+      if (isset($client['#methods'])) {
+        foreach (element_children($client['#methods']) as $key) {
+          $methods[$name .'_'. $key] = $client['#methods'][$key]['#title'];
+        }
+      }
+    }
+  }
+  return $methods;
+}

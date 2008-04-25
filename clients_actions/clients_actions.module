@@ -1,0 +1,50 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Enables the creation of actions associated with web service calls.
+ */
+
+/**
+ * Implementation of a Drupal action.
+ *
+ * Unset a message.
+ */
+function action_clients_actions_user_create($op, $edit = array()) {
+  switch($op) {
+    case 'do':
+      // Call the relevant 
+      break;
+
+    case 'metadata':
+      return array(
+        'description' => t('Call an external service on user creation'),
+        'type' => t('Web service call'),
+        'batchable' => TRUE,
+        'configurable' => TRUE,
+      );
+
+    // return an HTML config form for the action
+    case 'form':
+      $options = clients_get_methods();
+      $form = array();
+      $form['client_method'] = array(
+        '#type' => 'select',
+        '#title' => t('Web service client method'),
+        '#description' => t('Select the method to be called.'),
+        '#default_value' => isset($edit['client_method']) ? $edit['client_method'] : 0,
+        '#required' => TRUE,
+        '#options' => $options,
+      );
+      return $form;
+
+    // validate the HTML form
+    case 'validate':
+      return TRUE;
+
+    // process the HTML form to store configuration
+    case 'submit':
+      return array('client_method' => $edit['client_method']);
+  }
+}

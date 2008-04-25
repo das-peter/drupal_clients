@@ -1,0 +1,60 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Enables the designation of content fields to be externally handled via
+ * web services.
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function clients_cck_form_alter($form_id, &$form) {
+  if ($form_id == '_content_admin_field') {
+    $options = clients_get_fields();
+    if (!empty($options)) {
+      $options = array(0 => '<none>') + $options;
+      $client = clients_cck_get_field_client($form['field_name']['#value']);
+      $form['widget']['clients'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Web services'),
+        '#description' => t('If you wish to tie this field to a web service, select a web service\'s field handler.'),
+        '#tree' => TRUE,
+      );
+      $form['widget']['clients']['remote_field'] = array(
+        '#type' => 'select',
+        '#title' => t('Select a remote field instance'),
+        '#description' => t(''),
+        '#default_value' => $client,
+        '#options' => $options,
+      );
+      $form['#submit']['clients_cck_content_field_admin_submit'] = array();
+    }
+  }
+}
+
+/**
+ * Submit handler for content field admin submission.
+ *
+ * Save remote field link.
+ */
+function clients_cck_content_field_admin_submit($form_id, $form_values) {
+  clients_cck_save_field($form_values['field_name'], $form_values['clients']['remote_field']);
+}
+
+function clients_cck_save_field($local_field, $remote_field) {
+  if (db_num_rows(db_query("SELECT remote_field FROM {clients_cck} WHERE local_field = '%s'", $local_field))) {
+    return db_query("UPDATE {clients_cck} SET remote_field = '%s' WHERE local_field = '%s'", $remote_field, $local_field);
+  }
+  else {
+    return db_query("INSERT INTO {clients_cck} (local_field, remote_field) VALUES ('%s', '%s')", $local_field, $remote_field);
+  }
+}
+
+/**
+ * Return a remote field identifier, if any, associated with a local field.
+ */
+function clients_cck_get_field_client($local_field) {
+  return db_result(db_query("SELECT remote_field from {clients_cck} WHERE local_field = '%s'", $local_field));
+}
