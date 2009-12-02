@@ -1,0 +1,132 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Install, update and uninstall functions for the Services_drupal module.
+ */
+ 
+/**
+ * Implementation of hook_install().
+ */
+function services_drupal_install() {
+  drupal_install_schema('services_drupal'); // modulename not schema
+  variable_set('services_drupal_type', 'Drupal Services');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function services_drupal_uninstall() {
+  // remove any drupal services from services table
+  db_query(
+      "DELETE {clients_services} FROM {clients_services}, {clients_drupal} 
+      WHERE {clients_services}.sid = {clients_drupal}.sid"
+  );  
+
+  drupal_uninstall_schema('services_drupal');
+  
+  // clean up any variables created by module
+  $module_variables = array(
+    'services_drupal_type',
+  );
+  foreach ($module_variables as $module_variable) {
+    variable_del($module_variable);
+  }
+}
+
+/**
+ * Implementation of hook_requirements
+ */
+
+function services_drupal_requirements($phase) {
+    
+    $requirements = array();
+    switch($phase) {
+    case 'install':
+    case 'runtime':    
+        if(ClientsServicesDrupal::getkey() == 'replace this with a strong password') {
+            $requirements['services_drupal_key'] = array(
+              'title' => t('Clients Drupal Services'),
+              'value' => t('Drupal services encryption key has not been set. Please edit the file services_drupal_key.inc in %installdir', 
+                  array('%installdir' => drupal_get_path('module', 'services_drupal'))),
+              'severity' => REQUIREMENT_ERROR
+            );
+        }
+        else {
+            $requirements['services_drupal_key'] = array(
+              'title' => t('Clients Drupal Services'),
+              'value' => t('Drupal services encryption key has been set'),
+              'severity' => REQUIREMENT_OK
+            );
+        }
+        if(!variable_get('services_drupal_cryptdir', FALSE)) {
+            $requirements['services_drupal_cryptdir'] = array(
+              'title' => t('Clients Drupal Services'),
+              'value' => t('Path to PEAR Blowfish library not set'),
+              'severity' => REQUIREMENT_ERROR
+            );
+        }
+        else {
+            $requirements['services_drupal_cryptdir'] = array(
+              'title' => t('Clients Drupal Services'),
+              'value' => t('Path set to PEAR Blowfish library (%cryptdir)', array('%cryptdir' => variable_get('services_drupal_cryptdir', ''))),
+              'severity' => REQUIREMENT_OK
+            );
+        }
+        break;
+    }
+    return $requirements;
+    
+}
+
+/**
+ * Implementation of hook_schema
+ */
+function services_drupal_schema() {
+
+  $schema['clients_drupal'] = array(
+      'description' => 'Stores additional connection info for each {clients_services} entry',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'Foreign key referencing {clients_services}',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'domain' => array(
+        'description' => 'Domain',
+        'type' => 'varchar',
+        'length' => 100,
+      ),
+      'servicekey' => array(
+        'description' => 'Key',
+        'type' => 'varchar',
+        'length' => 40,
+      ),
+      'username' => array(
+        'description' => 'Service username',
+        'type' => 'varchar',
+        'length' => 60,
+      ),
+      'password' => array(
+        'description' => 'Service password',
+        'type' => 'blob',
+      ),
+      'methods_enabled' => array(
+        'description' => 'Enabled services',
+        'type' => 'varchar',
+        'length' => 400,
+      ),
+      'views_enabled' => array(
+        'description' => 'Enabled views',
+        'type' => 'varchar',
+        'length' => 400,
+      ),
+    ),
+    'primary key' => array('sid'),
+  );
+  
+  
+  return $schema;
+}
+
