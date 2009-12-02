@@ -1,6 +1,8 @@
-; $Id$
-name = Web Service Clients
-description =  Provides methods for working with external web services.
+;$Id$
+name = Clients Base
+description = Basic service management and API for Web Services clients
+core = 6.x
+php = 5.1
 package = Clients
 
 

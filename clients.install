@@ -1,26 +1,73 @@
 <?php
 // $Id$
-
+/**
+ * @file
+ * Install, update and uninstall functions for the Clients module.
+ */
+ 
+/**
+ * Implementation of hook_install().
+ */
 function clients_install() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-      db_query("CREATE TABLE {clients_entities} (
-        local_field varchar(50) NOT NULL default '',
-        remote_field varchar(50) NOT NULL default '',
-        PRIMARY KEY  (local_field, remote_field)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
-      break;
-    case 'pgsql':
-      db_query("CREATE TABLE {clients_cck} (
-        local_field varchar(50) NOT NULL default '',
-        remote_field varchar(50) NOT NULL default '',
-        PRIMARY KEY  (local_field, remote_field)
-      );");
-      break;
-  }
+  drupal_install_schema('clients');
 }
 
-function clients_cck_uninstall() {
-  db_query('DROP TABLE {clients_cck}');
+/**
+ * Implementation of hook_uninstall().
+ */
+function clients_uninstall() {
+  drupal_uninstall_schema('clients_services');
+  drupal_uninstall_schema('cache_clients');
+  
+  // clean up any variables created by module
+  $module_variables = array(
+    
+  );
+  foreach ($module_variables as $module_variable) {
+    variable_del($module_variables);
+  }
+  
 }
+
+/**
+ * Implementation of hook_schema
+ */
+function clients_schema() {
+  $schema['cache_clients'] = drupal_get_schema_unprocessed('system', 'cache');
+
+  $schema['clients_services'] = array(
+    'description' => 'Stores service definitions and connection info',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'The primary identifier for a service.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => 'Service name, must be unique',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'Service type',
+        'type' => 'varchar',
+        'length' => 100,
+      ),
+      'baseurl' => array(
+        'description' => 'Service base URL',
+        'type' => 'varchar',
+        'length' => 100,
+      ),
+    ),
+    'unique keys' => array(
+      'name' => array('name'),
+      ),
+    'primary key' => array('sid'),
+  );
+  
+  
+  return $schema;
+}
+
