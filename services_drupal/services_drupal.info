@@ -1,9 +1,0 @@
-;$Id$
-name = Drupal Services
-description = Drupal Services backend for Clients API
-core = 6.x
-php = 5.1
-dependencies[] = clients
-package = Clients
-
-
