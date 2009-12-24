@@ -1,0 +1,9 @@
+;$Id$
+name = Feeds client
+description = Basic service management and API for Web Services clients
+core = 6.x
+php = 5.1
+package = Clients
+dependencies[] = clients
+dependencies[] = feeds
+

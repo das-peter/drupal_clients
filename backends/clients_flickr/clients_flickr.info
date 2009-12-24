@@ -1,0 +1,9 @@
+;$Id$
+name = Flickr
+description = Flickr backend for Clients
+core = 6.x
+php = 5.1
+dependencies[] = clients
+package = Clients
+
+

@@ -1,0 +1,520 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Drupal Services plugin for Clients module
+ * @author Django Beatty - adub
+ */
+ 
+/**
+ * Contains class extending Clients ClientsServicesBase
+ */
+require_once('clients_drupal.inc'); 
+
+/**
+ * Implementation of hook_help()
+ * @param path which path of the site we're displaying help
+ * @param arg array that holds the current path as would be returned from arg() function
+ * @return help text for the path
+ */
+function clients_drupal_help($path, $arg) {
+  $output = '';  
+  switch ($path) {
+    case "admin/help#clients_drupal":
+      $output = '<p>'.  t("Clients - Drupal Services.") .'</p>';
+      break;
+  }
+  return $output;
+} 
+
+/**
+ * Implementation of hook_perm()
+ * @TODO 
+ * @return array An array of valid permissions for the clients_drupal module
+ */
+function clients_drupal_perm() {
+  return array('clients_drupal admin');
+} 
+
+/**
+ * Implementation of hook_clients_connection_edit()
+ */
+function clients_drupal_clients_connection_edit($formvals) {
+  if($formvals['type'] == variable_get('clients_drupal_type', 'Drupal Services')) {
+    $formvals['type'] = variable_get('clients_drupal_type', 'clients_drupal');
+    // prepare pass for serialized storage
+    if(empty($formvals['configuration']['password'])) {
+      // need to load connection and set password to original if blank
+      $original = clients_connection_load((int)$formvals['cid']);
+      $formvals['configuration']['password'] = $original->configuration['password'];
+    }
+    $formvals['configuration']['password'] = clients_drupal_encrypt($formvals['configuration']['password']);
+    return $formvals;
+  }
+}
+
+/**
+ * Implementation of hook_clients_connection_save()
+ */
+function clients_drupal_clients_connection_save($values) {
+  if($values['type'] == variable_get('clients_drupal_type', 'Drupal Services')) {
+    $values['configuration']['password'] = clients_drupal_encrypt($values['configuration']['password']);
+  }
+  return $values;
+}
+
+/**
+ * Implementation of hook_menu()
+ */
+function clients_drupal_menu() {
+  $items = array();
+  $items['admin/settings/clients/connections/drupal'] = array(
+     'title' => 'Add Drupal connection',
+     'description' => 'Add Drupal connection',
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('clients_drupal_config', 'add'),
+     'access arguments' => array('clients_drupal admin'),
+     'weight' => 10,
+     'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/settings/clients/connections/drupal/%/edit'] = array(
+     'title' => 'Edit Drupal connection',
+     'description' => 'Edit Drupal connection',
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('clients_drupal_config', 6, 5),
+     'access arguments' => array('clients_drupal admin'),
+     'weight' => 10,
+     'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+} 
+
+/**
+ * @return array Form
+ */
+function clients_drupal_config(&$form_state, $op, $cid = '') {
+  $form = array();
+
+  if($cid) {
+    $connection = clients_connection_load((int)$cid);
+    $form['cid'] = array(
+      '#type' => 'value',
+      '#value' => $cid,
+    );
+  }
+
+  $form['type'] = array(
+    '#type' => 'value',
+    '#value' => variable_get('clients_drupal_type', 'Drupal Services'),
+  );
+  
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Connection name'),
+    '#default_value' => $cid ? $connection->name : '',
+    '#size' => 50,
+    '#maxlength' => 100,
+    '#description' => t('Must be unique'),
+    '#required' => TRUE,
+  );
+  $form['endpoint'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Connection endpoint'),
+    '#default_value' => $cid ? $connection->endpoint : '',
+    '#size' => 50,
+    '#maxlength' => 100,
+    '#required' => TRUE,
+  );
+  
+  $form['configuration'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Configuration'),
+    '#collapsible' => FALSE,
+    '#tree' => TRUE,
+  );
+  
+  $form['configuration']['domain'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Domain'),
+    '#default_value' =>  $cid ? $connection->configuration['domain'] : '',
+    '#size' => 50,
+    '#maxlength' => 100,
+    '#required' => TRUE,
+  );
+  $form['configuration']['servicekey'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Service key'),
+    '#default_value' =>  $cid ? $connection->configuration['servicekey'] : '',
+    '#size' => 50,
+    '#maxlength' => 40,
+    '#attributes' => array('autocomplete' => 'off'),
+    '#required' => TRUE,
+  );
+  $form['configuration']['username'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Service username'),
+    '#default_value' =>  $cid ? $connection->configuration['username'] : '',
+    '#size' => 30,
+    '#maxlength' => 60,
+    '#attributes' => array('autocomplete' => 'off'),
+    '#required' => TRUE,
+  );
+  
+  $password_desc = $cid ? 
+    t('Leave blank unless you want to change this.') : '';
+    
+  $form['configuration']['password'] = array(
+    '#type' => 'password',
+    '#title' => t('Service password'),
+    '#size' => 30,
+    '#maxlength' => 60,
+    '#attributes' => array('autocomplete' => 'off'),
+    '#description' => $password_desc,
+    '#required' => $op == 'add',
+  );
+
+  $form['configuration']['methods_enabled'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Services'),
+    '#default_value' =>  $cid ? $connection->configuration['methods_enabled'] : '',
+    '#description' => t('List of Drupal services on remote servers that you want to enable here. One per line.'),
+  );
+
+  $form['configuration']['views_enabled'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Views'),
+    '#default_value' =>  $cid ? $connection->configuration['views_enabled'] : '',
+    '#description' => t('List of Drupal views on remote servers that you want to enable here. One per line.'),
+  );
+
+  if($op == 'add') {
+      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Add connection') );
+    
+      $form['#submit'] = array('clients_drupal_add_submit_handler');
+  }
+  elseif($op == 'edit') {
+      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Edit connection') );
+    
+      $form['#submit'] = array('clients_drupal_edit_submit_handler');
+  }
+  return $form;
+} 
+
+/**
+ * Submit handler
+ * @return array Form
+ */
+function clients_drupal_add_submit_handler($form, &$form_state) {
+    clients_connection_save($form_state['values']);
+}
+
+/**
+ * Submit handler
+ * @return array Form
+ */
+function clients_drupal_edit_submit_handler($form, &$form_state) {
+  clients_connection_edit($form_state['values']);
+}
+
+/**
+ * Implementation of hook_validate()
+ */
+function clients_drupal_add_validate($form, &$form_state) {
+    
+    if(clients_connection_load($form['name']['#value'])) {
+        form_set_error('name', 'A service by this name already exists!');
+    }
+
+    $connection = new stdClass;
+    $connection->name = $form['name']['#value'];
+    $connection->endpoint = $form['endpoint']['#value'];
+    $connection->domain = $form['configuration']['domain']['#value'];
+    $connection->servicekey = $form['configuration']['servicekey']['#value'];
+    $connection->username = $form['configuration']['username']['#value'];
+    $connection->password = $form['configuration']['password']['#value'];
+    
+    $testconnect = ClientsServicesDrupal::connect($connection);
+    if(!is_array($testconnect) || !isset($testconnect['sessid'])) {
+        form_set_error('endpoint', "Couldn't connect");
+    } else {
+        $testuser = ClientsServicesDrupal::getUser($connection);
+        if(!is_array($testuser) || !isset($testuser['sessid'])) {
+            form_set_error('username', isset($testuser->message) ? $testuser->message : "Couldn't log in");
+        }
+    }
+} 
+
+/**
+ * Implementation of hook_clients_connection_load
+ */
+function clients_drupal_clients_connection_load(&$connection) {
+  if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')){
+    $connection->configuration['password'] = clients_drupal_decrypt($connection->configuration['password']); // or ***
+    $connection->operations =  l(t('Edit'), 'admin/settings/clients/connections/drupal/'. $connection->cid .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/connections/'. $connection->cid .'/delete');
+  }  
+}
+  
+
+/**
+ * Implementation of hook_clients_service_options
+ */
+function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_values, $resource) {
+  if($connection->type != variable_get('clients_drupal_type', 'Drupal Services')) {
+    return;
+  }
+    
+  $form = array();
+  $connection = clients_connection_load((int)$connection->cid);
+  $methods = array_map('trim', explode("\n", trim($connection->configuration['methods_enabled']))); 
+  $methods = array_combine($methods, $methods);    
+
+  $options_selected = 
+    (isset($wrapper_values['options']) ? $wrapper_values['options'] : 
+    (isset($resource->rid) ? $resource->configuration['options'] : 
+    array()));
+    
+  // if we change connection and method doesn't exist, reset
+  if(!in_array($options_selected['method'], $methods)) { 
+    $options_selected['method'] = key($methods);
+  }
+
+  $form['method'] = array(
+    '#type' => 'select',
+    '#title' => t('Method'),
+    '#default_value' => $options_selected['method'], 
+    '#options' => $methods,  
+    '#description' => t('Choose method'),
+    '#required' => TRUE,
+    '#ahah' => array(
+      'path' => ahah_helper_path(array($wrapper)),
+      'wrapper' => $wrapper,
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
+  );
+
+  if($options_selected['method'] == 'views.get') {
+        
+    $views = array_map('trim', explode("\n", trim($connection->configuration['views_enabled']))); 
+    $views = array_combine($views, $views);    
+
+    $form['view'] = array(
+      '#type' => 'select',
+      '#title' => t('View'),
+      '#default_value' => $options_selected['view'],
+      '#options' => $views,
+      '#description' => t('Choose view'),
+    );
+    $form['arguments']['first'] = array(
+      '#type' => 'textfield', 
+      '#title' => t('Argument'), 
+      '#default_value' => $options_selected['arguments']['first'],
+      '#size' => 10, 
+      '#maxlength' => 30, 
+    );
+    $form['offset'] = array(
+      '#type' => 'textfield', 
+      '#title' => t('Offset'), 
+      '#default_value' => $options_selected['offset'],
+      '#size' => 3, 
+      '#maxlength' => 4, 
+    );
+    $form['limit'] = array(
+      '#type' => 'textfield', 
+      '#title' => t('Limit'), 
+      '#default_value' => $options_selected['limit'],
+      '#size' => 3, 
+      '#maxlength' => 4, 
+    );
+  }
+  else {
+      /**
+       * @todo some 'method not supported' handling
+       */
+  }
+  return $form;
+} 
+
+/**
+ * Implementation of hook_clients_call
+ */
+function clients_drupal_clients_call($connection, $serviceOptions) {
+    if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')){
+        $serviceConfig = clients_connection_load((int)$connection->cid);
+        return ClientsServicesDrupal::call($serviceConfig, $serviceOptions);
+    }
+}
+
+/**
+ * Implementation of hook_clients_fields - refactor as inc file?
+ * Allows us to get field for a specific resource. Default fields are set at the connection type level here and additional custom field will be defined per resource (@todo). This will allow adding of remote cck fields (for example) for a specific resource (e.g. a certain view). This function will need to aggregate these with the base ones. (Otherwise this function is used to return all available fields.)
+ */
+function clients_drupal_clients_fields($resource = NULL) {
+  // Some standard node fields. Will also need to aggregate resource-specified fields
+  return array(
+    'nid' => array(
+        'name' => t('Node id'),
+        'description' => t('(nid)'),
+      ), 
+    'type' => array(
+        'name' => t('Type'),
+        'description' => t(''),
+      ), 
+    'language' => array(
+        'name' => t('Language'),
+        'description' => t(''),
+      ),
+    'uid' => array(
+        'name' => t('User id'),
+        'description' => t('(uid)'),
+      ),
+    'status' => array(
+        'name' => t('Published status'),
+        'description' => t('(status)'),
+      ),
+    'created' => array(
+        'name' => t('Published date'),
+        'description' => t('(created)'),
+      ),
+    'changed' => array(
+        'name' => t('Last changed date'),
+        'description' => t('(changed)'),
+      ),
+    'comment' => array(
+        'name' => t('Comments status'),
+        'description' => t('(comment)'),
+      ),
+    'promote' => array(
+        'name' => t('Promoted status'),
+        'description' => t('(promote)'),
+      ),
+    'moderate' => array(
+        'name' => t('Moderate status'),
+        'description' => t(''),
+      ),
+    'sticky' => array(
+        'name' => t('Sticky status'),
+        'description' => t(''),
+      ),
+    'tnid' => array(
+        'name' => t('Translate node id'),
+        'description' => t('(tnid)'),
+      ),
+    'translate' => array(
+        'name' => t('Translate status'),
+        'description' => t('(translate)'),
+      ),
+    'vid' => array(
+        'name' => t('Revision'),
+        'description' => t('(vid)'),
+      ),
+    'revision_uid' => array(
+        'name' => t('Revision user id'),
+        'description' => t(''),
+      ),
+    'title' => array(
+        'name' => t('Title'),
+        'description' => t(''),
+      ), 
+    'body' => array(
+        'name' => t('Body'),
+        'description' => t(''),
+      ),
+    'teaser' => array(
+        'name' => t('Teaser'),
+        'description' => t(''),
+      ), 
+    'log' => array(
+        'name' => t('Log message'),
+        'description' => t(''),
+      ),
+    'revision_timestamp' => array(
+        'name' => t('Revision timestamp'),
+        'description' => t(''),
+      ),
+    'format' => array(
+        'name' => t('Input filter format'),
+        'description' => t(''),
+      ),
+    'name' => array(
+        'name' => t('Author name'),
+        'description' => t(''),
+      ),
+    'picture' => array(
+        'name' => t('Author picture'),
+        'description' => t(''),
+      ),
+    'data' => array(
+        'name' => t('Data'),
+        'description' => t(''),
+      ),
+    'last_comment_timestamp' => array(
+        'name' => t('Last comment timestamp'),
+        'description' => t(''),
+      ),
+    'last_comment_name' => array(
+        'name' => t('Last comment author name'),
+        'description' => t(''),
+      ),
+    'comment_count' => array(
+        'name' => t('Comment count'),
+        'description' => t(''),
+      ),
+    'taxonomy' => array(
+        'name' => t('Taxonomy'),
+        'description' => t(''),
+      ),
+    'images_data' => array(
+        'name' => t('images_data'),
+        'description' => t(''),
+      ),
+  );
+}
+
+function clients_drupal_feeds_node_processor_targets_alter(&$targets, $content_type) {
+  if($content_type == 'image') {
+    $targets['image_data'] = array(
+      'name' => "Image data",
+      'callback' => 'clients_drupal_feeds_set_target',
+      'description' => t('Image data mapping'),
+    );
+  }
+}
+/**
+ * Callback for mapping. Here is where the actual mapping happens.
+ *
+ * When the callback is invoked, $target contains the name of the field the
+ * user has decided to map to and $value contains the value of the feed item
+ * element the user has picked as a source.
+ */
+function clients_drupal_feeds_set_target(&$node, $target, $value) {
+  
+  $image = $value['_original'];
+  $data = base64_decode(trim($image['file']));
+  $filename = $image['fullname'];
+  $destdir = file_directory_path() .'/images'; 
+  
+  if(file_check_directory($destdir)) {              
+      $file['filepath'] = file_save_data($data, $destdir .'/'. $filename, FILE_EXISTS_REPLACE); // or FILE_EXISTS_ERROR
+  }
+  
+  $node = image_create_node_from($file['filepath'], $node->title, $node->body); // add taxo 
+  if($node) {
+      _image_build_derivatives($node);
+  }
+  else {
+      // TODO watchdog
+  }
+                
+}
+
+
+function clients_drupal_encrypt($val) {
+  return base64_encode(Drupal_Crypt_Blowfish::encrypt($val));
+}
+function clients_drupal_decrypt($val) {
+  return trim(Drupal_Crypt_Blowfish::decrypt(base64_decode($val)));
+}
+
+

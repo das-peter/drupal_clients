@@ -1,0 +1,27 @@
+<?php
+// $Id$
+/**
+ * @file
+ * @author Django Beatty - adub
+ * Install, update and uninstall functions for the Clients module.
+ */
+ 
+/**
+ * Implementation of hook_install().
+ */
+function clients_feeds_install() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function clients_feeds_uninstall() {
+  
+  // clean up any variables created by module
+  $module_variables = array(    
+  );
+  foreach ($module_variables as $module_variable) {
+    variable_del($module_variables);
+  }
+}
+

@@ -1,0 +1,8 @@
+;$Id$
+name = PEAR Crypt Blowfish 
+description = Provides integration with PEAR Crypt_Blowfish class for password storage. This module is strongly recommended if using Drupal Services clients.
+core = 6.x
+php = 5.1
+package = Clients
+
+
