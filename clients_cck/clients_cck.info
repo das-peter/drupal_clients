@@ -1,7 +1,0 @@
-; $Id$
-name = CCK Clients
-description =  Enables the designation of content fields to be externally handled via web services.
-dependencies = clients content
-package = Clients
-
-

@@ -1,5 +1,0 @@
-; $Id$
-name = Example client
-description = Provides an example of a client implementation.
-package = Clients - clients
-dependencies = clients
