@@ -77,6 +77,14 @@ function clients_drupal_menu() {
      'weight' => 10,
      'type' => MENU_NORMAL_ITEM,
   );
+  $items['admin/settings/clients/drupal/admin'] = array(
+     'title' => 'Configure Drupal',
+     'page callback' => 'drupal_get_form',
+     'page arguments' => array('clients_drupal_admin'),
+     'access arguments' => array('clients_drupal admin'),
+     'weight' => 10,
+     'type' => MENU_NORMAL_ITEM,
+  );
   $items['admin/settings/clients/connections/drupal/%/edit'] = array(
      'title' => 'Edit Drupal connection',
      'description' => 'Edit Drupal connection',
@@ -363,6 +371,7 @@ function clients_drupal_clients_fields($resource = NULL) {
       ), 
     'language' => array(
         'name' => t('Language'),
+
         'description' => t(''),
       ),
     'uid' => array(
@@ -472,6 +481,52 @@ function clients_drupal_clients_fields($resource = NULL) {
   );
 }
 
+/**
+ * @return array Form
+ */
+function clients_drupal_admin() {
+  $form = array();
+  $options = clients_drupal_encryption_methods();
+  $form['clients_drupal_encryption_method'] = array(
+    '#type' => 'select',
+    '#title' => t('Remote password encryption method'),
+    '#default_value' => variable_get('clients_drupal_encryption_method', ''),
+    '#options' => $options,
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+} 
+
+function clients_drupal_encryption_methods() {
+  $options = module_invoke_all('clients_drupal_encryption_methods');
+  $options['no_encryption'] = t('No encryption');
+  return $options;
+}
+
+function clients_drupal_encrypt($val) {
+  $encryption_method = variable_get('clients_drupal_encryption_method', 'no_encryption');
+  if($encryption_method == 'no_encryption') {
+     return $val;
+  }
+  else {
+    return module_invoke($encryption_method, 'clients_drupal_encrypt', $val);
+  }
+}
+
+function clients_drupal_decrypt($val) {
+  $encryption_method = variable_get('clients_drupal_encryption_method', '');
+  if($encryption_method == 'no_encryption') {
+     return $val;
+  }
+  else {
+    return module_invoke($encryption_method, 'clients_drupal_decrypt', $val);
+  }
+}
+
+
+
+
 function clients_drupal_feeds_node_processor_targets_alter(&$targets, $content_type) {
   if($content_type == 'image') {
     $targets['image_data'] = array(
@@ -508,13 +563,4 @@ function clients_drupal_feeds_set_target(&$node, $target, $value) {
   }
                 
 }
-
-
-function clients_drupal_encrypt($val) {
-  return base64_encode(Drupal_Crypt_Blowfish::encrypt($val));
-}
-function clients_drupal_decrypt($val) {
-  return trim(Drupal_Crypt_Blowfish::decrypt(base64_decode($val)));
-}
-
 

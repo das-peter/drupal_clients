@@ -81,3 +81,25 @@ function crypt_blowfish_admin() {
   return system_settings_form($form);
 } 
 
+/**
+ * Implementation of hook_clients_drupal_encrypt()
+ */
+function crypt_blowfish_clients_drupal_encrypt($val) {
+  return base64_encode(Drupal_Crypt_Blowfish::encrypt($val));
+}
+/**
+ * Implementation of hook_clients_drupal_decrypt()
+ */
+function crypt_blowfish_clients_drupal_decrypt($val) {
+  return trim(Drupal_Crypt_Blowfish::decrypt(base64_decode($val)));
+}
+
+/**
+ * Implementation of hook_clients_drupal_encryption_methods()
+ */
+function crypt_blowfish_clients_drupal_encryption_methods() {
+  return array('crypt_blowfish' => 'Blowfish');
+}
+
+
+

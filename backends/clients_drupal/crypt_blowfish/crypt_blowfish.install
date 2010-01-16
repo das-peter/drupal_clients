@@ -49,7 +49,7 @@ function crypt_blowfish_requirements($phase) {
         'severity' => REQUIREMENT_OK
       );
       // todo fix error if not found
-      if(Crypt_Blowfish::getkey() == 'replace this with a strong password') {
+      if(Drupal_Crypt_Blowfish::getkey() == 'replace this with a strong password') {
         $requirements['crypt_blowfish_key'] = array(
           'title' => t('Blowfish'),
           'value' => t('Blowfish encryption key has not been set. Please edit the file crypt_blowfish_key.inc in %installdir', 
