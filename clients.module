@@ -247,6 +247,23 @@ function clients_call($resource) {
 }
 
 /**
+ * nano API for callback to resources
+ * @param $arg Array Takes the form array('name1'=>'value1', 'name2'=>'value2') 
+ */
+function clients_setparams(&$resource, $arg) {
+  module_invoke_all('clients_setparams', $resource, $arg);
+}
+/**
+ * defines hook_clients_arguments()
+ * return array of rows with following fields: $foo->name, $foo->title, $foo->help,
+ */
+function clients_arguments($source) {
+  return module_invoke_all('clients_arguments', $source);
+}
+
+
+
+/**
  * defines hook_clients_fields
  */
 function clients_fields($resource = NULL) {
@@ -418,11 +435,9 @@ function clients_resources() {
 }
 
 /**
- *
- */
+ * @todo hide password until clicked to prevent overshoulder attacks when keys are being checked
+ **/
 function clients_resource_view($arg) {
-// TODO hide password until clicked to prevent overshoulder attacks when keys are being checked
-
   drupal_set_breadcrumb(array(
           l(t('Home'), NULL), 
           l(t('Administer'), 'admin'), 
@@ -501,7 +516,6 @@ function clients_connection_edit($values) {
 
 function clients_connection_save($values) {
   $values = module_invoke_all('clients_connection_save', $values);
-  dpm($values);
   if(
       $resultbase = drupal_write_record('clients_connections', $values)
      ) {

@@ -345,6 +345,39 @@ function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_
 } 
 
 /**
+ * Implementation of hook_clients_setparams
+ */
+function clients_drupal_clients_setparams(&$resource, $arg) {
+  $connection = clients_connection_load((int)$resource->cid); // need to make static?
+  if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')) {
+    foreach($arg as $key => $value) {
+      // doesn't support multiple args...
+      if($key == 'argument') {
+        $resource->configuration['options']['arguments']['first'] = str_replace(' ', '+', $value);
+      }
+      else {
+        $resource->configuration['options'][$key] = str_replace(' ', '+', $value);
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_clients_arguments
+ */
+function clients_drupal_clients_arguments($connection)  {
+//  $connection = clients_connection_load((int)$source['connection']); 
+  if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')) {
+    $arg = new stdClass;
+    $arg->name = 'argument';
+    $arg->title = t('Argument');
+    $arg->help = t('Argument to pass to resource');
+    return array($arg);
+  }
+}
+
+
+/**
  * Implementation of hook_clients_call
  */
 function clients_drupal_clients_call($connection, $serviceOptions) {
@@ -359,126 +392,28 @@ function clients_drupal_clients_call($connection, $serviceOptions) {
  * Allows us to get field for a specific resource. Default fields are set at the connection type level here and additional custom field will be defined per resource (@todo). This will allow adding of remote cck fields (for example) for a specific resource (e.g. a certain view). This function will need to aggregate these with the base ones. (Otherwise this function is used to return all available fields.)
  */
 function clients_drupal_clients_fields($resource = NULL) {
-  // Some standard node fields. Will also need to aggregate resource-specified fields
-  return array(
-    'nid' => array(
-        'name' => t('Node id'),
-        'description' => t('(nid)'),
-      ), 
-    'type' => array(
-        'name' => t('Type'),
-        'description' => t(''),
-      ), 
-    'language' => array(
-        'name' => t('Language'),
+  if($resource) {
+    $connection = clients_connection_load((int)$resource->cid);
+    if($connection->type != variable_get('clients_drupal_type', 'Drupal Services')) {
+      return;
+    }
 
-        'description' => t(''),
-      ),
-    'uid' => array(
-        'name' => t('User id'),
-        'description' => t('(uid)'),
-      ),
-    'status' => array(
-        'name' => t('Published status'),
-        'description' => t('(status)'),
-      ),
-    'created' => array(
-        'name' => t('Published date'),
-        'description' => t('(created)'),
-      ),
-    'changed' => array(
-        'name' => t('Last changed date'),
-        'description' => t('(changed)'),
-      ),
-    'comment' => array(
-        'name' => t('Comments status'),
-        'description' => t('(comment)'),
-      ),
-    'promote' => array(
-        'name' => t('Promoted status'),
-        'description' => t('(promote)'),
-      ),
-    'moderate' => array(
-        'name' => t('Moderate status'),
-        'description' => t(''),
-      ),
-    'sticky' => array(
-        'name' => t('Sticky status'),
-        'description' => t(''),
-      ),
-    'tnid' => array(
-        'name' => t('Translate node id'),
-        'description' => t('(tnid)'),
-      ),
-    'translate' => array(
-        'name' => t('Translate status'),
-        'description' => t('(translate)'),
-      ),
-    'vid' => array(
-        'name' => t('Revision'),
-        'description' => t('(vid)'),
-      ),
-    'revision_uid' => array(
-        'name' => t('Revision user id'),
-        'description' => t(''),
-      ),
-    'title' => array(
-        'name' => t('Title'),
-        'description' => t(''),
-      ), 
-    'body' => array(
-        'name' => t('Body'),
-        'description' => t(''),
-      ),
-    'teaser' => array(
-        'name' => t('Teaser'),
-        'description' => t(''),
-      ), 
-    'log' => array(
-        'name' => t('Log message'),
-        'description' => t(''),
-      ),
-    'revision_timestamp' => array(
-        'name' => t('Revision timestamp'),
-        'description' => t(''),
-      ),
-    'format' => array(
-        'name' => t('Input filter format'),
-        'description' => t(''),
-      ),
-    'name' => array(
-        'name' => t('Author name'),
-        'description' => t(''),
-      ),
-    'picture' => array(
-        'name' => t('Author picture'),
-        'description' => t(''),
-      ),
-    'data' => array(
-        'name' => t('Data'),
-        'description' => t(''),
-      ),
-    'last_comment_timestamp' => array(
-        'name' => t('Last comment timestamp'),
-        'description' => t(''),
-      ),
-    'last_comment_name' => array(
-        'name' => t('Last comment author name'),
-        'description' => t(''),
-      ),
-    'comment_count' => array(
-        'name' => t('Comment count'),
-        'description' => t(''),
-      ),
-    'taxonomy' => array(
-        'name' => t('Taxonomy'),
-        'description' => t(''),
-      ),
-    'images_data' => array(
-        'name' => t('images_data'),
-        'description' => t(''),
-      ),
-  );
+    $result = clients_call($resource);
+    $fields = array_keys($result[0]->data[0]);
+    $fieldset = array();
+    foreach($fields as $field) {
+      $fieldset[$field] = array('name' => $field, 'description' => '');
+    }
+    return $fieldset;
+
+  }
+  
+// need to define behaviour if no resource specified - should this display:
+// - no fields
+// - a preset list of fields (from each service module)
+// - all possible fields from currently defined resources
+  return array();
+
 }
 
 /**
@@ -525,42 +460,4 @@ function clients_drupal_decrypt($val) {
 }
 
 
-
-
-function clients_drupal_feeds_node_processor_targets_alter(&$targets, $content_type) {
-  if($content_type == 'image') {
-    $targets['image_data'] = array(
-      'name' => "Image data",
-      'callback' => 'clients_drupal_feeds_set_target',
-      'description' => t('Image data mapping'),
-    );
-  }
-}
-/**
- * Callback for mapping. Here is where the actual mapping happens.
- *
- * When the callback is invoked, $target contains the name of the field the
- * user has decided to map to and $value contains the value of the feed item
- * element the user has picked as a source.
- */
-function clients_drupal_feeds_set_target(&$node, $target, $value) {
-  
-  $image = $value['_original'];
-  $data = base64_decode(trim($image['file']));
-  $filename = $image['fullname'];
-  $destdir = file_directory_path() .'/images'; 
-  
-  if(file_check_directory($destdir)) {              
-      $file['filepath'] = file_save_data($data, $destdir .'/'. $filename, FILE_EXISTS_REPLACE); // or FILE_EXISTS_ERROR
-  }
-  
-  $node = image_create_node_from($file['filepath'], $node->title, $node->body); // add taxo 
-  if($node) {
-      _image_build_derivatives($node);
-  }
-  else {
-      // TODO watchdog
-  }
-                
-}
 

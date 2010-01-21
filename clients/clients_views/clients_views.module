@@ -95,8 +95,9 @@ function clients_views_views_data() {
       'help' => t('Clients remote content'),
       'query class' => 'clientsQuery'
     );
-
-    foreach(clients_fields($source['connection']) as $field_key=>$field_val) {
+    
+    $resource = clients_resource_load($rid);
+    foreach(clients_fields($resource) as $field_key=>$field_val) {
       // only works for string fields
       $data[$source['name']][$field_key] = array(
         'title' => $field_val['name'],

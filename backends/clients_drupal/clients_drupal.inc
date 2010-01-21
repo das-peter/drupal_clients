@@ -17,7 +17,7 @@ class ClientsServicesDrupal extends ClientsServicesBase {
 	{
     $session = xmlrpc($connection->endpoint, 'system.connect');
     if ($session === FALSE) {
-      return xmlrpc_error(); // does this work, seems to return NULL?
+      return xmlrpc_error(); // null for services 2...
     }
     return $session;
   }
@@ -115,7 +115,9 @@ class ClientsServicesDrupal extends ClientsServicesBase {
       $user = self::getUser($serviceConfig);
       // gets raw result
       $result = self::fetch($serviceConfig, $serviceOptions, $user);
-      
+      /**
+       * if remote server using views before http://drupal.org/cvs?commit=294710, node row style output returns node objects, otherwise it returns node ids only
+       **/       
       // needs some post-processing
       $processed_result = new stdClass;
       $processed_result->created = $result->created;
@@ -126,9 +128,11 @@ class ClientsServicesDrupal extends ClientsServicesBase {
         unset($item['nid']);
         $tags = array();
         // remote taxonomy is not understood locally so flatten to RSS-style bag of tags (TODO: develop this to preserve vocabs)
+        /* - fix: item may not have taxo
         foreach($item['taxonomy'] as $term) {
             $tags = $term['name'];
         }
+        */
         $item['tags'] = $tags;
         unset($item['taxonomy']);
         
