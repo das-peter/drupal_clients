@@ -315,29 +315,59 @@ function clients_flickr_clients_call($connection, $serviceOptions) {
  * Allows us to get field for a specific resource. Default fields are set at the connection type level here and additional custom field will be defined per resource (@todo). This will allow adding of remote cck fields (for example) for a specific resource (e.g. a certain view). This function will need to aggregate these with the base ones. (Otherwise this function is used to return all available fields.)
  */
 function clients_flickr_clients_fields($resource = NULL) {
+  if($resource->cid) {
+    $connection = clients_connection_load((int)$resource->cid);
+    if($connection->type != variable_get('clients_flickr_type', 'Flickr')) {
+      return;
+    }
+  }
   // etc - http://www.flickr.com/services/api/flickr.photos.search.html
-  return array(
-    'id' => array(
-      'name' => t('Photo id'),
-      'description' => t(''),
-    ), 
-    'url' => array(
-      'name' => t('Photo URL'),
-      'description' => t(''),
-    ), 
-    'title' => array(
-      'name' => t('Title'),
-      'description' => t(''),
-    ),
-    'html' => array(
-      'name' => t('Image tag'),
-      'description' => t(''),
-    ),
-    'owner' => array(
-      'name' => t('Owner'),
-      'description' => t(''),
-    ),
-  );
+  return array();
 }
+
+/**
+ * Implementation of hook_clients_setparams
+ */
+function clients_flickr_clients_setparams(&$resource, $arg) {
+  $connection = clients_connection_load((int)$resource->cid); // need to make static?
+  if($connection->type == variable_get('clients_flickr_type', 'Flickr')) {
+    foreach($arg as $key => $value) {
+      if($key == 'argument') {
+        $resource->configuration['options']['text'] = str_replace(' ', '+', $value);
+      }
+      elseif($key == 'limit') {
+        $resource->configuration['options']['per_page'] = $value;
+      }
+      elseif($key == 'offset') {
+        $resource->configuration['options']['page'] = $value;
+      }
+      else {
+        $resource->configuration['options'][$key] = str_replace(' ', '+', $value);
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_clients_arguments
+ */
+function clients_flickr_clients_arguments($connection) {
+  if($connection->type == variable_get('clients_flickr_type', 'Flickr')) {
+
+    $arg1 = new stdClass;
+    $arg1->name = 'argument';
+    $arg1->title = t('Argument');
+    $arg1->help = t('Argument to pass to resource');
+    $args[] = $arg1;
+    $arg2 = new stdClass;
+    $arg2->name = 'tag';
+    $arg2->title = t('Tag');
+    $arg2->help = t('Tag to pass to resource');
+    $args[] = $arg2;
+    
+    return $args;
+  }
+}
+
 
 
