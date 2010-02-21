@@ -5,11 +5,11 @@
  * Drupal Services plugin for Clients module
  * @author Django Beatty - adub
  */
- 
+
 /**
  * Contains class extending Clients ClientsServicesBase
  */
-require_once('clients_drupal.inc'); 
+require_once('clients_drupal.inc');
 
 /**
  * Implementation of hook_help()
@@ -18,23 +18,23 @@ require_once('clients_drupal.inc');
  * @return help text for the path
  */
 function clients_drupal_help($path, $arg) {
-  $output = '';  
+  $output = '';
   switch ($path) {
     case "admin/help#clients_drupal":
       $output = '<p>'.  t("Clients - Drupal Services.") .'</p>';
       break;
   }
   return $output;
-} 
+}
 
 /**
  * Implementation of hook_perm()
- * @TODO 
+ * @TODO
  * @return array An array of valid permissions for the clients_drupal module
  */
 function clients_drupal_perm() {
   return array('clients_drupal admin');
-} 
+}
 
 /**
  * Implementation of hook_clients_connection_edit()
@@ -96,7 +96,7 @@ function clients_drupal_menu() {
   );
 
   return $items;
-} 
+}
 
 /**
  * @return array Form
@@ -123,7 +123,7 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#default_value' => $cid ? $connection->name : '',
     '#size' => 50,
     '#maxlength' => 100,
-    '#description' => t('Must be unique'),
+    '#description' => t('Must be unique, any characters allowed'),
     '#required' => TRUE,
   );
   $form['endpoint'] = array(
@@ -132,6 +132,7 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#default_value' => $cid ? $connection->endpoint : '',
     '#size' => 50,
     '#maxlength' => 100,
+    '#description' => t('Remote service URL e.g. http://mysite.com/services/xmlrpc'),
     '#required' => TRUE,
   );
   
@@ -148,6 +149,7 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#default_value' =>  $cid ? $connection->configuration['domain'] : '',
     '#size' => 50,
     '#maxlength' => 100,
+    '#description' => t('This should be same as the \'Domain\' field used by the Services authentication key on the server you are connecting to.'),
     '#required' => TRUE,
   );
   $form['configuration']['servicekey'] = array(
@@ -157,6 +159,7 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#size' => 50,
     '#maxlength' => 40,
     '#attributes' => array('autocomplete' => 'off'),
+    '#description' => t('This should be same as the \'Key\' field used by the Services authentication key on the server you are connecting to.'),
     '#required' => TRUE,
   );
   $form['configuration']['username'] = array(
@@ -166,11 +169,13 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#size' => 30,
     '#maxlength' => 60,
     '#attributes' => array('autocomplete' => 'off'),
+    '#description' => t('This should be same as the username on the server you are connecting to.'),
     '#required' => TRUE,
   );
+
   
   $password_desc = $cid ? 
-    t('Leave blank unless you want to change this.') : '';
+    t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.') : 'This should be same as the password on the server you are connecting to.';
     
   $form['configuration']['password'] = array(
     '#type' => 'password',
@@ -186,14 +191,14 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#type' => 'textarea',
     '#title' => t('Services'),
     '#default_value' =>  $cid ? $connection->configuration['methods_enabled'] : '',
-    '#description' => t('List of Drupal services on remote servers that you want to enable here. One per line.'),
+    '#description' => t('List of Drupal services on remote servers that you want to enable here (e.g. views.service). Resources can select from this list. One per line.'),
   );
 
   $form['configuration']['views_enabled'] = array(
     '#type' => 'textarea',
     '#title' => t('Views'),
     '#default_value' =>  $cid ? $connection->configuration['views_enabled'] : '',
-    '#description' => t('List of Drupal views on remote servers that you want to enable here. One per line.'),
+    '#description' => t('List of Drupal views on remote servers. Resources can select from this list. One per line.'),
   );
 
   if($op == 'add') {
@@ -202,7 +207,7 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
       $form['#submit'] = array('clients_drupal_add_submit_handler');
   }
   elseif($op == 'edit') {
-      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Edit connection') );
+      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Save') );
     
       $form['#submit'] = array('clients_drupal_edit_submit_handler');
   }
@@ -229,7 +234,7 @@ function clients_drupal_edit_submit_handler($form, &$form_state) {
  * Implementation of hook_validate()
  */
 function clients_drupal_add_validate($form, &$form_state) {
-    
+
     if(clients_connection_load($form['name']['#value'])) {
         form_set_error('name', 'A service by this name already exists!');
     }
@@ -241,7 +246,7 @@ function clients_drupal_add_validate($form, &$form_state) {
     $connection->servicekey = $form['configuration']['servicekey']['#value'];
     $connection->username = $form['configuration']['username']['#value'];
     $connection->password = $form['configuration']['password']['#value'];
-    
+
     $testconnect = ClientsServicesDrupal::connect($connection);
     if(!is_array($testconnect) || !isset($testconnect['sessid'])) {
         form_set_error('endpoint', "Couldn't connect");
@@ -251,7 +256,7 @@ function clients_drupal_add_validate($form, &$form_state) {
             form_set_error('username', isset($testuser->message) ? $testuser->message : "Couldn't log in");
         }
     }
-} 
+}
 
 /**
  * Implementation of hook_clients_connection_load
@@ -260,9 +265,9 @@ function clients_drupal_clients_connection_load(&$connection) {
   if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')){
     $connection->configuration['password'] = clients_drupal_decrypt($connection->configuration['password']); // or ***
     $connection->operations =  l(t('Edit'), 'admin/settings/clients/connections/drupal/'. $connection->cid .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/connections/'. $connection->cid .'/delete');
-  }  
+  }
 }
-  
+
 
 /**
  * Implementation of hook_clients_service_options
@@ -271,27 +276,27 @@ function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_
   if($connection->type != variable_get('clients_drupal_type', 'Drupal Services')) {
     return;
   }
-    
+
   $form = array();
   $connection = clients_connection_load((int)$connection->cid);
-  $methods = array_map('trim', explode("\n", trim($connection->configuration['methods_enabled']))); 
-  $methods = array_combine($methods, $methods);    
+  $methods = array_map('trim', explode("\n", trim($connection->configuration['methods_enabled'])));
+  $methods = array_combine($methods, $methods);
 
-  $options_selected = 
-    (isset($wrapper_values['options']) ? $wrapper_values['options'] : 
-    (isset($resource->rid) ? $resource->configuration['options'] : 
+  $options_selected =
+    (isset($wrapper_values['options']) ? $wrapper_values['options'] :
+    (isset($resource->rid) ? $resource->configuration['options'] :
     array()));
-    
+
   // if we change connection and method doesn't exist, reset
-  if(!in_array($options_selected['method'], $methods)) { 
+  if(!in_array($options_selected['method'], $methods)) {
     $options_selected['method'] = key($methods);
   }
 
   $form['method'] = array(
     '#type' => 'select',
     '#title' => t('Method'),
-    '#default_value' => $options_selected['method'], 
-    '#options' => $methods,  
+    '#default_value' => $options_selected['method'],
+    '#options' => $methods,
     '#description' => t('Choose method'),
     '#required' => TRUE,
     '#ahah' => array(
@@ -303,9 +308,9 @@ function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_
   );
 
   if($options_selected['method'] == 'views.get') {
-        
-    $views = array_map('trim', explode("\n", trim($connection->configuration['views_enabled']))); 
-    $views = array_combine($views, $views);    
+
+    $views = array_map('trim', explode("\n", trim($connection->configuration['views_enabled'])));
+    $views = array_combine($views, $views);
 
     $form['view'] = array(
       '#type' => 'select',
@@ -315,25 +320,25 @@ function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_
       '#description' => t('Choose view'),
     );
     $form['arguments']['first'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Argument'), 
+      '#type' => 'textfield',
+      '#title' => t('Argument'),
       '#default_value' => $options_selected['arguments']['first'],
-      '#size' => 10, 
-      '#maxlength' => 30, 
+      '#size' => 10,
+      '#maxlength' => 30,
     );
     $form['offset'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Offset'), 
+      '#type' => 'textfield',
+      '#title' => t('Offset'),
       '#default_value' => $options_selected['offset'],
-      '#size' => 3, 
-      '#maxlength' => 4, 
+      '#size' => 3,
+      '#maxlength' => 4,
     );
     $form['limit'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Limit'), 
+      '#type' => 'textfield',
+      '#title' => t('Limit'),
       '#default_value' => $options_selected['limit'],
-      '#size' => 3, 
-      '#maxlength' => 4, 
+      '#size' => 3,
+      '#maxlength' => 4,
     );
   }
   else {
@@ -342,7 +347,7 @@ function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_
        */
   }
   return $form;
-} 
+}
 
 /**
  * Implementation of hook_clients_setparams
@@ -366,7 +371,7 @@ function clients_drupal_clients_setparams(&$resource, $arg) {
  * Implementation of hook_clients_arguments
  */
 function clients_drupal_clients_arguments($connection)  {
-//  $connection = clients_connection_load((int)$source['connection']); 
+//  $connection = clients_connection_load((int)$source['connection']);
   if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')) {
     $arg = new stdClass;
     $arg->name = 'argument';
@@ -399,15 +404,23 @@ function clients_drupal_clients_fields($resource = NULL) {
     }
 
     $result = clients_call($resource);
-    $fields = array_keys($result[0]->data[0]);
-    $fieldset = array();
-    foreach($fields as $field) {
-      $fieldset[$field] = array('name' => $field, 'description' => '');
+    
+    if (isset($result[0]->data[0])) {
+
+      $fields = array_keys($result[0]->data[0]);
+      $fieldset = array();
+      foreach($fields as $field) {
+        $fieldset[$field] = array('name' => $field, 'description' => '');
+      }
+      return $fieldset;
+
+    } else {
+      drupal_set_message('No fields were returned');
+      return;
     }
-    return $fieldset;
 
   }
-  
+
 // need to define behaviour if no resource specified - should this display:
 // - no fields
 // - a preset list of fields (from each service module)
@@ -431,7 +444,7 @@ function clients_drupal_admin() {
   );
 
   return system_settings_form($form);
-} 
+}
 
 function clients_drupal_encryption_methods() {
   $options = module_invoke_all('clients_drupal_encryption_methods');
@@ -458,6 +471,3 @@ function clients_drupal_decrypt($val) {
     return module_invoke($encryption_method, 'clients_drupal_decrypt', $val);
   }
 }
-
-
-

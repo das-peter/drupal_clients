@@ -30,7 +30,6 @@ abstract class ClientsServicesBase {
                 $data = call_user_func_array('xmlrpc', $args); 
             }
             elseif($method == 'rest'){
-                // NOT TESTED
                 $data = call_user_func_array('drupal_http_request', $args); 
             }
             else{

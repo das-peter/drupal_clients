@@ -7,3 +7,10 @@ dependencies[] = clients
 package = Clients
 
 
+
+; Information added by drupal.org packaging script on 2010-01-22
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "clients"
+datestamp = "1264118574"
+

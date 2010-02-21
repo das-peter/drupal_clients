@@ -5,7 +5,7 @@
  * Clients - client for feeds module 
  * @author Django Beatty - adub
  */
- 
+require_once(dirname(__FILE__) .'/clients_feeds.features.inc'); 
 /**
  *
  */
@@ -52,7 +52,7 @@ function clients_feeds_feeds_plugins() {
 
   $info['FeedsClientsParser'] = array(
     'name' => 'Clients parser',
-    'description' => 'Parses data using clients resources',
+    'description' => 'Parses data using Clients module resources',
     'handler' => array(
       'parent' => 'FeedsParser', // A plugin needs to derive either directly or indirectly from FeedsFetcher, FeedsParser or FeedsProcessor.
       'class' => 'FeedsClientsParser',

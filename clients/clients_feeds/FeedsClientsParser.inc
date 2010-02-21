@@ -3,19 +3,16 @@
 
 /**
  * Class definition for Common Syndication Parser.
- * @author Django Beatty - adub
  *
  * Parses RSS and Atom feeds.
  */
 class FeedsClientsParser extends FeedsParser {
 
   /**
-   * Parses a raw string and returns a Feed object from it.
+   * 
    */
-  public function parse(FeedsFetcherResult $fetcherResult, FeedsSource $source) {
-    // needs more work on content
-    return new FeedsParserResult($fetcherResult->value);
-    
+  public function parse(FeedsImportBatch $batch, FeedsSource $source) {
+    return $batch;
   }
 
   /**
@@ -34,9 +31,9 @@ class FeedsClientsParser extends FeedsParser {
       '#options' => $services,
       '#description' => t('Choose a resource'),
     );
+
     return $form;
   }
-  
   /**
    * Define default configuration.
    */
@@ -61,6 +58,7 @@ class FeedsClientsParser extends FeedsParser {
    */
   public function sourceForm($source_config) {
     if($this->config['source']) {
+
       $form = array();
       
       // value doesn't work for some reason so use hidden
@@ -89,4 +87,7 @@ class FeedsClientsParser extends FeedsParser {
     }
 
   }
+  
+  
+  
 }

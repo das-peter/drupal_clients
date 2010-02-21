@@ -5,11 +5,11 @@
  * Flickr plugin for Clients module
  * @author Django Beatty - adub
  */
- 
+
 /**
  * Contains class extending Clients ClientsServicesBase
  */
-require_once('clients_flickr.inc'); 
+require_once('clients_flickr.inc');
 
 /**
  * Implementation of hook_help()
@@ -18,23 +18,23 @@ require_once('clients_flickr.inc');
  * @return help text for the path
  */
 function clients_flickr_help($path, $arg) {
-  $output = '';  
+  $output = '';
   switch ($path) {
     case "admin/help#clients_flickr":
       $output = '<p>'.  t("Clients - Flickr.") .'</p>';
       break;
   }
   return $output;
-} 
+}
 
 /**
  * Implementation of hook_perm()
- * @TODO 
+ * @TODO
  * @return array An array of valid permissions for the clients_flickr module
  */
 function clients_flickr_perm() {
   return array('clients_flickr admin');
-} 
+}
 
 /**
  * Implementation of hook_menu()
@@ -61,13 +61,13 @@ function clients_flickr_menu() {
   );
 
   return $items;
-} 
+}
 
 /**
  * @return array Form
  */
 function clients_flickr_config(&$form_state, $op, $cid = '') {
-  
+
   $form = array();
   if($cid) {
     $connection = clients_connection_load((int)$cid);
@@ -81,7 +81,7 @@ function clients_flickr_config(&$form_state, $op, $cid = '') {
     '#type' => 'value',
     '#value' => variable_get('clients_flickr_type', 'Flickr'),
   );
-  
+
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Connection name'),
@@ -95,14 +95,14 @@ function clients_flickr_config(&$form_state, $op, $cid = '') {
     '#type' => 'value',
     '#value' => 'http://api.flickr.com/services/rest/',
   );
-  
+
   $form['configuration'] = array(
     '#type' => 'fieldset',
     '#title' => t('Configuration'),
     '#collapsible' => FALSE,
     '#tree' => TRUE,
   );
-  
+
   $form['configuration']['api_key'] = array(
     '#type' => 'textfield',
     '#title' => t('API key'),
@@ -132,16 +132,16 @@ function clients_flickr_config(&$form_state, $op, $cid = '') {
 
   if($op == 'add') {
       $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Add connection') );
-    
+
       $form['#submit'] = array('clients_flickr_add_submit_handler');
   }
   elseif($op == 'edit') {
-      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Edit connection') );
-    
+      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Save') );
+
       $form['#submit'] = array('clients_flickr_edit_submit_handler');
   }
   return $form;
-} 
+}
 
 /**
  * Submit handler
@@ -163,7 +163,7 @@ function clients_flickr_edit_submit_handler($form, &$form_state) {
  * Implementation of hook_validate()
  */
 function clients_flickr_add_validate($form, &$form_state) {
-    
+
     if(clients_connection_load($form['name']['#value'])) {
         form_set_error('name', 'A service by this name already exists!');
     }
@@ -173,14 +173,14 @@ function clients_flickr_add_validate($form, &$form_state) {
     $connection->endpoint = $form['endpoint']['#value'];
     $connection->api_key = $form['configuration']['api_key']['#value'];
     $connection->secret = $form['configuration']['secret']['#value'];
-    
+
     $testconnect = ClientsServicesFlickr::connect($connection);
     if(!is_array($testconnect) || !isset($testconnect['sessid'])) {
         form_set_error('endpoint', "Couldn't connect");
     } else {
       // test auth
     }
-} 
+}
 
 /**
  * Implementation of hook_clients_connection_edit(). Performs any post-processing of edit form before write to db. If we could get this working by reference we wouldn't need this wrapper here.
@@ -190,7 +190,7 @@ function clients_flickr_clients_connection_edit($formvals) {
     return $formvals;
   }
 }
-  
+
 /**
  * Implementation of hook_clients_service_options
  */
@@ -198,27 +198,27 @@ function clients_flickr_clients_service_options($connection, $wrapper, $wrapper_
   if($connection->type != variable_get('clients_flickr_type', 'Flickr')) {
     return;
   }
-    
+
   $form = array();
   $connection = clients_connection_load((int)$connection->cid);
-  $methods = array_map('trim', explode("\n", trim($connection->configuration['methods_enabled']))); 
-  $methods = array_combine($methods, $methods);    
+  $methods = array_map('trim', explode("\n", trim($connection->configuration['methods_enabled'])));
+  $methods = array_combine($methods, $methods);
 
-  $options_selected = 
-    (isset($wrapper_values['options']) ? $wrapper_values['options'] : 
-    (isset($resource->rid) ? $resource->configuration['options'] : 
+  $options_selected =
+    (isset($wrapper_values['options']) ? $wrapper_values['options'] :
+    (isset($resource->rid) ? $resource->configuration['options'] :
     array()));
-    
+
   // if we change connection and method doesn't exist, reset
-  if(!in_array($options_selected['method'], $methods)) { 
+  if(!in_array($options_selected['method'], $methods)) {
     $options_selected['method'] = key($methods);
   }
 
   $form['method'] = array(
     '#type' => 'select',
     '#title' => t('Method'),
-    '#default_value' => $options_selected['method'], 
-    '#options' => $methods,  
+    '#default_value' => $options_selected['method'],
+    '#options' => $methods,
     '#description' => t('Choose method'),
     '#required' => TRUE,
     '#ahah' => array(
@@ -230,32 +230,32 @@ function clients_flickr_clients_service_options($connection, $wrapper, $wrapper_
   );
 
   if($options_selected['method'] == 'flickr.photos.search') {
-        
+
     $form['text'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Search'), 
+      '#type' => 'textfield',
+      '#title' => t('Search'),
       '#default_value' => $options_selected['text'],
-      '#size' => 40, 
-      '#maxlength' => 200, 
+      '#size' => 40,
+      '#maxlength' => 200,
     );
     $form['per_page'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Per page'), 
+      '#type' => 'textfield',
+      '#title' => t('Per page'),
       '#default_value' => $options_selected['per_page'],
-      '#size' => 3, 
-      '#maxlength' => 3, 
+      '#size' => 3,
+      '#maxlength' => 3,
     );
     $form['page'] = array(
-      '#type' => 'textfield', 
-      '#title' => t('Page'), 
+      '#type' => 'textfield',
+      '#title' => t('Page'),
       '#default_value' => $options_selected['page'],
-      '#size' => 3, 
-      '#maxlength' => 3, 
+      '#size' => 3,
+      '#maxlength' => 3,
     );
-    
+
     $form['my_images'] = array(
-      '#type' => 'checkbox', 
-      '#title' => t('My images only'), 
+      '#type' => 'checkbox',
+      '#title' => t('My images only'),
       '#default_value' => $options_selected['my_images'],
     );
     // and more - http://www.flickr.com/services/api/flickr.photos.search.html
@@ -266,7 +266,7 @@ function clients_flickr_clients_service_options($connection, $wrapper, $wrapper_
        */
   }
   return $form;
-} 
+}
 
 /**
  * Implementation of hook_clients_connection_load
@@ -274,7 +274,7 @@ function clients_flickr_clients_service_options($connection, $wrapper, $wrapper_
 function clients_flickr_clients_connection_load(&$connection) {
   if($connection->type == variable_get('clients_flickr_type', 'Flickr')){
     $connection->operations =  l(t('Edit'), 'admin/settings/clients/connections/flickr/'. $connection->cid .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/connections/'. $connection->cid .'/delete');
-  }  
+  }
 }
 
 
@@ -286,10 +286,10 @@ function clients_flickr_clients_call($connection, $serviceOptions) {
     if($connection->type == variable_get('clients_flickr_type', 'Flickr')){
         $serviceConfig = clients_connection_load((int)$connection->cid);
         $response = ClientsServicesFlickr::call($serviceConfig, $serviceOptions);
-        
+
         // process xml and turn into serializable array
         if($response->data->code == '200') {
-          $xml = new SimpleXMLElement($response->data->data); 
+          $xml = new SimpleXMLElement($response->data->data);
           $result = new stdClass;
           $result->created = $response->created;
           $result->data = array();
@@ -301,12 +301,12 @@ function clients_flickr_clients_call($connection, $serviceOptions) {
             $row['url'] = "http://farm{$row['farm']}.static.flickr.com/{$row['server']}/{$row['id']}_{$row['secret']}.jpg";
             $row['html'] = '<img src="'.$row['url'].'" />';
             $row['status'] = 1; // published
-            
+
             $result->data[] = $row;
           }
           return $result;
         }
-        
+
     }
 }
 
@@ -364,10 +364,7 @@ function clients_flickr_clients_arguments($connection) {
     $arg2->title = t('Tag');
     $arg2->help = t('Tag to pass to resource');
     $args[] = $arg2;
-    
+
     return $args;
   }
 }
-
-
-
