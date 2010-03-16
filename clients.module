@@ -518,7 +518,7 @@ function clients_connection_edit($values) {
   } else {
       drupal_set_message('Problem editing connection - drupal_write_record() result: '. $resultbase);
   }
-  return;
+  drupal_goto('admin/settings/clients/connections');
 }
 
 function clients_connection_save($values) {
@@ -531,7 +531,7 @@ function clients_connection_save($values) {
   } else {
       drupal_set_message('Problem adding connection - drupal_write_record() result: '. $resultbase);
   }
-  return;
+  drupal_goto('admin/settings/clients/connections');
 }
 
 function clients_connection_load($serviceIdentifier) {
