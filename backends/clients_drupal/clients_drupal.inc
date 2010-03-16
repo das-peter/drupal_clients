@@ -94,6 +94,11 @@ class ClientsServicesDrupal extends ClientsServicesBase {
         return;
       }
       $token = self::getToken($serviceConfig, $serviceOptions->configuration['options']['method']);
+      
+      // catch empty arguments
+      $arguments = array_values($serviceOptions->configuration['options']['arguments']);
+      $arguments = trim($arguments[0]) != '' ? $arguments : array();
+      
       $result = parent::doCall(
         'xmlrpc',
         $cacheid,
@@ -105,8 +110,8 @@ class ClientsServicesDrupal extends ClientsServicesBase {
         $token['nonce'],
         $user['sessid'],
         $serviceOptions->configuration['options']['view'],
-        array(), // get all fields
-        array_values($serviceOptions->configuration['options']['arguments']),
+        NULL, // services 2 beta1 display id - default
+        $arguments,
         (int)$serviceOptions->configuration['options']['offset'],
         (int)$serviceOptions->configuration['options']['limit']
       );
@@ -128,18 +133,27 @@ class ClientsServicesDrupal extends ClientsServicesBase {
       $processed_result->data = array();
       
       foreach($result->data as $item) {
+
+        foreach($item as $k => $v) { //handle CCK field data structure
+          if (strpos($k,'field_') !== FALSE) {
+            $item[$k] = $v[0]['value'];        
+          } 
+        }
+
         // nid will interfere with local nids in client
         $item['remote_nid'] = $item['nid'];
         unset($item['nid']);
-        $tags = array();
+
         // remote taxonomy is not understood locally so flatten to RSS-style bag of tags (TODO: develop this to preserve vocabs)
-        /* - tofix: item may not have taxo
-        foreach($item['taxonomy'] as $term) {
-            $tags = $term['name'];
+        $tags = array();
+        if(isset($item['taxonomy'])) {
+          foreach((array)$item['taxonomy'] as $term) { 
+              $tags = $term['name'];
+          }
+          unset($item['taxonomy']);
         }
-        */
         $item['tags'] = $tags;
-        unset($item['taxonomy']);
+        
         $processed_result->data[] = $item;
       }
       return $processed_result;

@@ -19,10 +19,11 @@ class FeedsClientsFetcher extends FeedsFetcher {
     $resource = clients_resource_load((int)$source_config['FeedsClientsParser']['source']);
 
     $result = clients_call($resource);
+    $items = isset($result[0]->data) ? $result[0]->data : array();
     
     // (feeds > alpha9)   
     $batch = new FeedsImportBatch();
-    $batch->setItems($result[0]->data); 
+    $batch->setItems($items); 
     return $batch;
   }
 }
