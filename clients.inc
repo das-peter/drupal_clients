@@ -24,10 +24,6 @@ abstract class ClientsServicesBase {
         $cache_time = variable_get('clients_api_cache_time', '0');
         
         if ($cache_time == '0' || !$result = cache_get($cacheid, $cache_table)) {
-
-            /**
-             * @todo non-XMLRPC methods
-             */ 
             if ($method == 'xmlrpc') {
                 $data = call_user_func_array('xmlrpc', $args); 
             }

@@ -115,7 +115,6 @@ class ClientsServicesDrupal extends ClientsServicesBase {
         $user['sessid'],
         $resource->configuration['options']['view'],
         NULL, // services 2 beta1 display id - default
-//        array(), // get all fields/default display - this will work for services pre/post 2beta1
         $arguments,
         (int)$resource->configuration['options']['offset'],
         (int)$resource->configuration['options']['limit']
