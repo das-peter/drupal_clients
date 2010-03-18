@@ -1,6 +1,8 @@
 <?php
 // $Id$
 /**
+ * @file 
+ * Wrapper for PEAR Crypt Blowfish
  *
  * @author Django Beatty - adub
  */
@@ -31,7 +33,7 @@ class Drupal_Crypt_Blowfish {
      *
      */
     static protected function blowfish() {
-      ini_set('include_path',ini_get('include_path') .':'. variable_get('crypt_blowfish_cryptdir', ''));
+      ini_set('include_path', ini_get('include_path') .':'. variable_get('crypt_blowfish_cryptdir', ''));
       include_once('Crypt/Blowfish.php');
       return new Crypt_Blowfish(self::getkey()); 
     }

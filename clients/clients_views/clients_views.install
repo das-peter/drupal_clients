@@ -1,5 +1,9 @@
 <?php
 // $Id$
+/**
+ * @file
+ * Updates system variable
+ */
 
 function clients_views_install() {
   db_query("UPDATE {system} SET weight = 11 WHERE name = 'clients_views'");

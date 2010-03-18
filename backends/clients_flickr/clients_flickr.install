@@ -1,6 +1,9 @@
 <?php
 // $Id$
 /**
+ * @file
+ * Sets variables and deletes connections on uninstall
+ * @todo delete resources on uninstall 
  * 
  * @author Django Beatty - adub
  */

@@ -1,6 +1,8 @@
 <?php
 // $Id$
 /**
+ * @file
+ * Checks blowfish configuration - directory and password are set
  * 
  * @author Django Beatty - adub
  */
@@ -31,11 +33,11 @@ function crypt_blowfish_uninstall() {
 function crypt_blowfish_requirements($phase) {
     
   $requirements = array();
-  switch($phase) {
+  switch ($phase) {
   case 'install':
     break;
   case 'runtime':    
-    if(!variable_get('crypt_blowfish_cryptdir', FALSE)) {
+    if (!variable_get('crypt_blowfish_cryptdir', FALSE)) {
       $requirements['crypt_blowfish_cryptdir'] = array(
         'title' => t('Blowfish'),
         'value' => t('Path to PEAR Blowfish library not set'),
@@ -48,8 +50,8 @@ function crypt_blowfish_requirements($phase) {
         'value' => t('Path set to PEAR Blowfish library (%cryptdir)', array('%cryptdir' => variable_get('crypt_blowfish_cryptdir', ''))),
         'severity' => REQUIREMENT_OK
       );
-      // todo fix error if not found
-      if(Drupal_Crypt_Blowfish::getkey() == 'replace this with a strong password') {
+      // @todo fix error if not found
+      if (Drupal_Crypt_Blowfish::getkey() == 'replace this with a strong password') {
         $requirements['crypt_blowfish_key'] = array(
           'title' => t('Blowfish'),
           'value' => t('Blowfish encryption key has not been set. Please edit the file crypt_blowfish_key.inc in %installdir', 

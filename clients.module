@@ -2,7 +2,8 @@
 // $Id$
 /**
  * @file
- * Clients module - handles keys and service connections and provides an API for  clients
+ * Clients module - handles keys and service connections 
+ * and provides an API for  clients
  * @author Django Beatty - adub
  */
 
@@ -13,9 +14,13 @@ require_once('clients.inc');
 
 /**
  * Implementation of hook_help()
- * @param path which path of the site we're displaying help
- * @param arg array that holds the current path as would be returned from arg() function
- * @return help text for the path
+ *
+ * @param $path
+ *   Which path of the site we're displaying help
+ * @param $arg
+ *   Holds the current path as would be returned from arg() function
+ * @return
+ *   Help text for the path
  */
 function clients_help($path, $arg) {
   $output = '';
@@ -29,7 +34,8 @@ function clients_help($path, $arg) {
 
 /**
  * Implementation of hook_perm()
- * @return array An array of valid permissions for the clients module
+ * @return
+ *   An array of valid permissions for the clients module
  */
 function clients_perm() {
   return array('admin clients connections', 'admin clients resources');
@@ -44,6 +50,7 @@ function clients_menu() {
 
   $items['admin/settings/clients'] = array(
     'title' => 'Clients',
+    'description' => 'Clients',
     'page callback' => 'clients_resources',
     'access callback' => 'clients_access_callback',
     'type' => MENU_NORMAL_ITEM,
@@ -99,7 +106,7 @@ function clients_menu() {
      'title' => 'Delete resource',
      'description' => 'Delete a resource',
      'page callback' => 'clients_delete',
-     'page arguments' => array(4,3),
+     'page arguments' => array(4, 3),
      'access arguments' => array('admin clients connections'),
      'type' => MENU_CALLBACK,
     );
@@ -127,7 +134,7 @@ function clients_menu() {
      'title' => 'Delete connection',
      'description' => 'Delete a connection',
      'page callback' => 'clients_delete',
-     'page arguments' => array(4,3),
+     'page arguments' => array(4, 3),
      'access arguments' => array('admin clients connections'),
      'type' => MENU_CALLBACK,
     );
@@ -144,7 +151,8 @@ function clients_access_callback() {
 
 /**
  * Set cache time in minutes
- * @return array Form
+ * @return
+ *   Form array
  */
 function clients_admin_cache() {
   $form = array();
@@ -155,7 +163,7 @@ function clients_admin_cache() {
     '#default_value' => variable_get('clients_cache_time', '0'), // change default in production
     '#options' => array(
       '0' => t('No cache'),
-      'cron' => t('Refresh on next cron'),
+      'cron' => t('Refresh on next cron run'),
       '60' => t('1 hour'),
       '720' => t('12 hours'),
       '2880' => t('2 days'),
@@ -171,10 +179,10 @@ function clients_admin_cache() {
  *
  */
 function clients_delete_form(&$form_state, $arg, $type) {
-  if($type == 'connections') {
+  if ($type == 'connections') {
     $service = clients_connection_load((int)$arg);
   }
-  elseif($type == 'resources') {
+  elseif ($type == 'resources') {
     $service = clients_resource_load((int)$arg);
   }
   else {
@@ -216,25 +224,24 @@ function clients_delete_form_validate($form_id, $form_values) {
  */
 function clients_delete_form_submit($form_id, $form_values) {
   $cid = (int)$form_values['values']['cid'];
-  if($form_values['values']['type'] == 'connections') {
-    //$connection = clients_connection_load($cid);
+  if ($form_values['values']['type'] == 'connections') {
 
-
-    if($result =  db_query("DELETE FROM {clients_connections} WHERE cid = %d LIMIT 1", $cid)) {
+    if ($result =  db_query_range("DELETE FROM {clients_connections} WHERE cid = %d", $cid, 0, 1)) {
       @db_query("DELETE FROM {clients_resources} WHERE cid = %d", $cid); // error suppression is less expensive than a query to check if there are any resources
-      drupal_set_message(t('Connection deleted: '). $form_values['values']['name']);
+      drupal_set_message(t('Connection deleted: ') . $form_values['values']['name']);
       drupal_goto('admin/settings/clients/connections');
-    } else {
-      drupal_set_message(t('Problem deleting connection: '). $form_values['values']['name']);
+    } 
+    else {
+      drupal_set_message(t('Problem deleting connection: ') . $form_values['values']['name']);
     }
   }
-  elseif($form_values['values']['type'] == 'resources') {
-    if($result =  db_query("DELETE FROM {clients_resources} WHERE cid = %d LIMIT 1", $form_values['values']['cid'])) {
-      drupal_set_message(t('Resource deleted: '). $form_values['values']['name']);
-      drupal_goto('admin/settings/clients/resources'); // todo: move this to form
+  elseif ($form_values['values']['type'] == 'resources') {
+    if ($result =  db_query_range("DELETE FROM {clients_resources} WHERE cid = %d", $form_values['values']['cid'], 0, 1)) {
+      drupal_set_message(t('Resource deleted: ') . $form_values['values']['name']);
+      drupal_goto('admin/settings/clients/resources'); // @todo move this to form
     }
     else {
-      drupal_set_message(t('Problem deleting resource: '). $form_values['values']['name']);
+      drupal_set_message(t('Problem deleting resource: ') . $form_values['values']['name']);
     }
   }
 }
@@ -251,14 +258,16 @@ function clients_call($resource) {
 
 /**
  * nano API for callback to resources
- * @param $arg Array Takes the form array('name1'=>'value1', 'name2'=>'value2')
+ * @param $arg
+ *   Array Takes the form array('name1'=>'value1', 'name2'=>'value2')
  */
 function clients_setparams(&$resource, $arg) {
   module_invoke_all('clients_setparams', $resource, $arg);
 }
 /**
  * defines hook_clients_arguments()
- * return array of rows with following fields: $foo->name, $foo->title, $foo->help,
+ * return array of rows with following fields: 
+ * $foo->name, $foo->title, $foo->help,
  */
 function clients_arguments($source) {
   return module_invoke_all('clients_arguments', $source);
@@ -273,8 +282,8 @@ function clients_fields($resource = NULL) {
   $fields = module_invoke_all('clients_fields', $resource);
   // module_invoke_all performs an array_merge_recursive. This flattens out multiple fields with same name to use the first value
   $result = array();
-  foreach($fields as $field => $val) {
-    if(is_array($val['name'])) {
+  foreach ($fields as $field => $val) {
+    if (is_array($val['name'])) {
       $val['name'] = $val['name'][0];
       $val['description'] = $val['description'][0];
     }
@@ -297,7 +306,7 @@ function clients_service_options($connection_id, $wrapper, $wrapper_values, $res
  */
 function clients_connections() {
     $connections = array();
-    foreach(array_keys(clients_connections_list()) as $cid) {
+    foreach (array_keys(clients_connections_list()) as $cid) {
       $connection = clients_connection_load($cid);      
       $connections[] = array(
         'name' => l($connection->name, 'admin/settings/clients/connection/'. $cid),
@@ -309,7 +318,6 @@ function clients_connections() {
     
     return theme_table(array('Name', 'Type', 'Endpoint', 'Operations'), $connections);
 }
-
 
 /**
  *
@@ -334,13 +342,13 @@ function clients_resources_form_submit($form, &$form_state) {
   $values['cid'] = $form_state['values']['clients-resource']['connection']; // was backend in case this breaks
   $values['configuration'] = $form_state['values']['clients-resource'];
     // needs try catch?
-  if(isset($form['#rid'])) { // edit
+  if (isset($form['#rid'])) { // edit
     $values['rid'] = $form['#rid'];
-    if($result = drupal_write_record('clients_resources', $values, 'rid')) {
+    if ($result = drupal_write_record('clients_resources', $values, 'rid')) {
       drupal_set_message('Resource edited');
     }
   }
-  elseif($result = drupal_write_record('clients_resources', $values)) {
+  elseif ($result = drupal_write_record('clients_resources', $values)) {
       drupal_set_message('Resource added');
   }
   drupal_goto('admin/settings/clients/resources');
@@ -354,7 +362,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
   $form = array();
 
   $resource = FALSE;
-  if($rid) { // edit existing
+  if ($rid) { // edit existing
     $resource = clients_resource_load($rid);
     $form['#rid'] = $rid;
   }
@@ -378,7 +386,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
         '#required' => TRUE,
     );
     $connections = array();
-    foreach(clients_connections_list() as $cid => $connection) {
+    foreach (clients_connections_list() as $cid => $connection) {
         $connections[$cid] = $connection['name'];
     }
   $form[$wrapper] = array(
@@ -410,7 +418,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
       ),
   );
 
-  if(isset($connection_id)) {
+  if (isset($connection_id)) {
     // triggers hook_clients_service_options in backend modules to inject configuration form fragment here which can use ahah wrapper defined above
     $form[$wrapper]['options'] = clients_service_options($connection_id, $wrapper, $wrapper_values, $resource);
   }
@@ -430,7 +438,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
 function clients_resources() {
   $sources = array();
 
-  foreach(clients_resources_load() as $resource_id => $resource) {
+  foreach (clients_resources_load() as $resource_id => $resource) {
     $connection = clients_connection_load((int)$resource['connection']);
     $resources[] = array(
       'name' => l($resource['name'], 'admin/settings/clients/resources/'. $resource_id),
@@ -443,7 +451,8 @@ function clients_resources() {
 }
 
 /**
- * @todo hide password until clicked to prevent overshoulder attacks when keys are being checked
+ * @todo hide password until clicked to prevent overshoulder attacks 
+ * when keys are being checked
  **/
 function clients_resource_view($arg) {
   drupal_set_breadcrumb(array(
@@ -461,8 +470,8 @@ function clients_resource_view($arg) {
   $output[] = array('Connection', $connection->name);
   $output[] = array('Type', $connection->type);
 
-  foreach($resource->configuration['options'] as $label => $val) {
-    if(is_array($val)) {
+  foreach ($resource->configuration['options'] as $label => $val) {
+    if (is_array($val)) {
       $val = implode(', ', $val); // needs to be recursive?
     }
     $output[] = array(ucfirst($label), $val);
@@ -492,8 +501,8 @@ function clients_connection_view($arg) {
   // modules alter the connection config and edit links
   $output[] = array('Name', $connection->name);
   $output[] = array('Endpoint', $connection->endpoint);
-  foreach($connection->configuration as $label => $val) {
-    if(is_array($val)) {
+  foreach ($connection->configuration as $label => $val) {
+    if (is_array($val)) {
       $val = implode(', ', $val); // needs to be recursive?
     }
     $output[] = array(ucfirst($label), nl2br($val));
@@ -511,12 +520,13 @@ function clients_flush_caches() {
 
 function clients_connection_edit($values) {
   $values = module_invoke_all('clients_connection_edit', $values); // by ref seems not working here...? - needs sorting
-  if(
+  if (
       $resultbase = drupal_write_record('clients_connections', $values, 'cid')
      ) {
-      // TODO add watchdog
+      // @todo add watchdog
       drupal_set_message('Edited connection');
-  } else {
+  } 
+  else {
       drupal_set_message('Problem editing connection - drupal_write_record() result: '. $resultbase);
   }
   drupal_goto('admin/settings/clients/connections');
@@ -524,24 +534,27 @@ function clients_connection_edit($values) {
 
 function clients_connection_save($values) {
   $values = module_invoke_all('clients_connection_save', $values);
-  if(
+  if (
       $resultbase = drupal_write_record('clients_connections', $values)
      ) {
-      // TODO add watchdog
+      // @todo add watchdog
       drupal_set_message('Added connection');
-  } else {
+  } 
+  else {
       drupal_set_message('Problem adding connection - drupal_write_record() result: '. $resultbase);
   }
   drupal_goto('admin/settings/clients/connections');
 }
 
 function clients_connection_load($connectionIdentifier) {
-  if(is_int($connectionIdentifier)) {
+  if (is_int($connectionIdentifier)) {
       $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.cid = %d", $connectionIdentifier);
-  } elseif(is_string($connectionIdentifier)) {
+  } 
+  elseif (is_string($connectionIdentifier)) {
       $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.name = '%s'", $connectionIdentifier);
-  } else {
-      // TODO watchdog
+  } 
+  else {
+      // @todo watchdog
       drupal_set_message('error');
       return; // or FALSE?
   }
@@ -554,7 +567,8 @@ function clients_connection_load($connectionIdentifier) {
 
 /**
  * Loads all connections
- * @return Array
+ * @return
+ *   Array
  */
 function clients_connections_list() {
     $connections = array();
@@ -571,7 +585,8 @@ function clients_connections_list() {
 
 /**
  * Loads all resources
- * @return Array
+ * @return
+ *   Array
  */
 function clients_resources_load() {
     $resources = array();
@@ -587,15 +602,18 @@ function clients_resources_load() {
 
 /**
  * Loads a resource
- * @return Array
+ * @return
+ *   Array
  */
 function clients_resource_load($identifier) {
-    if(is_int($identifier)) {
+    if (is_int($identifier)) {
         $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.rid = %d", $identifier);
-    } elseif(is_string($identifier)) {
+    } 
+    elseif (is_string($identifier)) {
         $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.name = '%s'", $identifier);
-    } else {
-        // TODO watchdog
+    } 
+    else {
+        // @todo watchdog
         drupal_set_message('error');
         return; // or FALSE?
     }

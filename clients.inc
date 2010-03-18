@@ -1,8 +1,10 @@
 <?php
 // $Id$
 /**
- * @author Django Beatty - adub
+ * @file
+ * Base class for backends. Handles XML-RPC, REST calls and caching results
  *
+ * @author Django Beatty - adub
  */
 
 /**
@@ -26,19 +28,18 @@ abstract class ClientsServicesBase {
             /**
              * @todo non-XMLRPC methods
              */ 
-            if($method == 'xmlrpc'){
+            if ($method == 'xmlrpc') {
                 $data = call_user_func_array('xmlrpc', $args); 
             }
-            elseif($method == 'rest'){
+            elseif ($method == 'rest') {
                 $data = call_user_func_array('drupal_http_request', $args); 
             }
             else{
-                // TODO sanitize string?
-                $data = $method .' not yet supported'; 
+                $data = t('@method not yet supported', array('@method' => $method)); 
             }
             
-            // TODO error handling/reporting
-            if($cache_time != '0') {
+            // @todo error handling/reporting
+            if ($cache_time != '0') {
                 cache_set(
                     $cacheid, 
                     $data, 

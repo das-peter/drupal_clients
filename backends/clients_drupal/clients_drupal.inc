@@ -1,6 +1,8 @@
 <?php
 // $Id$
 /**
+ * @file
+ * Defines methods and calls to Drupal services
  *
  * @author Django Beatty - adub
  */
@@ -13,8 +15,7 @@ class ClientsServicesDrupal extends ClientsServicesBase {
   /**
    * Use for testing
    */
-  static public function connect($connection)
-  {
+  static public function connect($connection) {
     $session = xmlrpc($connection->endpoint, 'system.connect');
     if ($session === FALSE) {
 
@@ -24,15 +25,18 @@ class ClientsServicesDrupal extends ClientsServicesBase {
   }
 
   /**
-   * Prepares a hashed token for the service, based on current time, the required service
-   * and config values; serviceKey and serviceDomain
-   * @param stdClass $serviceConfig A service configuration as returned by Clients::load()
-   * @param string $serviceMethod Name of service method to access
+   * Prepares a hashed token for the service, based on current time, 
+   * the required service and config values; serviceKey and serviceDomain
+   *t
+   * @param $connection
+   *   stdClass: A service connection as returned by Clients::load()
+   * @param $serviceMethod
+   *   string: Name of service method to access
    *
-   * @return array a valid token
+   * @return
+   *   array a valid token
    */
-  static public function getToken($connection, $serviceMethod)
-  {
+  static public function getToken($connection, $serviceMethod) {
     $timestamp = (string)time();
     $nonce = uniqid();
     $hashParameters = array($timestamp, $connection->configuration['domain'], $nonce, $serviceMethod);
@@ -46,19 +50,18 @@ class ClientsServicesDrupal extends ClientsServicesBase {
     );
   }
 
-    /**
+  /**
    * Connects to Drupal Services and logs in the user provided in the config.
    * Returns a session for the user.
-   *
-   * @return array
    * @todo needs error catching in case service is down
+   *
+   * @return
+   *   array
    */
-  static public function getUser($connection)
-  {
+  static public function getUser($connection) {
     $session = self::connect($connection);
 
     if ($session->is_error == TRUE) {
-
       drupal_set_message('There was an error connecting to the service.');
       return;
     }
@@ -76,6 +79,7 @@ class ClientsServicesDrupal extends ClientsServicesBase {
       $connection->configuration['username'],
       $connection->configuration['password']
     );
+
     if ($user === FALSE) {
       return xmlrpc_error();
     }
@@ -85,69 +89,70 @@ class ClientsServicesDrupal extends ClientsServicesBase {
   /**
    * Gets raw data from service call
    */
-  static protected function fetch($serviceConfig, $serviceOptions, $user) {
-      $cacheid = md5($serviceConfig->name . implode($serviceOptions->configuration['options']));
+  static protected function fetch($connection, $resource, $user) {
+      $cacheid = md5($connection->name . implode($resource->configuration['options']));
       // user is stdClass if xmlrpc_error()...
-      if(!is_array($user) || !isset($user['sessid'])) {
-        // TODO watchdog
+      if (!is_array($user) || !isset($user['sessid'])) {
+        // @todo watchdog
         drupal_set_message($user->message, 'error');
         return;
       }
-      $token = self::getToken($serviceConfig, $serviceOptions->configuration['options']['method']);
+      $token = self::getToken($connection, $resource->configuration['options']['method']);
       
       // catch empty arguments
-      $arguments = array_values($serviceOptions->configuration['options']['arguments']);
+      $arguments = array_values($resource->configuration['options']['arguments']);
       $arguments = trim($arguments[0]) != '' ? $arguments : array();
       
       $result = parent::doCall(
         'xmlrpc',
         $cacheid,
-        $serviceConfig->endpoint,
-        $serviceOptions->configuration['options']['method'],
+        $connection->endpoint,
+        $resource->configuration['options']['method'],
         $token['hash'],
         $token['domain'],
         $token['timestamp'],
         $token['nonce'],
         $user['sessid'],
-        $serviceOptions->configuration['options']['view'],
+        $resource->configuration['options']['view'],
         NULL, // services 2 beta1 display id - default
+//        array(), // get all fields/default display - this will work for services pre/post 2beta1
         $arguments,
-        (int)$serviceOptions->configuration['options']['offset'],
-        (int)$serviceOptions->configuration['options']['limit']
+        (int)$resource->configuration['options']['offset'],
+        (int)$resource->configuration['options']['limit']
       );
+      
       return $result;
   }
 
   /**
    * Executes call and processes data
    */
-  static public function call($serviceConfig, $serviceOptions) {
-    if($serviceOptions->configuration['options']['method'] == 'views.get') {
+  static public function call($connection, $resource) {
+    if ($resource->configuration['options']['method'] == 'views.get') {
 
-      $user = self::getUser($serviceConfig);
+      $user = self::getUser($connection);
       // gets raw result
-      $result = self::fetch($serviceConfig, $serviceOptions, $user);
+      $result = self::fetch($connection, $resource, $user);
       // needs some post-processing
       $processed_result = new stdClass;
       $processed_result->created = $result->created;
       $processed_result->data = array();
       
-      foreach($result->data as $item) {
-
-        foreach($item as $k => $v) { //handle CCK field data structure
-          if (strpos($k,'field_') !== FALSE) {
+      foreach ($result->data as $item) {
+        
+        foreach ($item as $k => $v) { // handle CCK field data structure
+          if (strpos($k, 'field_') !== FALSE) {
             $item[$k] = $v[0]['value'];        
           } 
         }
-
+        
         // nid will interfere with local nids in client
         $item['remote_nid'] = $item['nid'];
         unset($item['nid']);
-
         // remote taxonomy is not understood locally so flatten to RSS-style bag of tags (TODO: develop this to preserve vocabs)
         $tags = array();
-        if(isset($item['taxonomy'])) {
-          foreach((array)$item['taxonomy'] as $term) { 
+        if (isset($item['taxonomy'])) {
+          foreach ((array)$item['taxonomy'] as $term) { 
               $tags = $term['name'];
           }
           unset($item['taxonomy']);

@@ -1,6 +1,9 @@
 <?php
+// $Id$
 /**
- * Using devseed extendr module as a base... http://devseed.svn.cvsdude.com/sandbox/drupal-6/extendr/
+ * @file
+ * Using devseed extendr module as a base... 
+ * http://devseed.svn.cvsdude.com/sandbox/drupal-6/extendr/
  */
 
 /**
@@ -28,10 +31,10 @@ class clientsQuery extends views_plugin_query_default {
   function query($get_count = FALSE) { }
 
   /**
-   * TODO make this lie less.
+   * @todo make this lie less.
    */
   function ensure_table() {
-    return true;
+    return TRUE;
   }
 
   function set_method($m, $a) {
@@ -80,13 +83,13 @@ class clientsQuery extends views_plugin_query_default {
 
     // pass params back to resource
     $args = array();
-    if($view->args[0]) { 
+    if ($view->args[0]) { 
       $args['argument'] = $view->args[0];
     }
-    if($view->pager['items_per_page']) { 
+    if ($view->pager['items_per_page']) { 
       $args['limit'] = $view->pager['items_per_page'];
     }
-    if($view->pager['offset']) { 
+    if ($view->pager['offset']) { 
       $args['offset'] = $view->pager['offset'];
     }
     clients_setparams($resource, $args);

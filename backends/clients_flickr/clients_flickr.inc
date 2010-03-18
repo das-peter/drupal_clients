@@ -1,6 +1,8 @@
 <?php
 // $Id$
 /**
+ * @file
+ * Defines Flickr services and calls
  *
  * @author Django Beatty - adub
  */
@@ -9,12 +11,11 @@
  *
  */
 class ClientsServicesFlickr extends ClientsServicesBase {
-    
-	/**
-	 * Use for testing
-	 */
-	static public function connect($connection)
-	{
+
+  /**
+   * Use for testing
+   */
+  static public function connect($connection) {
     $session = drupal_http_request($connection->endpoint .'?method=flickr.test.echo');
     if ($session === FALSE) {
       drupal_set_message('Error connecting');
@@ -23,38 +24,41 @@ class ClientsServicesFlickr extends ClientsServicesBase {
   }
 
   /**
-	 * Prepares a hashed token for the service, based on current time, the required service
-	 * and config values; serviceKey and serviceDomain
-   * @param stdClass $serviceConfig A service configuration as returned by Clients::load()
-   * @param string $serviceMethod Name of service method to access
-	 * 
-	 * @return array a valid token
-	 */
-	static public function getToken($connection, $serviceMethod)
-	{
-    //// TODO - http://www.flickr.com/services/api/auth.howto.web.html
+   * Prepares a hashed token for the service, based on current time, 
+   * the required service and config values; serviceKey and serviceDomain
+   *
+   * @param $serviceConfig
+   *   stdClass: A service configuration as returned by Clients::load()
+   * @param $serviceMethod
+   *   string: Name of service method to access
+   * 
+   * @return
+   *   array: a valid token
+   */
+  static public function getToken($connection, $serviceMethod) {
+    // @todo - http://www.flickr.com/services/api/auth.howto.web.html
     $timestamp = (string)time();
-		$nonce = uniqid();
-		$hashParameters	= array($timestamp, $connection->configuration['domain'], $nonce, $serviceMethod);
-		$hash = hash_hmac("sha256", implode(';', $hashParameters), $connection->configuration['servicekey']);
+    $nonce = uniqid();
+    $hashParameters = array($timestamp, $connection->configuration['domain'], $nonce, $serviceMethod);
+    $hash = hash_hmac("sha256", implode(';', $hashParameters), $connection->configuration['servicekey']);
 
-		return array(
+    return array(
       'hash'      => $hash,
       'domain'    => $connection->configuration['domain'],
       'timestamp' => $timestamp,
       'nonce'     => $nonce
     );
-	}
+  }
     
     /**
-	 * Connects to Drupal Services and logs in the user provided in the config.
-	 * Returns a session for the user.
-	 * 
-	 * @return array
-     * @todo needs error catching in case service is down 
-	 */
-	static public function getUser($connection)
-	{
+   * Connects to Drupal Services and logs in the user provided in the config.
+   * Returns a session for the user.
+   * @todo needs error catching in case service is down 
+   * 
+   * @return
+   *   array
+   */
+  static public function getUser($connection) {
     $session = self::connect($connection);
     $userToken = self::getToken($connection, 'user.login');
     
@@ -72,15 +76,15 @@ class ClientsServicesFlickr extends ClientsServicesBase {
     if ($user === FALSE) {
       return xmlrpc_error();
     }
-		return $user;
-	}
+    return $user;
+  }
 
   /**
    * Executes call and processes data
    */
   static public function call($serviceConfig, $serviceOptions) {
     
-    if($serviceOptions->configuration['options']['method'] == 'flickr.photos.search') {
+    if ($serviceOptions->configuration['options']['method'] == 'flickr.photos.search') {
       // gets raw result
       $cache_id = md5($serviceConfig->name . implode($serviceOptions->configuration['options']));
       $fetch_url = $serviceConfig->endpoint 

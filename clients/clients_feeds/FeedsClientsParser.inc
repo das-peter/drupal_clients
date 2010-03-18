@@ -1,19 +1,23 @@
 <?php
 // $Id$
-
+/**
+ * @file
+ * Parser for clients. Contains source selector
+ * @todo work out how to make source selector work in fetcher
+ */
+ 
 /**
  * Class definition for Common Syndication Parser.
- *
- * Parses RSS and Atom feeds.
  */
 class FeedsClientsParser extends FeedsParser {
 
   /**
-   * 
+   * Parses a raw string and returns a Feed object from it.
    */
   public function parse(FeedsImportBatch $batch, FeedsSource $source) {
     return $batch;
   }
+
 
   /**
    * Build configuration form.
@@ -21,7 +25,7 @@ class FeedsClientsParser extends FeedsParser {
   public function configForm(&$form_state) {
     $form = array();
     $services = array();
-    foreach(clients_resources_load() as $rid => $source) {
+    foreach (clients_resources_load() as $rid => $source) {
       $services[$rid] = $source['name'];
     }
     $form['source'] = array(
@@ -57,8 +61,7 @@ class FeedsClientsParser extends FeedsParser {
    * Source form.
    */
   public function sourceForm($source_config) {
-    if($this->config['source']) {
-
+    if ($this->config['source']) {
       $form = array();
       
       // value doesn't work for some reason so use hidden
@@ -69,8 +72,8 @@ class FeedsClientsParser extends FeedsParser {
       
       $resource = clients_resource_load((int)$this->config['source']);
       $source_config_info[] = array(t('Name'), $resource->name);
-      foreach($resource->configuration['options'] as $field => $val) {
-        if(is_array($val)){ 
+      foreach ($resource->configuration['options'] as $field => $val) {
+        if (is_array($val)) { 
           $val = implode(', ', $val);
         }
         $source_config_info[] = array(ucfirst($field), $val);
@@ -87,7 +90,4 @@ class FeedsClientsParser extends FeedsParser {
     }
 
   }
-  
-  
-  
 }

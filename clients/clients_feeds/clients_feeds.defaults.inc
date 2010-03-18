@@ -16,7 +16,7 @@ function _clients_feeds_ctools_plugin_api() {
   if ($module == "data" && $api == "data_default") {
     return array("version" => 1);
   }
-  else if ($module == "feeds" && $api == "feeds_importer_default") {
+  elseif ($module == "feeds" && $api == "feeds_importer_default") {
     return array("version" => 1);
   }
 }
@@ -32,7 +32,7 @@ function _clients_feeds_feeds_importer_default() {
     $feeds_importer = new stdClass;
     $feeds_importer->disabled = TRUE; /* Edit this to true to make a default feeds_importer disabled initially */
     $feeds_importer->api_version = 1;
-    $feeds_importer->id = 'clients_feeds'; //??
+    $feeds_importer->id = 'clients_feeds'; // ??
     $feeds_importer->config = array(
       'name' => 'Clients feed',
       'description' => 'Create nodes from clients resources.',
