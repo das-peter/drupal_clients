@@ -83,9 +83,15 @@ class clientsQuery extends views_plugin_query_default {
 
     // pass params back to resource
     $args = array();
-    if ($view->args[0]) { 
-      $args['argument'] = $view->args[0];
+
+    /**
+     * matches view argument names ($view->argument) to 
+     * argument input values ($view->args)
+     */
+    foreach (array_keys($view->argument) as $key => $val) {
+      $args[$val] = $view->args[$key];
     }
+
     if ($view->pager['items_per_page']) { 
       $args['limit'] = $view->pager['items_per_page'];
     }
