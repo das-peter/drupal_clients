@@ -236,7 +236,7 @@ function clients_delete_form_submit($form_id, $form_values) {
     }
   }
   elseif ($form_values['values']['type'] == 'resources') {
-    if ($result =  db_query_range("DELETE FROM {clients_resources} WHERE cid = %d", $form_values['values']['cid'], 0, 1)) {
+    if ($result =  db_query_range("DELETE FROM {clients_resources} WHERE rid = %d", $form_values['values']['cid'])) {
       drupal_set_message(t('Resource deleted: ') . $form_values['values']['name']);
       drupal_goto('admin/settings/clients/resources'); // @todo move this to form
     }
