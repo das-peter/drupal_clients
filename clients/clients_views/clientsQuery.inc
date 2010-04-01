@@ -83,7 +83,7 @@ class clientsQuery extends views_plugin_query_default {
 
     // pass params back to resource
     $args = array();
-
+    
     /**
      * matches view argument names ($view->argument) to 
      * argument input values ($view->args)
@@ -91,12 +91,12 @@ class clientsQuery extends views_plugin_query_default {
     foreach (array_keys($view->argument) as $key => $val) {
       $args[$val] = $view->args[$key];
     }
-
-    if ($view->pager['items_per_page']) { 
-      $args['limit'] = $view->pager['items_per_page'];
+    
+    if($view->query->pager->options['items_per_page']) { 
+      $args['limit'] = $view->query->pager->options['items_per_page'];
     }
-    if ($view->pager['offset']) { 
-      $args['offset'] = $view->pager['offset'];
+    if($view->query->pager->options['offset']) { 
+      $args['offset'] = $view->query->pager->options['offset'];
     }
     clients_setparams($resource, $args);
     
