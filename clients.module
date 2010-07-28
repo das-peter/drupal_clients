@@ -316,6 +316,15 @@ function clients_connections() {
     );
   }
   
+  if (!count($connections)) {
+    $connections[] = array(
+      array(
+        'data' => t('No connections defined yet.'),
+        'colspan' => '4',
+      ),
+    );
+  }
+  
   return theme_table(array('Name', 'Type', 'Endpoint', 'Operations'), $connections);
 }
 
@@ -446,6 +455,15 @@ function clients_resources() {
       'name' => l($resource['name'], 'admin/settings/clients/resources/'. $resource_id),
       'connection' => $connection->type .': '. $connection->name,
       'operations' => l(t('Edit'), 'admin/settings/clients/resources/'. $resource_id .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/resources/'. $resource_id .'/delete')
+    );
+  }
+
+  if (!count($resources)) {
+    $resources[] = array(
+      array(
+        'data' => t('No resources defined yet.'),
+        'colspan' => '3',
+      ),
     );
   }
 
