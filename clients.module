@@ -47,97 +47,97 @@ function clients_perm() {
 function clients_menu() {
 
   $items = array();
-
+  
   $items['admin/settings/clients'] = array(
     'title' => 'Clients',
     'description' => 'Clients',
     'page callback' => 'clients_resources',
     'access callback' => 'clients_access_callback',
     'type' => MENU_NORMAL_ITEM,
-   );
-
-   $items['admin/settings/clients/connections'] = array(
-     'title' => 'Connections',
-     'weight' => 1,
-     'description' => 'List connections',
-     'page callback' => 'clients_connections',
-     'access arguments' => array('admin clients connections'),
-     'type' => MENU_LOCAL_TASK,
     );
 
-   $items['admin/settings/clients/resources'] = array(
-     'title' => 'Resources',
-     'weight' => 2,
-     'description' => 'List resources',
-     'page callback' => 'clients_resources',
-     'access arguments' => array('admin clients resources'),
-     'type' => MENU_DEFAULT_LOCAL_TASK,
-    );
+  $items['admin/settings/clients/connections'] = array(
+    'title' => 'Connections',
+    'weight' => 1,
+    'description' => 'List connections',
+    'page callback' => 'clients_connections',
+    'access arguments' => array('admin clients connections'),
+    'type' => MENU_LOCAL_TASK,
+  );
 
-   $items['admin/settings/clients/resources/add'] = array(
-     'title' => 'Add resource',
-     'weight' => 1,
-     'description' => 'Add resource',
-     'page callback' => 'clients_resources_add',
-     'access arguments' => array('admin clients resources'),
-     'type' => MENU_LOCAL_TASK,
-    );
+  $items['admin/settings/clients/resources'] = array(
+    'title' => 'Resources',
+    'weight' => 2,
+    'description' => 'List resources',
+    'page callback' => 'clients_resources',
+    'access arguments' => array('admin clients resources'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
 
-   $items['admin/settings/clients/resources/%'] = array(
-     'title' => 'Show resource',
-     'description' => 'Show resource',
-     'page callback' => 'clients_resource_view',
-     'page arguments' => array(4),
-     'access arguments' => array('admin clients resources'),
-     'type' => MENU_CALLBACK,
-    );
+  $items['admin/settings/clients/resources/add'] = array(
+    'title' => 'Add resource',
+    'weight' => 1,
+    'description' => 'Add resource',
+    'page callback' => 'clients_resources_add',
+    'access arguments' => array('admin clients resources'),
+    'type' => MENU_LOCAL_TASK,
+  );
 
-   $items['admin/settings/clients/resources/%/edit'] = array(
-     'title' => 'Edit resource',
-     'weight' => 1,
-     'description' => 'Edit data source',
-     'page callback' => 'clients_resources_edit',
-     'page arguments' => array(4),
-     'access arguments' => array('admin clients resources'),
-     'type' => MENU_CALLBACK,
-    );
+  $items['admin/settings/clients/resources/%'] = array(
+    'title' => 'Show resource',
+    'description' => 'Show resource',
+    'page callback' => 'clients_resource_view',
+    'page arguments' => array(4),
+    'access arguments' => array('admin clients resources'),
+    'type' => MENU_CALLBACK,
+  );
 
-   $items['admin/settings/clients/resources/%/delete'] = array(
-     'title' => 'Delete resource',
-     'description' => 'Delete a resource',
-     'page callback' => 'clients_delete',
-     'page arguments' => array(4, 3),
-     'access arguments' => array('admin clients connections'),
-     'type' => MENU_CALLBACK,
-    );
+  $items['admin/settings/clients/resources/%/edit'] = array(
+    'title' => 'Edit resource',
+    'weight' => 1,
+    'description' => 'Edit data source',
+    'page callback' => 'clients_resources_edit',
+    'page arguments' => array(4),
+    'access arguments' => array('admin clients resources'),
+    'type' => MENU_CALLBACK,
+  );
 
-   $items['admin/settings/clients/cache'] = array(
-     'title' => 'Advanced',
-     'weight' => 3,
-     'description' => 'Clients cache settings',
-     'page callback' => 'drupal_get_form',
-     'page arguments' => array('clients_admin_cache'),
-     'access arguments' => array('admin clients resources'),
-     'type' => MENU_LOCAL_TASK,
-    );
+  $items['admin/settings/clients/resources/%/delete'] = array(
+    'title' => 'Delete resource',
+    'description' => 'Delete a resource',
+    'page callback' => 'clients_delete',
+    'page arguments' => array(4, 3),
+    'access arguments' => array('admin clients connections'),
+    'type' => MENU_CALLBACK,
+  );
 
-   $items['admin/settings/clients/connection/%'] = array(
-     'title' => 'Show connection',
-     'description' => 'Show connection',
-     'page callback' => 'clients_connection_view',
-     'page arguments' => array(4),
-     'access arguments' => array('admin clients connections'),
-     'type' => MENU_CALLBACK,
-    );
+  $items['admin/settings/clients/cache'] = array(
+    'title' => 'Advanced',
+    'weight' => 3,
+    'description' => 'Clients cache settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clients_admin_cache'),
+    'access arguments' => array('admin clients resources'),
+    'type' => MENU_LOCAL_TASK,
+  );
 
-   $items['admin/settings/clients/connections/%/delete'] = array(
-     'title' => 'Delete connection',
-     'description' => 'Delete a connection',
-     'page callback' => 'clients_delete',
-     'page arguments' => array(4, 3),
-     'access arguments' => array('admin clients connections'),
-     'type' => MENU_CALLBACK,
-    );
+  $items['admin/settings/clients/connection/%'] = array(
+    'title' => 'Show connection',
+    'description' => 'Show connection',
+    'page callback' => 'clients_connection_view',
+    'page arguments' => array(4),
+    'access arguments' => array('admin clients connections'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/settings/clients/connections/%/delete'] = array(
+    'title' => 'Delete connection',
+    'description' => 'Delete a connection',
+    'page callback' => 'clients_delete',
+    'page arguments' => array(4, 3),
+    'access arguments' => array('admin clients connections'),
+    'type' => MENU_CALLBACK,
+  );
 
   return $items;
 }
@@ -210,7 +210,7 @@ function clients_delete_form(&$form_state, $arg, $type) {
  *
  */
 function clients_delete($arg, $type) {
-    return drupal_get_form('clients_delete_form', $arg, $type);
+  return drupal_get_form('clients_delete_form', $arg, $type);
 }
 
 /**
@@ -250,10 +250,10 @@ function clients_delete_form_submit($form_id, $form_values) {
  * defines hook_clients_call
  */
 function clients_call($resource) {
-    $connection = clients_connection_load((int)$resource->cid);
-    $result = module_invoke_all('clients_call', $connection, $resource);
-    module_invoke_all('clients_call_postprocess', $result, $connection, $resource);
-    return $result;
+  $connection = clients_connection_load((int)$resource->cid);
+  $result = module_invoke_all('clients_call', $connection, $resource);
+  module_invoke_all('clients_call_postprocess', $result, $connection, $resource);
+  return $result;
 }
 
 /**
@@ -297,40 +297,40 @@ function clients_fields($resource = NULL) {
  * hook_clients_service_options, configure options
  */
 function clients_service_options($connection_id, $wrapper, $wrapper_values, $resource) {
-    $service = clients_connection_load($connection_id);
-    return module_invoke_all('clients_service_options', $service, $wrapper, $wrapper_values, $resource);
+  $service = clients_connection_load($connection_id);
+  return module_invoke_all('clients_service_options', $service, $wrapper, $wrapper_values, $resource);
 }
 
 /**
  *
  */
 function clients_connections() {
-    $connections = array();
-    foreach (array_keys(clients_connections_list()) as $cid) {
-      $connection = clients_connection_load($cid);      
-      $connections[] = array(
-        'name' => l($connection->name, 'admin/settings/clients/connection/'. $cid),
-        'type' => $connection->type,
-        'endpoint' => $connection->endpoint,
-        'operations' => $connection->operations,
-      );
-    }
-    
-    return theme_table(array('Name', 'Type', 'Endpoint', 'Operations'), $connections);
+  $connections = array();
+  foreach (array_keys(clients_connections_list()) as $cid) {
+    $connection = clients_connection_load($cid);      
+    $connections[] = array(
+      'name' => l($connection->name, 'admin/settings/clients/connection/'. $cid),
+      'type' => $connection->type,
+      'endpoint' => $connection->endpoint,
+      'operations' => $connection->operations,
+    );
+  }
+  
+  return theme_table(array('Name', 'Type', 'Endpoint', 'Operations'), $connections);
 }
 
 /**
  *
  */
 function clients_resources_add() {
-    return drupal_get_form('clients_resources_form');
+  return drupal_get_form('clients_resources_form');
 }
 
 /**
  *
  */
 function clients_resources_edit($arg) {
-    return drupal_get_form('clients_resources_form', (int)$arg);
+  return drupal_get_form('clients_resources_form', (int)$arg);
 }
 
 /**
@@ -376,19 +376,21 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
   $wrapper = 'clients-resource'; // can be anything
   $wrapper_values = $form_state['storage'][$wrapper];
 
-    $form['name'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Resource name'),
-        '#default_value' => $rid ? $resource->name : '',
-        '#size' => 50,
-        '#maxlength' => 100,
-        '#description' => t('Must be unique'),
-        '#required' => TRUE,
-    );
-    $connections = array();
-    foreach (clients_connections_list() as $cid => $connection) {
-        $connections[$cid] = $connection['name'];
-    }
+  $form['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Resource name'),
+      '#default_value' => $rid ? $resource->name : '',
+      '#size' => 50,
+      '#maxlength' => 100,
+      '#description' => t('Must be unique'),
+      '#required' => TRUE,
+  );
+  $connections = array();
+
+  foreach (clients_connections_list() as $cid => $connection) {
+      $connections[$cid] = $connection['name'];
+  }
+
   $form[$wrapper] = array(
     '#type'   => 'fieldset',
     '#title'  => t('Resource'),
@@ -405,17 +407,17 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
     ($rid ? (int)$resource->configuration['connection'] : NULL));
 
   $form[$wrapper]['connection'] = array(
-      '#type' => 'select',
-      '#title' => t('Connection'),
-      '#default_value' => isset($connection_id) ? $connection_id : key($connections), // needs reset?
-      '#options' => $connections,
-      '#required' => TRUE,
-      '#ahah' => array(
-        'path' => ahah_helper_path(array($wrapper)),
-        'wrapper' => $wrapper,
-        'method' => 'replace',
-        'effect' => 'fade',
-      ),
+    '#type' => 'select',
+    '#title' => t('Connection'),
+    '#default_value' => isset($connection_id) ? $connection_id : key($connections), // needs reset?
+    '#options' => $connections,
+    '#required' => TRUE,
+    '#ahah' => array(
+      'path' => ahah_helper_path(array($wrapper)),
+      'wrapper' => $wrapper,
+      'method' => 'replace',
+      'effect' => 'fade',
+    ),
   );
 
   if (isset($connection_id)) {
@@ -479,7 +481,7 @@ function clients_resource_view($arg) {
   $operations = l(t('Edit'), 'admin/settings/clients/resources/'. $arg .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/resources/'. $arg .'/delete');
   $output[] = array('Operations', $operations);
 
-// add any service agnostic stuff here
+  // add any service agnostic stuff here
   return theme_table(array(), $output);
 }
 
@@ -589,15 +591,15 @@ function clients_connections_list() {
  *   Array
  */
 function clients_resources_load() {
-    $resources = array();
-    $result =  db_query("SELECT * FROM {clients_resources} ORDER BY name");
-    while ($data = db_fetch_object($result)) {
-        $resources[$data->rid] = array(
-          'name' => $data->name,
-          'connection' => $data->cid,
-        );
-    }
-    return $resources;
+  $resources = array();
+  $result =  db_query("SELECT * FROM {clients_resources} ORDER BY name");
+  while ($data = db_fetch_object($result)) {
+      $resources[$data->rid] = array(
+        'name' => $data->name,
+        'connection' => $data->cid,
+      );
+  }
+  return $resources;
 }
 
 /**
@@ -606,21 +608,21 @@ function clients_resources_load() {
  *   Array
  */
 function clients_resource_load($identifier) {
-    if (is_int($identifier)) {
-        $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.rid = %d", $identifier);
-    } 
-    elseif (is_string($identifier)) {
-        $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.name = '%s'", $identifier);
-    } 
-    else {
-        // @todo watchdog
-        drupal_set_message('error');
-        return; // or FALSE?
-    }
-    $resource = db_fetch_object($result);
-    /**
-     * @TODO test resource has loaded successfully, return FALSE if not
-     */
-    $resource->configuration = unserialize($resource->configuration);
-    return $resource;
+  if (is_int($identifier)) {
+      $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.rid = %d", $identifier);
+  } 
+  elseif (is_string($identifier)) {
+      $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.name = '%s'", $identifier);
+  } 
+  else {
+      // @todo watchdog
+      drupal_set_message('error');
+      return; // or FALSE?
+  }
+  $resource = db_fetch_object($result);
+  /**
+    * @TODO test resource has loaded successfully, return FALSE if not
+    */
+  $resource->configuration = unserialize($resource->configuration);
+  return $resource;
 }
