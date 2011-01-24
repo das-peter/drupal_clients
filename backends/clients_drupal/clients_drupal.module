@@ -28,6 +28,21 @@ function clients_drupal_help($path, $arg) {
 }
 
 /**
+ * Implementation of hook_clients_connection_type_info().
+ *
+ * Define the connection type we provide.
+ */
+function clients_drupal_clients_connection_type_info() {
+  return array(
+    // Key by machine name. Used as the base for hooks.
+    'drupal_services' => array(
+      'module' => 'clients_drupal', // This module. (Saves invoker mucking about putting that in.)
+      'label'  => t('Drupal Services'), // Human-readable label.
+    ),
+  );
+}
+
+/**
  * Implementation of hook_perm()
  * @TODO
  * @return array An array of valid permissions for the clients_drupal module
@@ -37,59 +52,14 @@ function clients_drupal_perm() {
 }
 
 /**
- * Implementation of hook_clients_connection_edit()
- */
-function clients_drupal_clients_connection_edit($formvals) {
-  if($formvals['type'] == variable_get('clients_drupal_type', 'Drupal Services')) {
-    $formvals['type'] = variable_get('clients_drupal_type', 'clients_drupal');
-    // prepare pass for serialized storage
-    if(empty($formvals['configuration']['password'])) {
-      // need to load connection and set password to original if blank
-      $original = clients_connection_load((int)$formvals['cid']);
-      $formvals['configuration']['password'] = $original->configuration['password'];
-    }
-    $formvals['configuration']['password'] = clients_drupal_encrypt($formvals['configuration']['password']);
-    return $formvals;
-  }
-}
-
-/**
- * Implementation of hook_clients_connection_save()
- */
-function clients_drupal_clients_connection_save($values) {
-  if($values['type'] == variable_get('clients_drupal_type', 'Drupal Services')) {
-    $values['configuration']['password'] = clients_drupal_encrypt($values['configuration']['password']);
-  }
-  return $values;
-}
-
-/**
  * Implementation of hook_menu()
  */
 function clients_drupal_menu() {
   $items = array();
-  $items['admin/settings/clients/connections/drupal'] = array(
-     'title' => 'Add Drupal connection',
-     'description' => 'Add Drupal connection',
-     'page callback' => 'drupal_get_form',
-     'page arguments' => array('clients_drupal_config', 'add'),
-     'access arguments' => array('clients_drupal admin'),
-     'weight' => 10,
-     'type' => MENU_NORMAL_ITEM,
-  );
   $items['admin/settings/clients/drupal/admin'] = array(
      'title' => 'Configure Drupal',
      'page callback' => 'drupal_get_form',
      'page arguments' => array('clients_drupal_admin'),
-     'access arguments' => array('clients_drupal admin'),
-     'weight' => 10,
-     'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/settings/clients/connections/drupal/%/edit'] = array(
-     'title' => 'Edit Drupal connection',
-     'description' => 'Edit Drupal connection',
-     'page callback' => 'drupal_get_form',
-     'page arguments' => array('clients_drupal_config', 6, 5),
      'access arguments' => array('clients_drupal admin'),
      'weight' => 10,
      'type' => MENU_NORMAL_ITEM,
@@ -99,22 +69,29 @@ function clients_drupal_menu() {
 }
 
 /**
- * @return array Form
+ * Form builder for the connection.
+ *
+ * This should be of the form client_connection_TYPE_form.
  */
-function clients_drupal_config(&$form_state, $op, $cid = '') {
+function client_connection_drupal_services_form(&$form_state, $cid = NULL) {
+  
   $form = array();
 
-  if($cid) {
-    $connection = clients_connection_load((int)$cid);
+  if (is_null($cid)) {
+    $new = TRUE;
+    drupal_set_title('Add Drupal services connection');
+  }
+  else {
+    $connection = clients_connection_load((int) $cid);
     $form['cid'] = array(
       '#type' => 'value',
       '#value' => $cid,
     );
   }
-
+  
   $form['type'] = array(
     '#type' => 'value',
-    '#value' => variable_get('clients_drupal_type', 'Drupal Services'),
+    '#value' => 'drupal_services',
   );
   
   $form['name'] = array(
@@ -126,6 +103,7 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#description' => t('Must be unique, any characters allowed'),
     '#required' => TRUE,
   );
+  
   $form['endpoint'] = array(
     '#type' => 'textfield',
     '#title' => t('Connection endpoint'),
@@ -184,7 +162,7 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#maxlength' => 60,
     '#attributes' => array('autocomplete' => 'off'),
     '#description' => $password_desc,
-    '#required' => $op == 'add',
+    '#required' => $new,
   );
 
   $form['configuration']['methods_enabled'] = array(
@@ -201,37 +179,50 @@ function clients_drupal_config(&$form_state, $op, $cid = '') {
     '#description' => t('List of Drupal views on remote servers. Resources can select from this list. One per line.'),
   );
 
-  if($op == 'add') {
-      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Add connection') );
-    
-      $form['#submit'] = array('clients_drupal_add_submit_handler');
-  }
-  elseif($op == 'edit') {
-      $form['buttons']['submit'] = array('#type' => 'submit', '#value' => t('Save') );
-    
-      $form['#submit'] = array('clients_drupal_edit_submit_handler');
-  }
+  $button_text = $new ? t('Add connection') : t('Save connection');
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => $button_text,
+  );
+  
   return $form;
-} 
-
-/**
- * Submit handler
- * @return array Form
- */
-function clients_drupal_add_submit_handler($form, &$form_state) {
-    clients_connection_save($form_state['values']);
 }
 
 /**
- * Submit handler
- * @return array Form
+ * Submit handler for the Drupal services connection edit form.
  */
-function clients_drupal_edit_submit_handler($form, &$form_state) {
-  clients_connection_edit($form_state['values']);
+function client_connection_drupal_services_form_submit($form, &$form_state) {
+  // Presence of the cid tells us whether we're editing or adding a new connection.
+  $new = !isset($form_state['values']['cid']);
+
+  if ($new) {
+    $form_state['values']['configuration']['password'] = clients_drupal_encrypt($values['configuration']['password']);
+  }
+  else {
+    // Prepare password for serialized storage
+    if (empty($form_state['values']['configuration']['password'])) {
+      // Need to load connection and set password to original if blank
+      $original = clients_connection_load((int) $form_state['values']['cid']);
+      $form_state['values']['configuration']['password'] = $original->configuration['password'];
+    }
+    $form_state['values']['configuration']['password'] = clients_drupal_encrypt($formvals['configuration']['password']);
+  }
+
+  if ($new) {
+    drupal_write_record('clients_connections', $form_state['values']);
+  }
+  else {
+    drupal_write_record('clients_connections', $form_state['values'], 'cid');
+  }
+
+  drupal_set_message(t('Connection saved.'));
+  $form_state['redirect'] = 'admin/settings/clients/connections';
 }
 
 /**
  * Implementation of hook_validate()
+ * 
+ * TODO: this doesn't seem to get used.
  */
 function clients_drupal_add_validate($form, &$form_state) {
 
@@ -262,7 +253,7 @@ function clients_drupal_add_validate($form, &$form_state) {
  * Implementation of hook_clients_connection_load
  */
 function clients_drupal_clients_connection_load(&$connection) {
-  if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')){
+  if ($connection->type == 'drupal_services') {
     $connection->configuration['password'] = clients_drupal_decrypt($connection->configuration['password']); // or ***
     $connection->operations =  l(t('Edit'), 'admin/settings/clients/connections/drupal/'. $connection->cid .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/connections/'. $connection->cid .'/delete');
   }
@@ -273,7 +264,7 @@ function clients_drupal_clients_connection_load(&$connection) {
  * Implementation of hook_clients_service_options
  */
 function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_values, $resource) {
-  if($connection->type != variable_get('clients_drupal_type', 'Drupal Services')) {
+  if($connection->type != 'drupal_services') {
     return;
   }
 
@@ -354,7 +345,7 @@ function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_
  */
 function clients_drupal_clients_setparams(&$resource, $arg) {
   $connection = clients_connection_load((int)$resource->cid); // need to make static?
-  if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')) {
+  if($connection->type == 'drupal_services') {
     foreach($arg as $key => $value) {
       // doesn't support multiple args...
       if($key == 'argument') {
@@ -372,7 +363,7 @@ function clients_drupal_clients_setparams(&$resource, $arg) {
  */
 function clients_drupal_clients_arguments($connection)  {
 //  $connection = clients_connection_load((int)$source['connection']);
-  if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')) {
+  if($connection->type == 'drupal_services') {
     $arg = new stdClass;
     $arg->name = 'argument';
     $arg->title = t('Argument');
@@ -386,7 +377,7 @@ function clients_drupal_clients_arguments($connection)  {
  * Implementation of hook_clients_call
  */
 function clients_drupal_clients_call($connection, $serviceOptions) {
-    if($connection->type == variable_get('clients_drupal_type', 'Drupal Services')){
+    if($connection->type == 'drupal_services'){
         $serviceConfig = clients_connection_load((int)$connection->cid);
         return ClientsServicesDrupal::call($serviceConfig, $serviceOptions);
     }
@@ -399,7 +390,7 @@ function clients_drupal_clients_call($connection, $serviceOptions) {
 function clients_drupal_clients_fields($resource = NULL) {
   if($resource) {
     $connection = clients_connection_load((int)$resource->cid);
-    if($connection->type != variable_get('clients_drupal_type', 'Drupal Services')) {
+    if($connection->type != 'drupal_services') {
       return;
     }
 

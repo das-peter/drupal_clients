@@ -51,8 +51,8 @@ function clients_menu() {
   $items['admin/settings/clients'] = array(
     'title' => 'Clients',
     'description' => 'Clients',
-    'page callback' => 'clients_resources',
-    'access callback' => 'clients_access_callback',
+    'page callback' => 'clients_connections_list',
+    'access callback' => 'clients_access_callback', // TODO: this is doomed.
     'type' => MENU_NORMAL_ITEM,
     );
 
@@ -60,9 +60,42 @@ function clients_menu() {
     'title' => 'Connections',
     'weight' => 1,
     'description' => 'List connections',
-    'page callback' => 'clients_connections',
+    'page callback' => 'clients_connections_list',
     'access arguments' => array('admin clients connections'),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+
+  $items['admin/settings/clients/connection/add/%'] = array(
+    'title' => 'Add connection',
+    'page callback' => 'clients_connection_add',
+    'page arguments' => array(5),
+    'access arguments' => array('admin clients connections'),
+  );
+  
+  $items['admin/settings/clients/connection/%'] = array(
+    'title' => 'Show connection',
+    'description' => 'Show connection',
+    'page callback' => 'clients_connection_view',
+    'page arguments' => array(4),
+    'access arguments' => array('admin clients connections'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/settings/clients/connection/%/edit'] = array(
+    'title' => 'Edit connection',
+    'page callback' => 'clients_connection_edit_page',
+    'page arguments' => array(4),
+    'access arguments' => array('admin clients connections'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['admin/settings/clients/connections/%/delete'] = array(
+    'title' => 'Delete connection',
+    'description' => 'Delete a connection',
+    'page callback' => 'clients_delete',
+    'page arguments' => array(4, 3),
+    'access arguments' => array('admin clients connections'),
+    'type' => MENU_CALLBACK,
   );
 
   $items['admin/settings/clients/resources'] = array(
@@ -71,7 +104,7 @@ function clients_menu() {
     'description' => 'List resources',
     'page callback' => 'clients_resources',
     'access arguments' => array('admin clients resources'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'type' => MENU_LOCAL_TASK,
   );
 
   $items['admin/settings/clients/resources/add'] = array(
@@ -119,24 +152,6 @@ function clients_menu() {
     'page arguments' => array('clients_admin_cache'),
     'access arguments' => array('admin clients resources'),
     'type' => MENU_LOCAL_TASK,
-  );
-
-  $items['admin/settings/clients/connection/%'] = array(
-    'title' => 'Show connection',
-    'description' => 'Show connection',
-    'page callback' => 'clients_connection_view',
-    'page arguments' => array(4),
-    'access arguments' => array('admin clients connections'),
-    'type' => MENU_CALLBACK,
-  );
-
-  $items['admin/settings/clients/connections/%/delete'] = array(
-    'title' => 'Delete connection',
-    'description' => 'Delete a connection',
-    'page callback' => 'clients_delete',
-    'page arguments' => array(4, 3),
-    'access arguments' => array('admin clients connections'),
-    'type' => MENU_CALLBACK,
   );
 
   return $items;
@@ -302,31 +317,75 @@ function clients_service_options($connection_id, $wrapper, $wrapper_values, $res
 }
 
 /**
- *
+ * Page callback: list connections.
  */
-function clients_connections() {
+function clients_connections_list() {
+  $output = '';
+  
+  $connection_types = module_invoke_all('clients_connection_type_info');
+  
   $connections = array();
-  foreach (array_keys(clients_connections_list()) as $cid) {
+  foreach (array_keys(clients_get_connections()) as $cid) {
     $connection = clients_connection_load($cid);      
     $connections[] = array(
       'name' => l($connection->name, 'admin/settings/clients/connection/'. $cid),
       'type' => $connection->type,
       'endpoint' => $connection->endpoint,
-      'operations' => $connection->operations,
+      'edit' => l('edit', 'admin/settings/clients/connection/'. $cid . '/edit'),
+      'delete' => l('delete', 'admin/settings/clients/connection/'. $cid . '/delete'),
     );
   }
   
+  // Ensure the table has a row if there are no connections at all.
   if (!count($connections)) {
     $connections[] = array(
       array(
         'data' => t('No connections defined yet.'),
-        'colspan' => '4',
+        'colspan' => '5',
       ),
     );
   }
   
-  return theme_table(array('Name', 'Type', 'Endpoint', 'Operations'), $connections);
+  $headers = array('Name', 'Type', 'Endpoint', array('data' => 'Operations', 'colspan' => 2));
+  $output .= theme_table($headers, $connections);
+  
+  foreach ($connection_types as $type => $type_data) {
+    //dsm($type_data);
+    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/settings/clients/connection/add/' . $type);
+  }
+  $output .= theme('item_list', $items);
+  
+  return $output;
 }
+
+/**
+ * Page callback for adding a connection.
+ *
+ * @param $type
+ *  The machine name of a connection type.
+ */
+function clients_connection_add($type) {
+  // TODO: cache these?
+  $connection_types = module_invoke_all('clients_connection_type_info');
+  //dsm($connection_types);
+  if (isset($connection_types[$type])) {
+    return drupal_get_form('client_connection_' . $type . '_form');
+  }
+  else {
+    return drupal_not_found();
+  }
+}
+
+/**
+* Page callback for editing a connection.
+ *
+ * This is a TEMPORARY FUNCTION NAME until the clash is resolved.
+ */
+function clients_connection_edit_page($cid) {
+  $connection = clients_connection_load((int) $cid);
+  return drupal_get_form('client_connection_' . $connection->type . '_form', $cid);
+}
+
 
 /**
  *
@@ -336,11 +395,14 @@ function clients_resources_add() {
 }
 
 /**
- *
+ * Menu callback; presents the node editing form, or redirects to delete confirmation.
  */
-function clients_resources_edit($arg) {
-  return drupal_get_form('clients_resources_form', (int)$arg);
+function XXXnode_page_edit($node) {
+  drupal_set_title(check_plain($node->title));
+  return drupal_get_form($node->type .'_node_form', $node);
 }
+
+
 
 /**
  *
@@ -396,7 +458,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
   );
   $connections = array();
 
-  foreach (clients_connections_list() as $cid => $connection) {
+  foreach (clients_get_connections() as $cid => $connection) {
       $connections[$cid] = $connection['name'];
   }
 
@@ -532,7 +594,7 @@ function clients_connection_view($arg) {
 }
 
 /**
- * Implementation of hook_flush_caches()
+ * Implementation of hook_flush_caches().
  */
 function clients_flush_caches() {
   return array('cache_clients');
@@ -540,14 +602,12 @@ function clients_flush_caches() {
 
 function clients_connection_edit($values) {
   $values = module_invoke_all('clients_connection_edit', $values); // by ref seems not working here...? - needs sorting
-  if (
-      $resultbase = drupal_write_record('clients_connections', $values, 'cid')
-     ) {
-      // @todo add watchdog
-      drupal_set_message('Edited connection');
+  if ($resultbase = drupal_write_record('clients_connections', $values, 'cid')) {
+    // @todo add watchdog
+    drupal_set_message('Edited connection');
   } 
   else {
-      drupal_set_message('Problem editing connection - drupal_write_record() result: '. $resultbase);
+    drupal_set_message('Problem editing connection - drupal_write_record() result: '. $resultbase);
   }
   drupal_goto('admin/settings/clients/connections');
 }
@@ -566,6 +626,12 @@ function clients_connection_save($values) {
   drupal_goto('admin/settings/clients/connections');
 }
 
+/**
+ * Load a client connection.
+ *
+ * @param $connectionIdentifier
+ *  Either a connection ID or the name of the connection.
+ */
 function clients_connection_load($connectionIdentifier) {
   if (is_int($connectionIdentifier)) {
       $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.cid = %d", $connectionIdentifier);
@@ -579,6 +645,7 @@ function clients_connection_load($connectionIdentifier) {
       return; // or FALSE?
   }
   $connection = db_fetch_object($result);
+  //dsm($connection);
   $connection->configuration = unserialize($connection->configuration);
   // invoke hook for contrib modules to process configuration
   module_invoke_all('clients_connection_load', $connection);
@@ -587,10 +654,11 @@ function clients_connection_load($connectionIdentifier) {
 
 /**
  * Loads all connections
+ *
  * @return
- *   Array
+ *   Array of connections.
  */
-function clients_connections_list() {
+function clients_get_connections() {
     $connections = array();
     $result =  db_query("SELECT * FROM {clients_connections} ORDER BY name");
     while ($connection = db_fetch_object($result)) {
@@ -605,6 +673,7 @@ function clients_connections_list() {
 
 /**
  * Loads all resources
+ *
  * @return
  *   Array
  */
@@ -622,6 +691,7 @@ function clients_resources_load() {
 
 /**
  * Loads a resource
+ *
  * @return
  *   Array
  */
