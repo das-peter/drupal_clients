@@ -349,6 +349,7 @@ function clients_connections_list() {
   $headers = array('Name', 'Type', 'Endpoint', array('data' => 'Operations', 'colspan' => 2));
   $output .= theme_table($headers, $connections);
   
+  // Add a list of connection types that can be created.
   foreach ($connection_types as $type => $type_data) {
     //dsm($type_data);
     $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/settings/clients/connection/add/' . $type);
@@ -377,15 +378,50 @@ function clients_connection_add($type) {
 }
 
 /**
-* Page callback for editing a connection.
+ * Page callback for editing a connection.
  *
- * This is a TEMPORARY FUNCTION NAME until the clash is resolved.
+ * This is a TEMPORARY FUNCTION NAME until clients_connection_edit can be used.
  */
 function clients_connection_edit_page($cid) {
   $connection = clients_connection_load((int) $cid);
   return drupal_get_form('client_connection_' . $connection->type . '_form', $cid);
 }
 
+/**
+ * Page callback to view a single connection.
+ *
+ * @param $cid
+ *  The id of a connection.
+ */
+function clients_connection_view($cid) {
+  // Put the connections list page into the breadcrumb.
+  $breadcrumb = drupal_get_breadcrumb();
+  $breadcrumb[] = l(t('Connections'), 'admin/settings/clients/connections');
+  drupal_set_breadcrumb($breadcrumb);
+
+  // Load the connection.
+  $connection = clients_connection_load((int) $cid);
+  
+  // Build summary table.
+  $rows = array();
+  $rows[] = array('Name', check_plain($connection->name));
+  $rows[] = array('Endpoint', check_plain($connection->endpoint));
+  foreach ($connection->configuration as $label => $val) {
+    if (is_array($val)) {
+      $val = implode(', ', $val); // needs to be recursive?
+    }
+    $rows[] = array(ucfirst(check_plain($label)), nl2br(check_plain($val)));
+    
+  }
+  $operations = array(
+    'edit' => l('edit', 'admin/settings/clients/connection/' . $cid . '/edit'),
+    'delete' => l('delete', 'admin/settings/clients/connection/' . $cid . '/delete'),
+  );
+  
+  $rows[] = array('Operations', implode(' | ', $operations));
+
+  return theme_table(array(), $rows);
+}
 
 /**
  *
@@ -393,15 +429,6 @@ function clients_connection_edit_page($cid) {
 function clients_resources_add() {
   return drupal_get_form('clients_resources_form');
 }
-
-/**
- * Menu callback; presents the node editing form, or redirects to delete confirmation.
- */
-function XXXnode_page_edit($node) {
-  drupal_set_title(check_plain($node->title));
-  return drupal_get_form($node->type .'_node_form', $node);
-}
-
 
 
 /**
@@ -565,34 +592,6 @@ function clients_resource_view($arg) {
   return theme_table(array(), $output);
 }
 
-
-
-/**
- *
- */
-function clients_connection_view($arg) {
-  drupal_set_breadcrumb(array(
-    l(t('Home'), NULL),
-    l(t('Administer'), 'admin'),
-    l(t('Site configuration'), 'admin/settings'),
-    l(t('Clients'), 'admin/settings/clients'),
-    l(t('Connections'), 'admin/settings/clients/connections'),
-  ));
-
-  $connection = clients_connection_load((int)$arg);
-  // modules alter the connection config and edit links
-  $output[] = array('Name', $connection->name);
-  $output[] = array('Endpoint', $connection->endpoint);
-  foreach ($connection->configuration as $label => $val) {
-    if (is_array($val)) {
-      $val = implode(', ', $val); // needs to be recursive?
-    }
-    $output[] = array(ucfirst($label), nl2br($val));
-  }
-  $output[] = array('Operations', $connection->operations);
-  return theme_table(array(), $output);
-}
-
 /**
  * Implementation of hook_flush_caches().
  */
@@ -600,6 +599,7 @@ function clients_flush_caches() {
   return array('cache_clients');
 }
 
+// TODO: obsolete.
 function clients_connection_edit($values) {
   $values = module_invoke_all('clients_connection_edit', $values); // by ref seems not working here...? - needs sorting
   if ($resultbase = drupal_write_record('clients_connections', $values, 'cid')) {
@@ -612,6 +612,7 @@ function clients_connection_edit($values) {
   drupal_goto('admin/settings/clients/connections');
 }
 
+// TODO: obsolete.
 function clients_connection_save($values) {
   $values = module_invoke_all('clients_connection_save', $values);
   if (
@@ -648,6 +649,8 @@ function clients_connection_load($connectionIdentifier) {
   //dsm($connection);
   $connection->configuration = unserialize($connection->configuration);
   // invoke hook for contrib modules to process configuration
+  // TODO: this has no need to be an invoke all pattern -- instead, call only 
+  // the function TYPE_clients_connection_load.
   module_invoke_all('clients_connection_load', $connection);
   return $connection;
 }
@@ -659,16 +662,16 @@ function clients_connection_load($connectionIdentifier) {
  *   Array of connections.
  */
 function clients_get_connections() {
-    $connections = array();
-    $result =  db_query("SELECT * FROM {clients_connections} ORDER BY name");
-    while ($connection = db_fetch_object($result)) {
-        $connections[$connection->cid] = array(
-          'name' => $connection->name,
-          'type' => $connection->type,
-          'endpoint' => $connection->endpoint,
-        );
-    }
-    return $connections;
+  $connections = array();
+  $result =  db_query("SELECT * FROM {clients_connections} ORDER BY name");
+  while ($connection = db_fetch_object($result)) {
+      $connections[$connection->cid] = array(
+        'name' => $connection->name,
+        'type' => $connection->type,
+        'endpoint' => $connection->endpoint,
+      );
+  }
+  return $connections;
 }
 
 /**

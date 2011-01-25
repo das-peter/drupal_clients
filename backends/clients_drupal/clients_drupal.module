@@ -255,7 +255,6 @@ function clients_drupal_add_validate($form, &$form_state) {
 function clients_drupal_clients_connection_load(&$connection) {
   if ($connection->type == 'drupal_services') {
     $connection->configuration['password'] = clients_drupal_decrypt($connection->configuration['password']); // or ***
-    $connection->operations =  l(t('Edit'), 'admin/settings/clients/connections/drupal/'. $connection->cid .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/connections/'. $connection->cid .'/delete');
   }
 }
 
@@ -264,12 +263,12 @@ function clients_drupal_clients_connection_load(&$connection) {
  * Implementation of hook_clients_service_options
  */
 function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_values, $resource) {
-  if($connection->type != 'drupal_services') {
+  if ($connection->type != 'drupal_services') {
     return;
   }
 
   $form = array();
-  $connection = clients_connection_load((int)$connection->cid);
+  $connection = clients_connection_load((int) $connection->cid);
   $methods = array_map('trim', explode("\n", trim($connection->configuration['methods_enabled'])));
   $methods = array_combine($methods, $methods);
 
@@ -377,10 +376,10 @@ function clients_drupal_clients_arguments($connection)  {
  * Implementation of hook_clients_call
  */
 function clients_drupal_clients_call($connection, $serviceOptions) {
-    if($connection->type == 'drupal_services'){
-        $serviceConfig = clients_connection_load((int)$connection->cid);
-        return ClientsServicesDrupal::call($serviceConfig, $serviceOptions);
-    }
+  if ($connection->type == 'drupal_services'){
+    $serviceConfig = clients_connection_load((int) $connection->cid);
+    return ClientsServicesDrupal::call($serviceConfig, $serviceOptions);
+  }
 }
 
 /**
@@ -388,9 +387,9 @@ function clients_drupal_clients_call($connection, $serviceOptions) {
  * Allows us to get field for a specific resource. Default fields are set at the connection type level here and additional custom field will be defined per resource (@todo). This will allow adding of remote cck fields (for example) for a specific resource (e.g. a certain view). This function will need to aggregate these with the base ones. (Otherwise this function is used to return all available fields.)
  */
 function clients_drupal_clients_fields($resource = NULL) {
-  if($resource) {
+  if ($resource) {
     $connection = clients_connection_load((int)$resource->cid);
-    if($connection->type != 'drupal_services') {
+    if ($connection->type != 'drupal_services') {
       return;
     }
 
@@ -404,12 +403,11 @@ function clients_drupal_clients_fields($resource = NULL) {
         $fieldset[$field] = array('name' => $field, 'description' => '');
       }
       return $fieldset;
-
-    } else {
+    } 
+    else {
       drupal_set_message('No fields were returned');
       return;
     }
-
   }
 
 // need to define behaviour if no resource specified - should this display:
