@@ -37,7 +37,15 @@ function clients_drupal_clients_connection_type_info() {
     // Key by machine name. Used as the base for hooks.
     'drupal_services' => array(
       'module' => 'clients_drupal', // This module. (Saves invoker mucking about putting that in.)
+      'class'  => 'ClientsServicesDrupal',
       'label'  => t('Drupal Services'), // Human-readable label.
+    ),
+    'drupal_services_5' => array(
+      'module' => 'clients_drupal',
+      'base'   => 'drupal_services', // specifies the type to use for the settings form, etc
+        // though this is a good case to move the form into the class to benefit from inheritance!
+      'class'  => 'ClientsServicesDrupal_5',
+      'label'  => t('Drupal Services 5'),
     ),
   );
 }
@@ -73,7 +81,7 @@ function clients_drupal_menu() {
  *
  * This should be of the form client_connection_TYPE_form.
  */
-function client_connection_drupal_services_form(&$form_state, $cid = NULL) {
+function client_connection_drupal_services_form(&$form_state, $type, $cid = NULL) {
   
   $form = array();
 
@@ -91,7 +99,7 @@ function client_connection_drupal_services_form(&$form_state, $cid = NULL) {
   
   $form['type'] = array(
     '#type' => 'value',
-    '#value' => 'drupal_services',
+    '#value' => $type,
   );
   
   $form['name'] = array(
@@ -196,7 +204,7 @@ function client_connection_drupal_services_form_submit($form, &$form_state) {
   $new = !isset($form_state['values']['cid']);
 
   if ($new) {
-    $form_state['values']['configuration']['password'] = clients_drupal_encrypt($values['configuration']['password']);
+    $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
   }
   else {
     // Prepare password for serialized storage
@@ -205,7 +213,7 @@ function client_connection_drupal_services_form_submit($form, &$form_state) {
       $original = clients_connection_load((int) $form_state['values']['cid']);
       $form_state['values']['configuration']['password'] = $original->configuration['password'];
     }
-    $form_state['values']['configuration']['password'] = clients_drupal_encrypt($formvals['configuration']['password']);
+    $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
   }
 
   if ($new) {
@@ -374,6 +382,8 @@ function clients_drupal_clients_arguments($connection)  {
 
 /**
  * Implementation of hook_clients_call
+ *
+ * TODO: rename to hook_clients_call_resource
  */
 function clients_drupal_clients_call($connection, $serviceOptions) {
   if ($connection->type == 'drupal_services'){
@@ -382,6 +392,13 @@ function clients_drupal_clients_call($connection, $serviceOptions) {
   }
 }
 
+/**
+ * Caller function. This gets us into the class.
+ */
+function drupal_services_clients_call($connection, $method, $parameters = array()) {
+  return ClientsServicesDrupal::call_method($connection, $method, $parameters);
+}
+ 
 /**
  * Implementation of hook_clients_fields - refactor as inc file?
  * Allows us to get field for a specific resource. Default fields are set at the connection type level here and additional custom field will be defined per resource (@todo). This will allow adding of remote cck fields (for example) for a specific resource (e.g. a certain view). This function will need to aggregate these with the base ones. (Otherwise this function is used to return all available fields.)
@@ -427,7 +444,7 @@ function clients_drupal_admin() {
   $form['clients_drupal_encryption_method'] = array(
     '#type' => 'select',
     '#title' => t('Remote password encryption method'),
-    '#default_value' => variable_get('clients_drupal_encryption_method', ''),
+    '#default_value' => variable_get('clients_drupal_encryption_method', 'no_encryption'),
     '#options' => $options,
     '#required' => TRUE,
   );
@@ -443,8 +460,8 @@ function clients_drupal_encryption_methods() {
 
 function clients_drupal_encrypt($val) {
   $encryption_method = variable_get('clients_drupal_encryption_method', 'no_encryption');
-  if($encryption_method == 'no_encryption') {
-     return $val;
+  if ($encryption_method == 'no_encryption') {
+    return $val;
   }
   else {
     return module_invoke($encryption_method, 'clients_drupal_encrypt', $val);
@@ -452,9 +469,9 @@ function clients_drupal_encrypt($val) {
 }
 
 function clients_drupal_decrypt($val) {
-  $encryption_method = variable_get('clients_drupal_encryption_method', '');
-  if($encryption_method == 'no_encryption') {
-     return $val;
+  $encryption_method = variable_get('clients_drupal_encryption_method', 'no_encryption');
+  if ($encryption_method == 'no_encryption') {
+    return $val;
   }
   else {
     return module_invoke($encryption_method, 'clients_drupal_decrypt', $val);

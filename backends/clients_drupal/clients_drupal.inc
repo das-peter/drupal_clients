@@ -8,9 +8,47 @@
  */
 
 /**
+ * General Drupal client class.
  *
+ * This should connect to Drupal 7 services. Which are still at the RC stage...
+ * so it's largely an abstract class for the moment.
  */
 class ClientsServicesDrupal extends ClientsServicesBase {
+  /**
+   * Constructor method.
+   *
+   * @param $connection_data
+   *  An object containing connection data, as returned from clients_connection_load().
+   */
+  function __construct($connection_data) {
+    // Call the base class to set the connection properties.
+    parent::__construct($connection_data);
+
+    // Decrypt the password.
+    $this->configuration['password'] = clients_drupal_decrypt($this->configuration['password']);
+  }
+  
+  // ===================================== new object stuff
+
+  /**
+   * Call a remote method.
+   *
+   * @param $method
+   *  The name of the remote method to call.
+   * @param
+   *  All other parameters are passed to the remote method.
+   *  Note that the D5 version of Services does not seem to respect optional parameters; you
+   *  should pass in defaults (eg an empty string or 0) instead of omitting a parameter.
+   *
+   * @return
+   *  Whatever is returned from the remote site. 
+   */
+  function callMethod($method) {
+    // TODO: Needs to be written for Services D7.
+    dsm($method);
+  }
+
+  // ===================================== old static stuff
 
   /**
    * Use for testing
@@ -164,4 +202,181 @@ class ClientsServicesDrupal extends ClientsServicesBase {
     } // else method not supported yet
     
   }
+
 }
+
+/**
+ * Drupal client for services on a Drupal 6 site.
+ */
+class ClientsServicesDrupal_6 extends ClientsServicesDrupal {
+  // TODO...
+  
+  /**
+   * Call a remote method.
+   *
+   * @param $method
+   *  The name of the remote method to call.
+   * @param
+   *  All other parameters are passed to the remote method.
+   *  Note that the D5 version of Services does not seem to respect optional parameters; you
+   *  should pass in defaults (eg an empty string or 0) instead of omitting a parameter.
+   *
+   * @return
+   *  Whatever is returned from the remote site. 
+   */
+  function callMethod($method) {
+    // TODO: Needs to be written for Services D6.
+    dsm($method);
+  }  
+}
+
+/**
+ * Drupal client for services on a Drupal 5 site.
+ *
+ * Works with Services 5.x-0.92.
+ */
+class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
+  /**
+   * Call a remote method.
+   *
+   * TODO: REFACTOR this to look more like the static methods above --
+   * separate methods for getuser, connect, etc etc.
+   *
+   * @param $method
+   *  The name of the remote method to call.
+   * @param
+   *  All other parameters are passed to the remote method.
+   *  Note that the D5 version of Services does not seem to respect optional parameters; you
+   *  should pass in defaults (eg an empty string or 0) instead of omitting a parameter.
+   *
+   * @return
+   *  Whatever is returned from the remote site. 
+   */
+  function callMethod($method) {
+    dsm($this);
+    dsm($method);
+    
+    $config = $this->configuration;
+    
+    $connect = xmlrpc($this->endpoint, 'system.connect');
+    $session_id = $connect['sessid'];
+    
+    // We may want to call only system.connect for testing purposes.
+    if ($method == 'system.connect') {
+      return $connect; 
+    }
+    
+    // Log in
+    // Get the API key-related arguments.
+    $key_args = $this->xmlrpc_key_args('user.login');
+    //dsm($key_args);
+    
+    // Build the array of connection arguments we need to log in.
+    $username = $this->configuration['username'];
+    $password = $this->configuration['password'];
+    $login_args = array_merge(
+      array($this->endpoint, 'user.login'),
+      $key_args,
+      array($session_id),
+      array($username, $password)
+    );
+    
+    // Call the xmlrpc method with our array of arguments. This accounts for 
+    // whether we use a key or not, and the extra parameters to pass to the method.
+    $login = call_user_func_array('xmlrpc', $login_args);
+    $login_session_id = $login['sessid'];   
+    
+    dsm($login);
+    
+    // Get all the arguments this function has been passed.
+    $function_args  = func_get_args();
+    // Slice out the ones that are arguments to the method call: everything past
+    // the 1st argument.
+    $method_args    = array_slice($function_args, 1);    
+    
+    // The node.load method on D5 is an evil special case because it's defined
+    // to not use an API key.
+    if ($method == 'node.load') {
+      // Be nice. Let the caller specify just the nid, and provide the 
+      // empty default for the optional fields parameter.
+      if (count($method_args) == 1) {
+        $method_args[] = array();
+      }
+      
+      // Build the array of connection arguments for the method we want to call.
+      $xmlrpc_args = array_merge(
+        array($this->endpoint, $method),
+        array($login_session_id),
+        $method_args
+      );
+      
+      dsm($xmlrpc_args);
+
+      // Call the xmlrpc method with our array of arguments.
+      $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+      
+      if ($result === FALSE) {
+        dsm('error');
+        return xmlrpc_error();
+      }
+
+      return $result;
+    }
+    
+    // Get the API key-related arguments.
+    $key_args = $this->xmlrpc_key_args($method);
+
+    // Build the array of connection arguments for the method we want to call.
+    $xmlrpc_args = array_merge(
+      array($this->endpoint, $method),
+      $key_args,
+      array($login_session_id),
+      $method_args
+    );
+
+    // Call the xmlrpc method with our array of arguments.
+    $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+    
+    if ($result === FALSE) {
+      dsm('error');
+      return xmlrpc_error();
+    }
+    
+    return $result;
+    
+  }
+
+  /**
+   * TODO: merge with getToken.
+   */
+  function xmlrpc_key_args($method) { 
+    $api_key = $this->configuration['servicekey'];
+
+    // Build the API key arguments - if no key supplied supplied, presume not required
+    if ($api_key != '') {
+      //use api key to get a hash code for the service.
+      $timestamp = (string) strtotime("now");
+      $domain = $_SERVER['SERVER_NAME'];
+      if ($_SERVER['SERVER_PORT'] != 80) {
+        $domain .= ':' . $_SERVER['SERVER_PORT'];        
+      }
+      $nonce = uniqid();
+      $hash_parameters = array(
+        $timestamp,
+        $domain,
+        $nonce,
+        $method,
+      );
+      $hash = hash_hmac("sha256", implode(';', $hash_parameters), $api_key);
+
+      $key_args = array($hash, $domain, $timestamp, $nonce);
+    }
+    else {
+      $key_args = array();
+    }
+
+    return $key_args;
+  }
+  
+}
+

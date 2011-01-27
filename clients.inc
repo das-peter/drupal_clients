@@ -8,55 +8,74 @@
  */
 
 /**
- *
+ * Base class for Clients.
  */
 abstract class ClientsServicesBase {
-
-    /**
-     * Takes variable number of params after cacheid. 
-     */
-    static protected function doCall($method, $cacheid) {
-
-        $args = func_get_args();
-        $args = array_slice($args, 2); // any extra params passed to this argument
-
-        $cache_table = 'cache_clients';
-        $cache_time = variable_get('clients_api_cache_time', '0');
-        
-        if ($cache_time == '0' || !$result = cache_get($cacheid, $cache_table)) {
-            if ($method == 'xmlrpc') {
-                $data = call_user_func_array('xmlrpc', $args); 
-            }
-            elseif ($method == 'rest') {
-                $data = call_user_func_array('drupal_http_request', $args); 
-            }
-            else{
-                $data = t('@method not yet supported', array('@method' => $method)); 
-            }
-            
-            // @todo error handling/reporting
-            if ($cache_time != '0') {
-                cache_set(
-                    $cacheid, 
-                    $data, 
-                    $cache_table, 
-                    $cache_time == 'cron' ? CACHE_TEMPORARY : 
-                        time() + ((int)$cache_time * 60)
-                    );
-            }
-            $result = new stdClass;
-            $result->data = $data;
-            $result->created = time();
-        }
-        return $result; 
+  // Class properties.
+  public $name;
+  public $cid;
+  public $endpoint;
+  public $configuration;
+  
+  /**
+   * Constructor method.
+   *
+   * @param $connection_data
+   *  An object containing connection data, as returned from clients_connection_load().
+   */  
+  function __construct($connection_data) {
+    // Set the connection properties.
+    // TODO: incoming $connection_data should change to an array in due course.
+    foreach (array('name', 'cid', 'endpoint', 'configuration') as $property) {
+      $this->$property = $connection_data->$property;
     }
+  }
+
+  /**
+   * Takes variable number of params after cacheid. 
+   */
+  static protected function doCall($method, $cacheid) {
+
+    $args = func_get_args();
+    $args = array_slice($args, 2); // any extra params passed to this argument
+
+    $cache_table = 'cache_clients';
+    $cache_time = variable_get('clients_api_cache_time', '0');
     
-    /**
-     * Connection extending classes must implement the interface below:
-     */
-     
-    /**
-     * Sets cacheid and parameters for the service/method and calls self::doCall() 
-     */
-    abstract static public function call($serviceConfig, $serviceOptions);
+    if ($cache_time == '0' || !$result = cache_get($cacheid, $cache_table)) {
+      if ($method == 'xmlrpc') {
+        $data = call_user_func_array('xmlrpc', $args); 
+      }
+      elseif ($method == 'rest') {
+        $data = call_user_func_array('drupal_http_request', $args); 
+      }
+      else {
+        $data = t('@method not yet supported', array('@method' => $method)); 
+      }
+      
+      // @todo error handling/reporting
+      if ($cache_time != '0') {
+        cache_set(
+          $cacheid, 
+          $data, 
+          $cache_table, 
+          $cache_time == 'cron' ? CACHE_TEMPORARY : 
+            time() + ((int)$cache_time * 60)
+          );
+      }
+      $result = new stdClass;
+      $result->data = $data;
+      $result->created = time();
+    }
+    return $result; 
+  }
+  
+  /**
+   * Connection extending classes must implement the interface below:
+   */
+   
+  /**
+   * Sets cacheid and parameters for the service/method and calls self::doCall() 
+   */
+  abstract static public function call($serviceConfig, $serviceOptions);
 }
