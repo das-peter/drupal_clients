@@ -45,7 +45,7 @@ class ClientsServicesDrupal extends ClientsServicesBase {
    */
   function callMethod($method) {
     // TODO: Needs to be written for Services D7.
-    dsm($method);
+    //dsm($method);
   }
 
   // ===================================== old static stuff
@@ -226,7 +226,7 @@ class ClientsServicesDrupal_6 extends ClientsServicesDrupal {
    */
   function callMethod($method) {
     // TODO: Needs to be written for Services D6.
-    dsm($method);
+    //dsm($method);
   }  
 }
 
@@ -253,8 +253,8 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
    *  Whatever is returned from the remote site. 
    */
   function callMethod($method) {
-    dsm($this);
-    dsm($method);
+    //dsm($this);
+    //dsm($method);
     
     $config = $this->configuration;
     
@@ -286,7 +286,7 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
     $login = call_user_func_array('xmlrpc', $login_args);
     $login_session_id = $login['sessid'];   
     
-    dsm($login);
+    //dsm($login);
     
     // Get all the arguments this function has been passed.
     $function_args  = func_get_args();
@@ -310,13 +310,13 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
         $method_args
       );
       
-      dsm($xmlrpc_args);
+      //dsm($xmlrpc_args);
 
       // Call the xmlrpc method with our array of arguments.
       $result = call_user_func_array('xmlrpc', $xmlrpc_args);
       
       if ($result === FALSE) {
-        dsm('error');
+        //dsm('error');
         return xmlrpc_error();
       }
 
@@ -338,7 +338,7 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
     $result = call_user_func_array('xmlrpc', $xmlrpc_args);
     
     if ($result === FALSE) {
-      dsm('error');
+      //dsm('error');
       return xmlrpc_error();
     }
     
