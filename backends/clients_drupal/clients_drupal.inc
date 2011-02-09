@@ -284,7 +284,12 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
     // Call the xmlrpc method with our array of arguments. This accounts for 
     // whether we use a key or not, and the extra parameters to pass to the method.
     $login = call_user_func_array('xmlrpc', $login_args);
-    $login_session_id = $login['sessid'];   
+    $login_session_id = $login['sessid'];
+    
+    // If the requested method is user.login, we're done.
+    if ($method == 'user.login') {
+      return $login; 
+    }
     
     //dsm($login);
     
@@ -302,6 +307,14 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
       if (count($method_args) == 1) {
         $method_args[] = array();
       }
+      
+      // Be nice part 2: the number one (in my experience) cause of lost
+      // hours on Services is the way XMLRPC and/or services get their
+      // knickers in a twist when they want an integer but think they've got
+      // a string because they're too damn stupid to try casting.
+      // So cast the nid here, since we're already in a special case for this
+      // method anyway.
+      $method_args[0] = (int) $method_args[0];
       
       // Build the array of connection arguments for the method we want to call.
       $xmlrpc_args = array_merge(
@@ -377,6 +390,107 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
 
     return $key_args;
   }
+  
+  /**
+   * Provide buttons for the connection testing page.
+   */
+  function getTestOperations() {
+    $buttons['connect'] = array(
+      '#value' => 'Test connection',
+      '#type' => 'submit',
+      //'#name' => 'connect', // wtf does this do?
+      '#operation' => array('testConnectionConnect'),
+      '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
+    );
+    $buttons['login'] = array(
+      '#value' => 'Test user login',
+      '#type' => 'submit',
+      //'#name' => 'login',
+      '#operation' => array('testConnectionLogin'),
+      '#description' => t('Test the remote user settings and by calling user.login on the remote server.'),
+    );
+    $buttons['node_load'] = array(
+      '#type' => 'fieldset',
+    );
+    $buttons['node_load']['nid'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Node ID',
+      '#size' => 6,
+      '#default_value' => 2,
+    );
+    $buttons['node_load']['button'] = array(
+      '#value' => 'Test node retrieval',
+      '#type' => 'submit',
+      //'#name' => 'login',
+      '#operation' => array('testConnectionNodeLoad'),
+      '#description' => t('Attempt to load a remote node.'),
+    
+    );
+    return $buttons;
+  }
+  
+  /**
+   * Connection test button handler: basic connection.
+   *
+   * Connection test handlers should return the raw data they got back from the
+   * connection for display to the user.
+   */
+  function testConnectionConnect(&$button_form_values) {  
+    // Call the connect method.
+    $connect = $this->callMethod('system.connect');
+
+    if (is_array($connect) && isset($connect['user'])) {
+      drupal_set_message(t('Sucessfully connected to the remote site.'));
+    }
+    else {
+      drupal_set_message(t('Could not connect to the remote site.'), 'warning');
+    }
+    
+    return $connect;
+  }
+
+  /**
+   * Connection test button handler: basic connection.
+   */
+  function testConnectionLogin(&$button_form_values) {
+    // Call the login method.
+    $login = $this->callMethod('user.login');
+    // Eep. we need user details!!!
+
+    if (is_array($login) && isset($login['user'])) {
+      drupal_set_message(t('Sucessfully logged in to the remote site; got back details for user %user (uid @uid).', array(
+        '%user' => $login['user']['name'],
+        '@uid'  => $login['user']['uid'],
+        )));
+    }
+    else {
+      drupal_set_message(t('Could not log in to the remote site.'), 'warning');
+    }
+    
+    return $login;
+  }
+  
+  /**
+   * Connection test button handler: basic connection.
+   */
+  function testConnectionNodeLoad(&$button_form_values) {  
+    $nid = $button_form_values['nid'];
+    
+    $node = $this->callMethod('node.load', $nid);
+    
+    if (is_array($node) && isset($node['nid'])) {
+      drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
+        '%title' => $node['title'],
+        '@nid'  => $node['nid'],
+        )));
+    }
+    else {
+      drupal_set_message(t('Could not retrieve a node from the remote site.'), 'warning');
+    }
+
+    return $node;
+  }
+  
   
 }
 

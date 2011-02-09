@@ -26,7 +26,7 @@ abstract class ClientsServicesBase {
   function __construct($connection_data) {
     // Set the connection properties.
     // TODO: incoming $connection_data should change to an array in due course.
-    foreach (array('name', 'cid', 'endpoint', 'configuration') as $property) {
+    foreach (array('name', 'cid', 'endpoint', 'configuration', 'type') as $property) {
       $this->$property = $connection_data->$property;
     }
   }
@@ -70,6 +70,13 @@ abstract class ClientsServicesBase {
     return $result; 
   }
   
+  /**
+   * Provide buttons for the connection testing page.
+   */
+  function getTestOperations() {
+    return array();
+  }
+
   /**
    * Connection extending classes must implement the interface below:
    */
