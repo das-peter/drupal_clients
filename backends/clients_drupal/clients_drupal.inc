@@ -275,10 +275,10 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
     $username = $this->configuration['username'];
     $password = $this->configuration['password'];
     $login_args = array_merge(
-      array($this->endpoint, 'user.login'),
-      $key_args,
-      array($session_id),
-      array($username, $password)
+      array($this->endpoint, 'user.login'), // endpoint, method
+      $key_args,                            // hash, domain_name, domain_time_stamp, nonce
+      array($session_id),                   // sessid
+      array($username, $password)           // username, password
     );
     
     // Call the xmlrpc method with our array of arguments. This accounts for 
@@ -369,10 +369,10 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
     if ($api_key != '') {
       //use api key to get a hash code for the service.
       $timestamp = (string) strtotime("now");
-      $domain = $_SERVER['SERVER_NAME'];
-      if ($_SERVER['SERVER_PORT'] != 80) {
-        $domain .= ':' . $_SERVER['SERVER_PORT'];        
-      }
+      // Note that the domain -- at least for Services 5 and 6.x-2.x -- is a
+      // purely arbitrary string more akin to a username.
+      // See http://drupal.org/node/821700 for background.
+      $domain = $this->configuration['domain'];
       $nonce = uniqid();
       $hash_parameters = array(
         $timestamp,
