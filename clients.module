@@ -518,7 +518,7 @@ function clients_connection_test_form(&$form_state, $cid) {
   // Get the core buttons provided by the connection class.
   // In due course, applications that use this connection may be able to provide
   // their own test buttons too: TODO.
-  $core_buttons = $connection->getTestOperations();
+  $core_buttons = $connection->getTestOperations($form_state, $cid);
   
   // Some processing of the buttons to simplify the method of specifying them.
   // see ClientsServicesDrupal_5::getTestOperations for an example of how this works.
@@ -550,24 +550,26 @@ function clients_connection_test_form(&$form_state, $cid) {
     $form['buttons'][$key]['button']['#key'] = $key;
   }
   
-  
-  
-  //$form['buttons'] = array_merge($form['buttons'], $buttons);
   // TODO: allow applications to add buttons to this connection.
-  //dsm($buttons);
   
-  
-  
+  // Show the results that the button handler returned.  
   foreach (array_keys($form['buttons']) as $button_id) {    
     // If there is a key in the form storage with the same ID as a button, 
     // the it is the result of a previous manual test.  
     if (isset($form_state['storage'][$button_id])) {
-      $title = $form['buttons'][$button_id]['#value'];
-      $form['results'][$button_id] = array(
-        '#type' => 'markup', 
-        '#value' => "<h3>$title</h3>" . 
-          '<pre>' . print_r($form_state['storage'][$button_id], TRUE) . '</pre>',
+      $form['buttons'][$button_id]['results'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Results'),
+        '#collapsible' => TRUE,
       );
+      $title = $form['buttons'][$button_id]['#value'];
+      $data  = check_plain(print_r($form_state['storage'][$button_id], TRUE));
+      $form['buttons'][$button_id]['results'][$button_id] = array(
+        '#type' => 'markup', 
+        '#value' => "<h3>$title</h3>" . "<pre>$data</pre>",
+      );
+      // Clear the storage so it doesn't just accumulate.
+      unset($form_state['storage'][$button_id]);  
     }
   }
   
@@ -575,28 +577,38 @@ function clients_connection_test_form(&$form_state, $cid) {
 }
 
 /**
+ * Validate handler for the connection test page.
+ */
+function clients_connection_test_form_validate($form, &$form_state) {  
+  $connection = $form['#connection'];
+  $button_key = $form_state['clicked_button']['#key'];
+  // Only pass the method the values that are related to it; everything else is just cruft.
+  $button_form_values = $form_state['values']['buttons'][$button_key];
+  
+  if (isset($form_state['clicked_button']['#action_validate'])) {  
+    $validate_handler = $form_state['clicked_button']['#action_validate'];
+    $connection->$validate_handler($button_form_values);
+  }
+}
+
+
+/**
  * Submit handler for the connection test page.
  */
 function clients_connection_test_form_submit($form, &$form_state) {  
+  //dsm($form_state);
+
   $connection = $form['#connection'];
   
-  // Clear the storage ahead of the callback puting its result in.
-  unset($form_state['storage']);  
-  
-  //dsm($form_state);
-  
   $button_key = $form_state['clicked_button']['#key'];
-  // WTF: why does it go into an array?
-  $callback = $form_state['clicked_button']['#operation'][0];
+  $submit_handler = $form_state['clicked_button']['#action_submit'];
   
   // Only pass the method the values that are related to it; everything else is just cruft.
   $button_form_values = $form_state['values']['buttons'][$button_key];
-  $result = $connection->$callback($button_form_values);
+  $result = $connection->$submit_handler($button_form_values);
   
-  // Extract the id of the clicked button.
-  $button_id = $form_state['clicked_button']['#parents'][1];  
   // Place the data returned from the connection in the form for display.
-  $form_state['storage'][$button_id] = $result;
+  $form_state['storage'][$button_key] = $result;
 }
 
 /**

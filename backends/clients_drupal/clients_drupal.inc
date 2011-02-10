@@ -393,20 +393,23 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
   
   /**
    * Provide buttons for the connection testing page.
+   *
+   * @param $form_state
+   *  This is passed in so you can set defaults based on user input.
    */
-  function getTestOperations() {
+  function getTestOperations($form_state, $cid) {
     $buttons['connect'] = array(
       '#value' => 'Test connection',
       '#type' => 'submit',
       //'#name' => 'connect', // wtf does this do?
-      '#operation' => array('testConnectionConnect'),
+      '#action_submit' => 'testConnectionConnect',
       '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
     );
     $buttons['login'] = array(
       '#value' => 'Test user login',
       '#type' => 'submit',
       //'#name' => 'login',
-      '#operation' => array('testConnectionLogin'),
+      '#action_submit' => 'testConnectionLogin',
       '#description' => t('Test the remote user settings and by calling user.login on the remote server.'),
     );
     $buttons['node_load'] = array(
@@ -416,13 +419,15 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
       '#type' => 'textfield',
       '#title' => 'Node ID',
       '#size' => 6,
-      '#default_value' => 2,
+      '#default_value' => isset($form_state['values']['buttons']['node_load']['nid']) ? $form_state['values']['buttons']['node_load']['nid'] : NULL,
     );
     $buttons['node_load']['button'] = array(
       '#value' => 'Test node retrieval',
       '#type' => 'submit',
       //'#name' => 'login',
-      '#operation' => array('testConnectionNodeLoad'),
+      // TODO: tidy up these method names!
+      '#action_submit' => 'testConnectionNodeLoad',
+      '#action_validate' => 'testConnectionNodeLoadValidate',      
       '#description' => t('Attempt to load a remote node.'),
     
     );
@@ -450,7 +455,7 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
   }
 
   /**
-   * Connection test button handler: basic connection.
+   * Connection test button handler: user login.
    */
   function testConnectionLogin(&$button_form_values) {
     // Call the login method.
@@ -471,7 +476,16 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
   }
   
   /**
-   * Connection test button handler: basic connection.
+   * Connection test button validate handler: loading a node.
+   */
+  function testConnectionNodeLoadValidate(&$button_form_values) {
+    if (empty($button_form_values['nid'])) {
+      form_set_error('buttons][node_load][nid', 'Node id is required for the node.load operation.');
+    }
+  }  
+  
+  /**
+   * Connection test button handler: loading a node.
    */
   function testConnectionNodeLoad(&$button_form_values) {  
     $nid = $button_form_values['nid'];
