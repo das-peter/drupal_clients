@@ -851,18 +851,32 @@ function clients_connection_load($connectionIdentifier) {
 /**
  * Loads all connections
  *
+ * @param $types
+ *  (optional) Specify a single type or a list of types to include. 
+ *  If omitted, all are returned.
  * @return
  *   Array of connections.
  */
-function clients_get_connections() {
+function clients_get_connections($types = array()) {
+  if (!is_array($types)) {
+    $types = array($types);
+  }
+  if (count($types)) {
+    $placeholders = implode(',', array_fill(0, count($types), "'%s'"));    
+    $where = "WHERE type IN ($placeholders)";
+  }
+  else {
+    $where = '';
+  }
+  
   $connections = array();
-  $result =  db_query("SELECT * FROM {clients_connections} ORDER BY name");
+  $result = db_query("SELECT * FROM {clients_connections}  $where ORDER BY name", $types);
   while ($connection = db_fetch_object($result)) {
-      $connections[$connection->cid] = array(
-        'name' => $connection->name,
-        'type' => $connection->type,
-        'endpoint' => $connection->endpoint,
-      );
+    $connections[$connection->cid] = array(
+      'name' => $connection->name,
+      'type' => $connection->type,
+      'endpoint' => $connection->endpoint,
+    );
   }
   return $connections;
 }
@@ -910,3 +924,35 @@ function clients_resource_load($identifier) {
   $resource->configuration = unserialize($resource->configuration);
   return $resource;
 }
+
+/**
+ * FormAPI helper to get a list of clients for a select form element.
+ *
+ * @param $types
+ *  (optional) Specify a single type or a list of types to include. 
+ *  If omitted, all are returned.
+ * @param $required
+ *  Whether the select element is required.
+ * @return
+ *   Array of options for a FormAPI select element; assumed to be single
+ *   rather than multiple-valued.
+ */
+function clients_connections_select_options($types = array(), $required = TRUE) {
+  $options = array();
+  if ($required) {
+    $options[0] = t('- Please choose -');
+  }
+  else {
+    $options[0] = t('- None selected -');
+  }
+
+  foreach (clients_get_connections($types) as $cid => $connection) {
+    $options[$cid] = $connection['name'];
+  }
+  
+  return $options;
+}
+
+
+
+
