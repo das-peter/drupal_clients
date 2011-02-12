@@ -65,45 +65,43 @@ function clients_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
-  // TODO: standardize these paths so the connection pages
-  // don't need breadcrumb hacking
-  $items['admin/settings/clients/connection/add/%'] = array(
+  $items['admin/settings/clients/connections/add/%'] = array(
     'title' => 'Add connection',
     'page callback' => 'clients_connection_add',
     'page arguments' => array(5),
     'access arguments' => array('admin clients connections'),
   );
   
-  $items['admin/settings/clients/connection/%'] = array(
+  $items['admin/settings/clients/connections/view/%'] = array(
     'title' => 'Show connection',
     'description' => 'Show connection',
     'page callback' => 'clients_connection_view',
-    'page arguments' => array(4),
+    'page arguments' => array(5),
     'access arguments' => array('admin clients connections'),
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/connection/%/edit'] = array(
+  $items['admin/settings/clients/connections/edit/%'] = array(
     'title' => 'Edit connection',
     'page callback' => 'clients_connection_edit_page',
-    'page arguments' => array(4),
+    'page arguments' => array(5),
     'access arguments' => array('admin clients connections'),
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/connections/%/delete'] = array(
+  $items['admin/settings/clients/connections/delete/%'] = array(
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
     'page callback' => 'clients_delete',
-    'page arguments' => array(4, 3),
+    'page arguments' => array(5, 4),
     'access arguments' => array('admin clients connections'),
     'type' => MENU_CALLBACK,
   );
   
-  $items['admin/settings/clients/connection/%/test'] = array(
+  $items['admin/settings/clients/connections/test/%'] = array(
     'title' => 'Test connection',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('clients_connection_test_form', 4),
+    'page arguments' => array('clients_connection_test_form', 5),
     'access arguments' => array('admin clients connections'),
     'type' => MENU_CALLBACK,
   );  
@@ -368,12 +366,12 @@ function clients_connections_list() {
   foreach (array_keys(clients_get_connections()) as $cid) {
     $connection = clients_connection_load($cid);      
     $connections[] = array(
-      'name' => l($connection->name, 'admin/settings/clients/connection/'. $cid),
+      'name' => l($connection->name, 'admin/settings/clients/connections/view/'. $cid),
       'type' => $connection->type,
       'endpoint' => $connection->endpoint,
-      'edit' => l('edit', 'admin/settings/clients/connection/'. $cid . '/edit'),
-      'test' => l('test', 'admin/settings/clients/connection/'. $cid . '/test'),
-      'delete' => l('delete', 'admin/settings/clients/connection/'. $cid . '/delete'),
+      'edit' => l('edit', 'admin/settings/clients/connections/edit/'. $cid),
+      'test' => l('test', 'admin/settings/clients/connections/test/'. $cid),
+      'delete' => l('delete', 'admin/settings/clients/connections/delete/'. $cid),
     );
   }
   
@@ -393,7 +391,7 @@ function clients_connections_list() {
   // Add a list of connection types that can be created.
   foreach ($connection_types as $type => $type_data) {
     //dsm($type_data);
-    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/settings/clients/connection/add/' . $type);
+    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/settings/clients/connections/add/' . $type);
   }
   $output .= theme('item_list', $items);
   
@@ -462,11 +460,6 @@ function clients_connection_edit_page($cid) {
  *  The id of a connection.
  */
 function clients_connection_view($cid) {
-  // Put the connections list page into the breadcrumb.
-  $breadcrumb = drupal_get_breadcrumb();
-  $breadcrumb[] = l(t('Connections'), 'admin/settings/clients/connections');
-  drupal_set_breadcrumb($breadcrumb);
-
   // Load the connection.
   $connection = clients_connection_load((int) $cid);
   
@@ -482,9 +475,9 @@ function clients_connection_view($cid) {
     
   }
   $operations = array(
-    'edit' => l('edit', 'admin/settings/clients/connection/' . $cid . '/edit'),
-    'test' => l('test', 'admin/settings/clients/connection/' . $cid . '/test'),
-    'delete' => l('delete', 'admin/settings/clients/connection/' . $cid . '/delete'),
+    'edit' => l('edit', 'admin/settings/clients/connections/edit/' . $cid),
+    'test' => l('test', 'admin/settings/clients/connections/test/' . $cid),
+    'delete' => l('delete', 'admin/settings/clients/connections/delete/' . $cid),
   );
   
   $rows[] = array('Operations', implode(' | ', $operations));
