@@ -47,6 +47,13 @@ function clients_drupal_clients_connection_type_info() {
       'class'  => 'ClientsServicesDrupal_5',
       'label'  => t('Drupal Services 5'),
     ),
+    'drupal_services_6_2' => array(
+      'module' => 'clients_drupal',
+      'base'   => 'drupal_services', // specifies the type to use for the settings form, etc
+        // though this is a good case to move the form into the class to benefit from inheritance!
+      'class'  => 'ClientsServicesDrupal_6_2',
+      'label'  => t('Drupal Services 6.x-2.x'),
+    ),
   );
 }
 

@@ -206,11 +206,11 @@ class ClientsServicesDrupal extends ClientsServicesBase {
 }
 
 /**
- * Drupal client for services on a Drupal 6 site.
+ * Drupal client for services on a Drupal 6 site for Services 6.x-2.x.
+ *
+ * Developed against Services 6.x-2.4.
  */
-class ClientsServicesDrupal_6 extends ClientsServicesDrupal {
-  // TODO...
-  
+class ClientsServicesDrupal_6_2 extends ClientsServicesDrupal {  
   /**
    * Call a remote method.
    *
@@ -218,24 +218,254 @@ class ClientsServicesDrupal_6 extends ClientsServicesDrupal {
    *  The name of the remote method to call.
    * @param
    *  All other parameters are passed to the remote method.
-   *  Note that the D5 version of Services does not seem to respect optional parameters; you
-   *  should pass in defaults (eg an empty string or 0) instead of omitting a parameter.
    *
    * @return
    *  Whatever is returned from the remote site. 
    */
   function callMethod($method) {
-    // TODO: Needs to be written for Services D6.
-    //dsm($method);
+    // If HTTP requests are enabled, report the error and do nothing.
+    // (Cribbed from Content distribution module.)
+    if (variable_get('drupal_http_request_fails', FALSE) == TRUE) {
+      drupal_set_message(t('Drupal is unable to make HTTP requests. Please reset the HTTP request status.'), 'error', FALSE);
+      watchdog('integration', 'Drupal is unable to make HTTP requests. Please reset the HTTP request status.', array(), WATCHDOG_CRITICAL);
+      return;
+    }
+    
+    $config = $this->configuration;
+    $endpoint = $this->endpoint;
+    $api_key = $this->configuration['servicekey'];
+
+    // Connect to the remote system service to get an initial session id to log in with.
+    $connect = xmlrpc($this->endpoint, 'system.connect');
+    $session_id = $connect['sessid'];
+
+    // We may want to call only system.connect for testing purposes.
+    if ($method == 'system.connect') {
+      return $connect; 
+    }
+    
+    // Log in
+    // Get the API key-related arguments.
+    $key_args = $this->xmlrpc_key_args('user.login');
+    //dsm($key_args);
+    
+    // Build the array of connection arguments we need to log in.
+    $username = $this->configuration['username'];
+    $password = $this->configuration['password'];
+    $login_args = array_merge(
+      array($this->endpoint, 'user.login'), // endpoint, method
+      $key_args,                            // hash, domain_name, domain_time_stamp, nonce
+      array($session_id),                   // sessid
+      array($username, $password)           // username, password
+    );
+    
+    // Call the xmlrpc method with our array of arguments. This accounts for 
+    // whether we use a key or not, and the extra parameters to pass to the method.
+    $login = call_user_func_array('xmlrpc', $login_args);
+    $login_session_id = $login['sessid'];
+    
+    // If the requested method is user.login, we're done.
+    if ($method == 'user.login') {
+      return $login; 
+    }
+
+    // Get all the arguments this function has been passed.
+    $function_args  = func_get_args();
+    // Slice out the ones that are arguments to the method call: everything past
+    // the 1st argument.
+    $method_args    = array_slice($function_args, 1);    
+
+    // Get the API key-related arguments.
+    $key_args = $this->xmlrpc_key_args($method);
+    
+    // Build the array of connection arguments for the method we want to call.
+    $xmlrpc_args = array_merge(
+      array($this->endpoint, $method),
+      $key_args,
+      array($login_session_id),
+      $method_args
+    );
+
+    // Call the xmlrpc method with our array of arguments.
+    $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+    
+    if ($result === FALSE) {
+      //dsm('error');
+      return xmlrpc_error();
+    }
+    
+    return $result;
   }  
+  
+  /**
+   * Helper function to get key-related method arguments for the XMLRPC call.
+   *
+   * TODO: merge with getToken.
+   */
+  function xmlrpc_key_args($method) { 
+    $api_key = $this->configuration['servicekey'];
+
+    // Build the API key arguments - if no key supplied supplied, presume not required
+    if ($api_key != '') {
+      //use api key to get a hash code for the service.
+      $timestamp = (string) strtotime("now");
+      // Note that the domain -- at least for Services 5 and 6.x-2.x -- is a
+      // purely arbitrary string more akin to a username.
+      // See http://drupal.org/node/821700 for background.
+      $domain = $this->configuration['domain'];
+      /*
+      if (!strlen($domain)) {
+        $domain = $_SERVER['SERVER_NAME'];
+        if ($_SERVER['SERVER_PORT'] != 80) {
+          $domain .= ':' . $_SERVER['SERVER_PORT'];
+        }
+      }
+      */
+      $nonce = uniqid();
+      $hash_parameters = array(
+        $timestamp,
+        $domain,
+        $nonce,
+        $method,
+      );
+      $hash = hash_hmac("sha256", implode(';', $hash_parameters), $api_key);
+
+      $key_args = array($hash, $domain, $timestamp, $nonce);
+    }
+    else {
+      $key_args = array();
+    }
+
+    return $key_args;
+  }
+  
+  /**
+   * Provide buttons for the connection testing page.
+   *
+   * @param $form_state
+   *  This is passed in so you can set defaults based on user input.
+   */
+  function getTestOperations($form_state, $cid) {
+    $buttons['connect'] = array(
+      '#value' => 'Test connection',
+      '#type' => 'submit',
+      //'#name' => 'connect', // wtf does this do?
+      '#action_submit' => 'testConnectionConnect',
+      '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
+    );
+    $buttons['login'] = array(
+      '#value' => 'Test user login',
+      '#type' => 'submit',
+      //'#name' => 'login',
+      '#action_submit' => 'testConnectionLogin',
+      '#description' => t('Test the remote user settings and by calling user.login on the remote server.'),
+    );
+    $buttons['node_load'] = array(
+      '#type' => 'fieldset',
+    );
+    $buttons['node_load']['nid'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Node ID',
+      '#size' => 6,
+      '#default_value' => isset($form_state['values']['buttons']['node_load']['nid']) ? $form_state['values']['buttons']['node_load']['nid'] : NULL,
+    );
+    $buttons['node_load']['button'] = array(
+      '#value' => 'Test node retrieval',
+      '#type' => 'submit',
+      //'#name' => 'login',
+      // TODO: tidy up these method names!
+      '#action_submit' => 'testConnectionNodeLoad',
+      '#action_validate' => 'testConnectionNodeLoadValidate',      
+      '#description' => t('Attempt to load a remote node.'),
+    
+    );
+    return $buttons;
+  }
+  
+  /**
+   * Connection test button handler: basic connection.
+   *
+   * Connection test handlers should return the raw data they got back from the
+   * connection for display to the user.
+   */
+  function testConnectionConnect(&$button_form_values) {  
+    // Call the connect method.
+    $connect = $this->callMethod('system.connect');
+
+    if (is_array($connect) && isset($connect['user'])) {
+      drupal_set_message(t('Sucessfully connected to the remote site.'));
+    }
+    else {
+      drupal_set_message(t('Could not connect to the remote site.'), 'warning');
+    }
+    
+    return $connect;
+  }
+  
+  /**
+   * Connection test button handler: user login.
+   */
+  function testConnectionLogin(&$button_form_values) {
+    // Call the login method.
+    $login = $this->callMethod('user.login');
+    // Eep. we need user details!!!
+
+    if (is_array($login) && isset($login['user'])) {
+      drupal_set_message(t('Sucessfully logged in to the remote site; got back details for user %user (uid @uid).', array(
+        '%user' => $login['user']['name'],
+        '@uid'  => $login['user']['uid'],
+        )));
+    }
+    else {
+      drupal_set_message(t('Could not log in to the remote site.'), 'warning');
+    }
+    
+    return $login;
+  }
+
+  /**
+   * Connection test button validate handler: loading a node.
+   */
+  function testConnectionNodeLoadValidate(&$button_form_values) {
+    if (empty($button_form_values['nid'])) {
+      form_set_error('buttons][node_load][nid', 'Node id is required for the node.load operation.');
+    }
+  }  
+  
+  /**
+   * Connection test button handler: loading a node.
+   */
+  function testConnectionNodeLoad(&$button_form_values) { 
+    // Must be cast to integer for faffiness of XMLRPC and Services. 
+    $nid = (int) $button_form_values['nid'];
+    
+    $fields = array();
+    $node = $this->callMethod('node.get', $nid, $fields);
+    
+    if (is_array($node) && isset($node['nid'])) {
+      drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
+        '%title' => $node['title'],
+        '@nid'  => $node['nid'],
+        )));
+    }
+    else {
+      drupal_set_message(t('Could not retrieve a node from the remote site.'), 'warning');
+    }
+
+    return $node;
+  }
+  
 }
 
 /**
  * Drupal client for services on a Drupal 5 site.
  *
  * Works with Services 5.x-0.92.
+ *
+ * We extend from the Services 6.x-2.x class as not much actually changes
+ * these versions between when it comes to making calls.
  */
-class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
+class ClientsServicesDrupal_5 extends ClientsServicesDrupal_6_2 {
   /**
    * Call a remote method.
    *
@@ -358,38 +588,6 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
     return $result;
     
   }
-
-  /**
-   * TODO: merge with getToken.
-   */
-  function xmlrpc_key_args($method) { 
-    $api_key = $this->configuration['servicekey'];
-
-    // Build the API key arguments - if no key supplied supplied, presume not required
-    if ($api_key != '') {
-      //use api key to get a hash code for the service.
-      $timestamp = (string) strtotime("now");
-      // Note that the domain -- at least for Services 5 and 6.x-2.x -- is a
-      // purely arbitrary string more akin to a username.
-      // See http://drupal.org/node/821700 for background.
-      $domain = $this->configuration['domain'];
-      $nonce = uniqid();
-      $hash_parameters = array(
-        $timestamp,
-        $domain,
-        $nonce,
-        $method,
-      );
-      $hash = hash_hmac("sha256", implode(';', $hash_parameters), $api_key);
-
-      $key_args = array($hash, $domain, $timestamp, $nonce);
-    }
-    else {
-      $key_args = array();
-    }
-
-    return $key_args;
-  }
   
   /**
    * Provide buttons for the connection testing page.
@@ -402,14 +600,14 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
       '#value' => 'Test connection',
       '#type' => 'submit',
       //'#name' => 'connect', // wtf does this do?
-      '#action_submit' => 'testConnectionConnect',
+      '#action_submit' => 'testConnectionConnect', // Inherited from D6-2 class.
       '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
     );
     $buttons['login'] = array(
       '#value' => 'Test user login',
       '#type' => 'submit',
       //'#name' => 'login',
-      '#action_submit' => 'testConnectionLogin',
+      '#action_submit' => 'testConnectionLogin', // Inherited from D6-2 class.
       '#description' => t('Test the remote user settings and by calling user.login on the remote server.'),
     );
     $buttons['node_load'] = array(
@@ -435,47 +633,6 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
   }
   
   /**
-   * Connection test button handler: basic connection.
-   *
-   * Connection test handlers should return the raw data they got back from the
-   * connection for display to the user.
-   */
-  function testConnectionConnect(&$button_form_values) {  
-    // Call the connect method.
-    $connect = $this->callMethod('system.connect');
-
-    if (is_array($connect) && isset($connect['user'])) {
-      drupal_set_message(t('Sucessfully connected to the remote site.'));
-    }
-    else {
-      drupal_set_message(t('Could not connect to the remote site.'), 'warning');
-    }
-    
-    return $connect;
-  }
-
-  /**
-   * Connection test button handler: user login.
-   */
-  function testConnectionLogin(&$button_form_values) {
-    // Call the login method.
-    $login = $this->callMethod('user.login');
-    // Eep. we need user details!!!
-
-    if (is_array($login) && isset($login['user'])) {
-      drupal_set_message(t('Sucessfully logged in to the remote site; got back details for user %user (uid @uid).', array(
-        '%user' => $login['user']['name'],
-        '@uid'  => $login['user']['uid'],
-        )));
-    }
-    else {
-      drupal_set_message(t('Could not log in to the remote site.'), 'warning');
-    }
-    
-    return $login;
-  }
-  
-  /**
    * Connection test button validate handler: loading a node.
    */
   function testConnectionNodeLoadValidate(&$button_form_values) {
@@ -486,6 +643,8 @@ class ClientsServicesDrupal_5 extends ClientsServicesDrupal {
   
   /**
    * Connection test button handler: loading a node.
+   *
+   * This uses a different method on Services 5.x-0.92.
    */
   function testConnectionNodeLoad(&$button_form_values) {  
     $nid = $button_form_values['nid'];
