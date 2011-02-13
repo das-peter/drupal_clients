@@ -92,8 +92,8 @@ function clients_menu() {
   $items['admin/settings/clients/connections/delete/%'] = array(
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
-    'page callback' => 'clients_delete',
-    'page arguments' => array(5, 4),
+    'page callback' => 'drupal_get_form',    
+    'page arguments' => array('client_delete_confirm', 'connection', 5),
     'access arguments' => array('admin clients connections'),
     'type' => MENU_CALLBACK,
   );
@@ -146,8 +146,8 @@ function clients_menu() {
   $items['admin/settings/clients/resources/%/delete'] = array(
     'title' => 'Delete resource',
     'description' => 'Delete a resource',
-    'page callback' => 'clients_delete',
-    'page arguments' => array(4, 3),
+    'page callback' => 'drupal_get_form',    
+    'page arguments' => array('client_delete_confirm', 'resource', 5),
     'access arguments' => array('admin clients connections'),
     'type' => MENU_CALLBACK,
   );
@@ -199,14 +199,14 @@ function clients_admin_cache() {
 }
 
 /**
- *
+ * Form builder for confirmation of deletion of a connection or resource.
  */
-function clients_delete_form(&$form_state, $arg, $type) {
-  if ($type == 'connections') {
-    $service = clients_connection_load((int)$arg);
+function client_delete_confirm(&$form_state, $type, $id) {
+  if ($type == 'connection') {
+    $service = clients_connection_load((int) $id);
   }
-  elseif ($type == 'resources') {
-    $service = clients_resource_load((int)$arg);
+  elseif ($type == 'resource') {
+    $service = clients_resource_load((int) $id);
   }
   else {
     /**
@@ -216,10 +216,13 @@ function clients_delete_form(&$form_state, $arg, $type) {
   }
   $form = array();
   $form['type'] = array('#type' => 'value', '#value' => $type);
-  $form['cid'] = array('#type' => 'value', '#value' => $arg);
+  $form['cid'] = array('#type' => 'value', '#value' => $id);
   $form['name'] = array('#type' => 'value', '#value' => $service->name);
   $form['check'] = array(
-    '#value' => t('<p>Really delete @service?</p>', array('@service' => $service->name)),
+    '#value' => '<p>' . t('Really delete !type @service?', array(
+      '@service' => $service->name,
+      '!type' => $type,
+      )) . '</p>',
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -230,41 +233,33 @@ function clients_delete_form(&$form_state, $arg, $type) {
 }
 
 /**
- *
- */
-function clients_delete($arg, $type) {
-  return drupal_get_form('clients_delete_form', $arg, $type);
-}
-
-/**
  * @todo validate a connection has no associated resources
  */
-function clients_delete_form_validate($form_id, $form_values) {
+function client_delete_confirm_validate($form, &$form_state) {
 }
 
 /**
 * @todo: refactor?
  */
-function clients_delete_form_submit($form_id, $form_values) {
-  $cid = (int)$form_values['values']['cid'];
-  if ($form_values['values']['type'] == 'connections') {
-
-    if ($result =  db_query_range("DELETE FROM {clients_connections} WHERE cid = %d", $cid, 0, 1)) {
+function client_delete_confirm_submit($form, &$form_state) {
+  $cid = (int) $form_state['values']['cid'];
+  if ($form_state['values']['type'] == 'connection') {
+    if ($result = db_query("DELETE FROM {clients_connections} WHERE cid = %d", $cid)) {
       @db_query("DELETE FROM {clients_resources} WHERE cid = %d", $cid); // error suppression is less expensive than a query to check if there are any resources
-      drupal_set_message(t('Connection deleted: ') . $form_values['values']['name']);
-      drupal_goto('admin/settings/clients/connections');
+      drupal_set_message(t('Connection @name deleted.', array('@name' => $form_state['values']['name'])));
+      $form_state['redirect'] = 'admin/settings/clients/connections';
     } 
     else {
-      drupal_set_message(t('Problem deleting connection: ') . $form_values['values']['name']);
+      drupal_set_message(t('Problem deleting connection: ') . $form_state['values']['name']);
     }
   }
-  elseif ($form_values['values']['type'] == 'resources') {
-    if ($result =  db_query_range("DELETE FROM {clients_resources} WHERE rid = %d", $form_values['values']['cid'])) {
-      drupal_set_message(t('Resource deleted: ') . $form_values['values']['name']);
-      drupal_goto('admin/settings/clients/resources'); // @todo move this to form
+  elseif ($form_state['values']['type'] == 'resource') {
+    if ($result =  db_query_range("DELETE FROM {clients_resources} WHERE rid = %d", $form_state['values']['cid'])) {
+      drupal_set_message(t('Resource @name deleted.', array('@name' => $form_state['values']['name'])));
+      $form_state['redirect'] = 'admin/settings/clients/resources';
     }
     else {
-      drupal_set_message(t('Problem deleting resource: ') . $form_values['values']['name']);
+      drupal_set_message(t('Problem deleting resource: ') . $form_state['values']['name']);
     }
   }
 }
