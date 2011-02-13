@@ -497,6 +497,17 @@ function clients_connection_test_form(&$form_state, $cid) {
     '#weight' => -10,  
   );
   
+  $form['connection'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Connection details'),
+  );
+  $items[] = t('Type') . ': ' . $connection->type;
+  $items[] = t('Name') . ': ' . check_plain($connection->name);
+  $items[] = t('Endpoint') . ': ' . $connection->endpoint;
+  $form['connection']['details'] = array(
+    '#value' => theme('item_list', $items),
+  );
+  
   // Buttons. These are themed into a vertical list with the description text alongside each one.
   $form['buttons'] = array(
     //'#theme' => 'uprpc_manual_form_button',
@@ -560,6 +571,8 @@ function clients_connection_test_form(&$form_state, $cid) {
       unset($form_state['storage'][$button_id]);  
     }
   }
+  
+  // TODO: show a message if no buttons at all!
   
   return $form;
 }
