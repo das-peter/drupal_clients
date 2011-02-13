@@ -70,8 +70,8 @@ function clients_menu() {
 
   $items['admin/settings/clients/connections/add/%'] = array(
     'title' => 'Add connection',
-    'page callback' => 'clients_connection_add',
-    'page arguments' => array(5),
+    'page callback' => 'drupal_get_form',    
+    'page arguments' => array('clients_connection_add', 5),
     'access arguments' => array('admin clients connections'),
   );
   
@@ -86,8 +86,8 @@ function clients_menu() {
 
   $items['admin/settings/clients/connections/edit/%'] = array(
     'title' => 'Edit connection',
-    'page callback' => 'clients_connection_edit_page',
-    'page arguments' => array(5),
+    'page callback' => 'drupal_get_form',    
+    'page arguments' => array('clients_connection_edit', 5),
     'access arguments' => array('admin clients connections'),
     'type' => MENU_CALLBACK,
   );
@@ -408,58 +408,109 @@ function clients_connections_list() {
 }
 
 /**
- * Page callback for adding a connection.
+ * Form builder for adding a connection.
+ *
+ * Gets the class of the connection from the data in the form and calls the
+ * connectionSettingsForm() method on the class to build the form.
+ * This allows different elements for different connection types. 
  *
  * @param $type
  *  The machine name of a connection type.
+ *
+ * @see clients_connection_form_submit() 
  */
-function clients_connection_add($type) {
-  // TODO: cache these?
-  $connection_types = module_invoke_all('clients_connection_type_info');
+function clients_connection_add(&$form_state, $type) {
+  $form = array();
+  $connection_types = clients_get_connection_types();
   //dsm($connection_types);
+  
   if (isset($connection_types[$type])) {
-    // Some connection types can use their parent type's form,
-    // and thus set 'base' in their definition.
-    // hook_forms() doesn't work here, as it doesn't set submit and
-    // validation handlers.
-    // TODO: much easier if the form definition moves to the class!
-    if (isset($connection_types[$type]['base'])) {
-      $base = $connection_types[$type]['base'];
-      $form_builder = 'client_connection_' . $base . '_form';
-    }
-    else {
-      $form_builder = 'client_connection_' . $type . '_form';      
-    }
-    return drupal_get_form($form_builder, $type);
-  }
+    $class = $connection_types[$type]['class'];
+    // When 5.3 is the norm, we can do:
+    //$form = $class::connectionSettingsForm($form_state);
+    $form['#connection_type'] = $type;
+    $form['#connection_class'] = $class;
+
+    // When PHP 5.3 is the norm, we can just say $class::$method().
+    $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type);
+    
+    $form['buttons']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add connection'),
+    );    
+    
+    // Add our submit handler common with the edit form.
+    $form['#submit'] = array('clients_connection_form_submit');
+    
+    return $form;  
+  }  
   else {
     return drupal_not_found();
   }
 }
 
 /**
- * Page callback for editing a connection.
+ * Form builder for editing a connection.
  *
- * This is a TEMPORARY FUNCTION NAME until clients_connection_edit can be used.
+ * @param $cid
+ *  The id of a connection.
+ *
+ * @see clients_connection_form_submit() 
  */
-function clients_connection_edit_page($cid) {
+function clients_connection_edit(&$form_state, $cid) {
   $connection = clients_connection_load((int) $cid);
-  $connection_types = module_invoke_all('clients_connection_type_info');
+  $connection_types = clients_get_connection_types();
   $type = $connection->type;
+  $class = $connection_types[$type]['class'];
+  
+  //dsm($connection);
 
-  // Some connection types can use their parent type's form,
-  // and thus set 'base' in their definition.
-  // hook_forms() doesn't work here, as it doesn't set submit and
-  // validation handlers.
-  // TODO: much easier if the form definition moves to the class!
-  if (isset($connection_types[$type]['base'])) {
-    $base = $connection_types[$type]['base'];
-    $form_builder = 'client_connection_' . $base . '_form';
+  $form = call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $cid);
+  
+  $form['#connection_type'] = $type;
+  $form['#connection_class'] = $class;
+  
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save connection'),
+  );    
+  
+  // Add our submit handler common with the add form.
+  $form['#submit'] = array('clients_connection_form_submit');    
+  
+  return $form;
+}
+
+/**
+ * Common submit handler for connection add and edit forms.
+ *
+ * Gets the class of the connection from the data in the form and calls the
+ * connectionSettingsForm_submit() method on the class.
+ * This allows different behaviour for different connection types.
+ *
+ * @see clients_connection_add()
+ * @see clients_connection_edit()
+ */
+function clients_connection_form_submit($form, &$form_state) {  
+  //dsm($form);
+  //dsm($form_state);
+  $class = $form['#connection_class'];
+  
+  // Use call_user_func_array() so form state can be passed by reference.
+  call_user_func_array(array($class, 'connectionSettingsForm_submit'), array($form, &$form_state));
+  
+  // Common actions for all forms.
+  // Presence of the cid tells us whether we're editing or adding a new connection.
+  $new = !isset($form_state['values']['cid']);  
+  if ($new) {
+    drupal_write_record('clients_connections', $form_state['values']);
   }
   else {
-    $form_builder = 'client_connection_' . $type . '_form';      
+    drupal_write_record('clients_connections', $form_state['values'], 'cid');
   }
-  return drupal_get_form($form_builder, $type, $cid);
+
+  drupal_set_message(t('Connection saved.'));
+  $form_state['redirect'] = 'admin/settings/clients/connections';  
 }
 
 /**
@@ -797,19 +848,6 @@ function clients_flush_caches() {
 }
 
 // TODO: obsolete.
-function clients_connection_edit($values) {
-  $values = module_invoke_all('clients_connection_edit', $values); // by ref seems not working here...? - needs sorting
-  if ($resultbase = drupal_write_record('clients_connections', $values, 'cid')) {
-    // @todo add watchdog
-    drupal_set_message('Edited connection');
-  } 
-  else {
-    drupal_set_message('Problem editing connection - drupal_write_record() result: '. $resultbase);
-  }
-  drupal_goto('admin/settings/clients/connections');
-}
-
-// TODO: obsolete.
 function clients_connection_save($values) {
   $values = module_invoke_all('clients_connection_save', $values);
   if (
@@ -932,6 +970,17 @@ function clients_resource_load($identifier) {
     */
   $resource->configuration = unserialize($resource->configuration);
   return $resource;
+}
+
+/**
+ * Get a list of all connection types.
+ */
+function clients_get_connection_types() {
+  static $connection_types;
+  if (!isset($connection_types)) {
+    $connection_types = module_invoke_all('clients_connection_type_info');    
+  }
+  return $connection_types;
 }
 
 /**

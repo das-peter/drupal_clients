@@ -171,7 +171,10 @@ function clients_flickr_add_submit_handler($form, &$form_state) {
  * @return array Form
  */
 function clients_flickr_edit_submit_handler($form, &$form_state) {
-  clients_connection_edit($form_state['values']);
+  // TODO: convert to class methods -- see Drupal clients for example.
+  // Commented this call out in the meantime, as it's no longer the
+  // same function.
+  //clients_connection_edit($form_state['values']);
 }
 
 /**

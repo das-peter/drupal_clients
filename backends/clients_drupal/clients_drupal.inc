@@ -14,6 +14,163 @@
  * so it's largely an abstract class for the moment.
  */
 class ClientsServicesDrupal extends ClientsServicesBase {
+  // ============================================ Connection form methods.
+
+  /**
+   * Form builder for adding or editing connections of this class.
+   *
+   * Static function, call without an object.
+   *
+   * This (so far) is common to all versions of Drupal Services.
+   *
+   * @param $type
+   *  The type of the connection.
+   * @param $cid
+   * (optional) The id of the connection, if this is an edit.
+   *
+   * @return
+   *  A FormAPI form array. This will be merged in with basic data and the
+   *  submit button added.
+   *
+   * @see clients_connection_add()
+   * @see clients_connection_edit()
+   */
+  static function connectionSettingsForm(&$form_state, $type, $cid = NULL) {
+    $form = array();
+
+    if (is_null($cid)) {
+      $new = TRUE;
+      $connection_types = clients_get_connection_types();
+      drupal_set_title(t('Add @type connection', array(
+        '@type' => $connection_types[$type]['label'],
+      )));
+    }
+    else {
+      $connection = clients_connection_load((int) $cid);
+      $form['cid'] = array(
+        '#type' => 'value',
+        '#value' => $cid,
+      );
+    }
+
+    $form['type'] = array(
+      '#type' => 'value',
+      '#value' => $type,
+    );
+
+    $form['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Connection name'),
+      '#default_value' => $cid ? $connection->name : '',
+      '#size' => 50,
+      '#maxlength' => 100,
+      '#description' => t('Must be unique, any characters allowed'),
+      '#required' => TRUE,
+    );
+
+    $form['endpoint'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Connection endpoint'),
+      '#default_value' => $cid ? $connection->endpoint : '',
+      '#size' => 50,
+      '#maxlength' => 100,
+      '#description' => t('Remote service URL e.g. http://mysite.com/services/xmlrpc'),
+      '#required' => TRUE,
+    );
+
+    $form['configuration'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Configuration'),
+      '#collapsible' => FALSE,
+      '#tree' => TRUE,
+    );
+
+    $form['configuration']['domain'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Domain'),
+      '#default_value' =>  $cid ? $connection->configuration['domain'] : '',
+      '#size' => 50,
+      '#maxlength' => 100,
+      '#description' => t('This should be same as the \'Domain\' field used by the Services authentication key on the server you are connecting to.'),
+      '#required' => TRUE,
+    );
+    $form['configuration']['servicekey'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Service key'),
+      '#default_value' =>  $cid ? $connection->configuration['servicekey'] : '',
+      '#size' => 50,
+      '#maxlength' => 40,
+      '#attributes' => array('autocomplete' => 'off'),
+      '#description' => t('This should be same as the \'Key\' field used by the Services authentication key on the server you are connecting to.'),
+      '#required' => TRUE,
+    );
+    $form['configuration']['username'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Service username'),
+      '#default_value' =>  $cid ? $connection->configuration['username'] : '',
+      '#size' => 30,
+      '#maxlength' => 60,
+      '#attributes' => array('autocomplete' => 'off'),
+      '#description' => t('This should be same as the username on the server you are connecting to.'),
+      '#required' => TRUE,
+    );
+
+
+    $password_desc = $cid ? 
+      t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.') : 'This should be same as the password on the server you are connecting to.';
+  
+    $form['configuration']['password'] = array(
+      '#type' => 'password',
+      '#title' => t('Service password'),
+      '#size' => 30,
+      '#maxlength' => 60,
+      '#attributes' => array('autocomplete' => 'off'),
+      '#description' => $password_desc,
+      '#required' => $new,
+    );
+
+    $form['configuration']['methods_enabled'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Services'),
+      '#default_value' =>  $cid ? $connection->configuration['methods_enabled'] : '',
+      '#description' => t('List of Drupal services on remote servers that you want to enable here (e.g. views.service). Resources can select from this list. One per line.'),
+    );
+
+    $form['configuration']['views_enabled'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Views'),
+      '#default_value' =>  $cid ? $connection->configuration['views_enabled'] : '',
+      '#description' => t('List of Drupal views on remote servers. Resources can select from this list. One per line.'),
+    );
+
+    return $form;      
+  }
+  
+  /**
+   * Submit handler for saving/updating connections of this class.
+   *
+   * @see clients_connection_form_submit().
+   */
+  static function connectionSettingsForm_submit($form, &$form_state) {
+    // Presence of the cid tells us whether we're editing or adding a new connection.
+    $new = !isset($form_state['values']['cid']);
+
+    if ($new) {
+      $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
+    }
+    else {
+      // Prepare password for serialized storage
+      if (empty($form_state['values']['configuration']['password'])) {
+        // Need to load connection and set password to original if blank
+        $original = clients_connection_load((int) $form_state['values']['cid']);
+        $form_state['values']['configuration']['password'] = $original->configuration['password'];
+      }
+      $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
+    }
+  }
+  
+  // ============================================ Constructor.  
+  
   /**
    * Constructor method.
    *
@@ -28,7 +185,7 @@ class ClientsServicesDrupal extends ClientsServicesBase {
     $this->configuration['password'] = clients_drupal_decrypt($this->configuration['password']);
   }
   
-  // ===================================== new object stuff
+  // ============================================ Connection API.
 
   /**
    * Call a remote method.
