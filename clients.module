@@ -155,8 +155,8 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/cache'] = array(
-    'title' => 'Advanced',
+  $items['admin/settings/clients/settings'] = array(
+    'title' => 'Settings',
     'weight' => 3,
     'description' => 'Clients cache settings',
     'page callback' => 'drupal_get_form',
@@ -164,6 +164,17 @@ function clients_menu() {
     'access arguments' => array('admin clients resources'),
     'type' => MENU_LOCAL_TASK,
   );
+  
+  $items['admin/settings/clients/settings/cache'] = array(
+    'title' => 'Cache',
+    'weight' => -1,
+    'description' => 'cccc connections',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clients_admin_cache'),
+    'access arguments' => array('admin clients resources'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  
 
   return $items;
 }

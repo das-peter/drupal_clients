@@ -71,13 +71,12 @@ function clients_drupal_perm() {
  */
 function clients_drupal_menu() {
   $items = array();
-  $items['admin/settings/clients/drupal/admin'] = array(
+  $items['admin/settings/clients/settings/drupal'] = array(
      'title' => 'Configure Drupal',
      'page callback' => 'drupal_get_form',
      'page arguments' => array('clients_drupal_admin'),
      'access arguments' => array('clients_drupal admin'),
-     'weight' => 10,
-     'type' => MENU_NORMAL_ITEM,
+     'type' => MENU_LOCAL_TASK,
   );
 
   return $items;
