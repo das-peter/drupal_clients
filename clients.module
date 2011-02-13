@@ -28,6 +28,9 @@ function clients_help($path, $arg) {
     case "admin/help#clients":
       $output = '<p>'.  t("Clients API .") .'</p>';
       break;
+    case 'admin/settings/clients/connections/test/%':
+      $output  = '<p>' . t('Use this page to test your connection is set up correctly.') . '</p>';
+      break;
   }
   return $output;
 }
@@ -491,12 +494,6 @@ function clients_connection_test_form(&$form_state, $cid) {
   $connection = clients_connection_create($cid);
   $form['#connection'] = $connection;
 
-  $form['notice'] = array(
-    '#type' => 'markup', 
-    '#value' => '<p>' . t('Use this page to test your connection is set up correctly.') . '</p>',
-    '#weight' => -10,  
-  );
-  
   $form['connection'] = array(
     '#type' => 'fieldset',
     '#title' => t('Connection details'),
