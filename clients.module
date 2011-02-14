@@ -221,10 +221,10 @@ function clients_admin_cache() {
  */
 function client_delete_confirm(&$form_state, $type, $id) {
   if ($type == 'connection') {
-    $service = clients_connection_load((int) $id);
+    $service = clients_connection_load($id);
   }
   elseif ($type == 'resource') {
-    $service = clients_resource_load((int) $id);
+    $service = clients_resource_load($id);
   }
   else {
     /**
@@ -286,7 +286,7 @@ function client_delete_confirm_submit($form, &$form_state) {
  * defines hook_clients_call
  */
 function clients_call($resource) {
-  $connection = clients_connection_load((int)$resource->cid);
+  $connection = clients_connection_load($resource->cid);
   $result = module_invoke_all('clients_call', $connection, $resource);
   module_invoke_all('clients_call_postprocess', $result, $connection, $resource);
   return $result;
@@ -308,7 +308,7 @@ function clients_get_connection($cid) {
   // pattern there may be better.
   $connection_types = clients_get_connection_types();
 
-  $connection_data = clients_connection_load((int) $cid);
+  $connection_data = clients_connection_load($cid);
   
   if (isset($connection_types[$connection_data->type])) {
     $class = 'clients_connection_' . $connection_data->type;
@@ -472,7 +472,7 @@ function clients_connection_add(&$form_state, $type) {
  * @see clients_connection_form_submit() 
  */
 function clients_connection_edit(&$form_state, $cid) {
-  $connection = clients_connection_load((int) $cid);
+  $connection = clients_connection_load($cid);
   $type = $connection->type;
   $class = 'clients_connection_' . $type;
   
@@ -543,7 +543,7 @@ function clients_connection_form_submit($form, &$form_state) {
  */
 function clients_connection_view($cid) {
   // Load the connection.
-  $connection = clients_connection_load((int) $cid);
+  $connection = clients_connection_load($cid);
   
   // Build summary table.
   $rows = array();
@@ -809,7 +809,7 @@ function clients_resources() {
   $sources = array();
 
   foreach (clients_resources_load() as $resource_id => $resource) {
-    $connection = clients_connection_load((int)$resource['connection']);
+    $connection = clients_connection_load($resource['connection']);
     $resources[] = array(
       'name' => l($resource['name'], 'admin/settings/clients/resources/'. $resource_id),
       'connection' => $connection->type .': '. $connection->name,
@@ -842,9 +842,9 @@ function clients_resource_view($arg) {
           l(t('Resources'), 'admin/settings/clients/resources'),
           ));
 
-  $resource = clients_resource_load((int)$arg);
+  $resource = clients_resource_load($arg);
   $output[] = array('Name', $resource->name);
-  $connection = clients_connection_load((int)$resource->cid);
+  $connection = clients_connection_load($resource->cid);
 
   $output[] = array('Connection', $connection->name);
   $output[] = array('Type', $connection->type);
@@ -887,24 +887,22 @@ function clients_connection_save($values) {
 /**
  * Load a client connection.
  *
- * TODO: having to always chuck an (int) cast when calling this is a
- * DX WTF. Needs cleaning up.
  * TODO: there's no need for this to be an object -- change to an array.
  *
- * @param $connectionIdentifier
+ * @param $connection_info
  *  Either a connection ID or the name of the connection.
  */
-function clients_connection_load($connectionIdentifier) {
-  if (is_int($connectionIdentifier)) {
-      $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.cid = %d", $connectionIdentifier);
+function clients_connection_load($connection_info) {
+  if (is_numeric($connection_info)) {
+    $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.cid = %d", $connection_info);
   } 
-  elseif (is_string($connectionIdentifier)) {
-      $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.name = '%s'", $connectionIdentifier);
+  elseif (is_string($connection_info)) {
+    $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.name = '%s'", $connection_info);
   } 
   else {
-      // @todo watchdog
-      drupal_set_message('error');
-      return; // or FALSE?
+    // @todo watchdog
+    drupal_set_message('error');
+    return; // or FALSE?
   }
   $connection = db_fetch_object($result);
   //dsm($connection);
@@ -975,16 +973,16 @@ function clients_resources_load() {
  *   Array
  */
 function clients_resource_load($identifier) {
-  if (is_int($identifier)) {
-      $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.rid = %d", $identifier);
+  if (is_numeric($identifier)) {
+    $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.rid = %d", $identifier);
   } 
   elseif (is_string($identifier)) {
-      $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.name = '%s'", $identifier);
+    $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.name = '%s'", $identifier);
   } 
   else {
-      // @todo watchdog
-      drupal_set_message('error');
-      return; // or FALSE?
+    // @todo watchdog
+    drupal_set_message('error');
+    return; // or FALSE?
   }
   $resource = db_fetch_object($result);
   /**
