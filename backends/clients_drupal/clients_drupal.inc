@@ -13,7 +13,7 @@
  * This should connect to Drupal 7 services. Which are still at the RC stage...
  * so it's largely an abstract class for the moment.
  */
-class ClientsServicesDrupal extends ClientsServicesBase {
+class clients_connection_drupal_services extends clients_connection_base {
   // ============================================ Connection form methods.
 
   /**
@@ -367,7 +367,7 @@ class ClientsServicesDrupal extends ClientsServicesBase {
  *
  * Developed against Services 6.x-2.4.
  */
-class ClientsServicesDrupal_6_2 extends ClientsServicesDrupal {  
+class clients_connection_drupal_services_6_2 extends clients_connection_drupal_services {  
   /**
    * Call a remote method.
    *
@@ -622,7 +622,7 @@ class ClientsServicesDrupal_6_2 extends ClientsServicesDrupal {
  * We extend from the Services 6.x-2.x class as not much actually changes
  * these versions between when it comes to making calls.
  */
-class ClientsServicesDrupal_5 extends ClientsServicesDrupal_6_2 {
+class clients_connection_drupal_services_5 extends clients_connection_drupal_services_6_2 {
   /**
    * Call a remote method.
    *

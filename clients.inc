@@ -8,9 +8,9 @@
  */
 
 /**
- * Base class for Clients.
+ * Base class for Client connections.
  */
-abstract class ClientsServicesBase {
+abstract class clients_connection_base {
   // Class properties.
   public $name;
   public $cid;

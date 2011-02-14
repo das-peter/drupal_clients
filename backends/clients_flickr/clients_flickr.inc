@@ -10,7 +10,7 @@
 /**
  *
  */
-class ClientsServicesFlickr extends ClientsServicesBase {
+class clients_connection_flickr extends clients_connection_base {
 
   /**
    * Use for testing

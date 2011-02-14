@@ -7,7 +7,7 @@
  */
 
 /**
- * Contains class extending Clients ClientsServicesBase
+ * Contains class extending clients_connection_base.
  */
 require_once('clients_flickr.inc');
 
@@ -192,7 +192,7 @@ function clients_flickr_add_validate($form, &$form_state) {
     $connection->api_key = $form['configuration']['api_key']['#value'];
     $connection->secret = $form['configuration']['secret']['#value'];
 
-    $testconnect = ClientsServicesFlickr::connect($connection);
+    $testconnect = clients_connection_flickr::connect($connection);
     if(!is_array($testconnect) || !isset($testconnect['sessid'])) {
         form_set_error('endpoint', "Couldn't connect");
     } else {
@@ -303,7 +303,7 @@ function clients_flickr_clients_connection_load(&$connection) {
 function clients_flickr_clients_call($connection, $serviceOptions) {
     if($connection->type == variable_get('clients_flickr_type', 'Flickr')){
         $serviceConfig = clients_connection_load((int)$connection->cid);
-        $response = ClientsServicesFlickr::call($serviceConfig, $serviceOptions);
+        $response = clients_connection_flickr::call($serviceConfig, $serviceOptions);
 
         // process xml and turn into serializable array
         if($response->data->code == '200') {

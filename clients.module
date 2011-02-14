@@ -312,7 +312,7 @@ function clients_get_connection($cid) {
   $connection_data = clients_connection_load((int) $cid);
   
   if (isset($connection_types[$connection_data->type])) {
-    $class = $connection_types[$connection_data->type]['class'];
+    $class = 'clients_connection_' . $connection_data->type;
     $connection = new $class($connection_data);
   }
   else {
@@ -430,7 +430,8 @@ function clients_connection_add(&$form_state, $type) {
   //dsm($connection_types);
   
   if (isset($connection_types[$type])) {
-    $class = $connection_types[$type]['class'];
+    $class = 'clients_connection_' . $type;
+
     // When 5.3 is the norm, we can do:
     //$form = $class::connectionSettingsForm($form_state);
     $form['#connection_type'] = $type;
@@ -473,9 +474,8 @@ function clients_connection_add(&$form_state, $type) {
  */
 function clients_connection_edit(&$form_state, $cid) {
   $connection = clients_connection_load((int) $cid);
-  $connection_types = clients_get_connection_types();
   $type = $connection->type;
-  $class = $connection_types[$type]['class'];
+  $class = 'clients_connection_' . $type;
   
   //dsm($connection);
   
