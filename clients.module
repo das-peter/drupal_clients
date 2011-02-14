@@ -464,6 +464,37 @@ function clients_connection_add(&$form_state, $type) {
 }
 
 /**
+ * Validator handler for the add connection form.
+ */
+function clients_connection_add_validate($form, &$form_state) {
+  // Names must be unique.
+  if (clients_connection_load($form['name']['#value'])) {
+    form_set_error('name', 'A service by this name already exists!');
+  }
+  
+  // TODO: consider cleaning up the following code to test on form submit:
+  /*
+  $connection = new stdClass;
+  $connection->name = $form['name']['#value'];
+  $connection->endpoint = $form['endpoint']['#value'];
+  $connection->domain = $form['configuration']['domain']['#value'];
+  $connection->servicekey = $form['configuration']['servicekey']['#value'];
+  $connection->username = $form['configuration']['username']['#value'];
+  $connection->password = $form['configuration']['password']['#value'];
+
+  $testconnect = ClientsServicesDrupal::connect($connection);
+  if(!is_array($testconnect) || !isset($testconnect['sessid'])) {
+      form_set_error('endpoint', "Couldn't connect");
+  } else {
+      $testuser = ClientsServicesDrupal::getUser($connection);
+      if(!is_array($testuser) || !isset($testuser['sessid'])) {
+          form_set_error('username', isset($testuser->message) ? $testuser->message : "Couldn't log in");
+      }
+  }
+  */
+}
+
+/**
  * Form builder for editing a connection.
  *
  * @param $cid
