@@ -37,17 +37,14 @@ function clients_drupal_clients_connection_type_info() {
     // Key by machine name. Used as the base for hooks.
     'drupal_services' => array(
       'module' => 'clients_drupal', // This module. (Saves invoker mucking about putting that in.)
-      'class'  => 'ClientsServicesDrupal',
       'label'  => t('Drupal Services'), // Human-readable label.
     ),
     'drupal_services_5' => array(
       'module' => 'clients_drupal',
-      'class'  => 'ClientsServicesDrupal_5',
       'label'  => t('Drupal Services 5'),
     ),
     'drupal_services_6_2' => array(
       'module' => 'clients_drupal',
-      'class'  => 'ClientsServicesDrupal_6_2',
       'label'  => t('Drupal Services 6.x-2.x'),
     ),
   );
