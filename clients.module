@@ -28,6 +28,11 @@ function clients_help($path, $arg) {
     case "admin/help#clients":
       $output = '<p>'.  t("Clients API .") .'</p>';
       break;
+    case 'admin/settings/clients':
+      $output = '<p>' . t("The clients module allows you to define connections to remote sites that provide services. ")
+        . t("Use the list below to configure and review the connections defined on your site.")
+        . '</p>';
+      break;      
     case 'admin/settings/clients/connections/test/%':
       $output  = '<p>' . t('Use this page to test your connection is set up correctly.') . '</p>';
       break;
@@ -430,6 +435,15 @@ function clients_connection_add(&$form_state, $type) {
     //$form = $class::connectionSettingsForm($form_state);
     $form['#connection_type'] = $type;
     $form['#connection_class'] = $class;
+    
+    $form['type'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Connection type'),
+      '#description' => t('The type of connection to create. May not be changed.'),
+      '#value' => $type,
+      '#size' => 50,
+      '#disabled' => TRUE,
+    );    
 
     // When PHP 5.3 is the norm, we can just say $class::$method().
     $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type);
@@ -464,8 +478,17 @@ function clients_connection_edit(&$form_state, $cid) {
   $class = $connection_types[$type]['class'];
   
   //dsm($connection);
+  
+  $form['type'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Connection type'),
+    '#description' => t('The type of this connection. May not be changed.'),
+    '#value' => $type,
+    '#size' => 50,
+    '#disabled' => TRUE,
+  );
 
-  $form = call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $cid);
+  $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $cid);
   
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;
