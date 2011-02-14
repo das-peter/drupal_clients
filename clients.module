@@ -306,7 +306,7 @@ function clients_get_connection($cid) {
   // TODO: Look at how flag module does this, as it's the same principle -- 
   // create an object of a particular class based on settings -- and the 
   // pattern there may be better.
-  $connection_types = module_invoke_all('clients_connection_type_info');
+  $connection_types = clients_get_connection_types();
 
   $connection_data = clients_connection_load((int) $cid);
   
@@ -372,7 +372,7 @@ function clients_service_options($connection_id, $wrapper, $wrapper_values, $res
 function clients_connections_list() {
   $output = '';
   
-  $connection_types = module_invoke_all('clients_connection_type_info');
+  $connection_types = clients_get_connection_types();
   
   $connections = array();
   // TODO: clients_get_connections and clients_connection_load make the same queries!!!
@@ -1000,6 +1000,7 @@ function clients_resource_load($identifier) {
 function clients_get_connection_types() {
   static $connection_types;
   if (!isset($connection_types)) {
+    // Invoke hook_clients_connection_type_info().
     $connection_types = module_invoke_all('clients_connection_type_info');    
   }
   return $connection_types;

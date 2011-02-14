@@ -35,7 +35,6 @@ function clients_flickr_clients_connection_type_info() {
   return array(
     // Key by machine name. Used as the base for hooks.
     'clients_flickr' => array(
-      'module' => 'clients_flickr', // This module. (Saves invoker mucking about putting that in.)
       'label'  => t('Flickr'), // Human-readable label.
     ),
   );
