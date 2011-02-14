@@ -4,7 +4,6 @@
  * @file
  * Base class for backends. Handles XML-RPC, REST calls and caching results
  *
- * @author Django Beatty - adub
  */
 
 /**

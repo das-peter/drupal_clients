@@ -4,7 +4,6 @@
  * @file 
  * Wrapper for PEAR Crypt Blowfish
  *
- * @author Django Beatty - adub
  */
 
 

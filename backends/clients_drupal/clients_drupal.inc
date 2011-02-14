@@ -4,7 +4,6 @@
  * @file
  * Defines methods and calls to Drupal services
  *
- * @author Django Beatty - adub
  */
 
 /**

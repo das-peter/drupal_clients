@@ -5,7 +5,6 @@
  * Sets system variables and deletes connections on uninstall
  * @todo Delete resources on uninstall
  *
- * @author Django Beatty - adub
  */
 
 /**

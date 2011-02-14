@@ -4,7 +4,6 @@
  * @file
  * Defines Flickr services and calls
  *
- * @author Django Beatty - adub
  */
 
 /**

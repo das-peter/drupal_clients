@@ -3,7 +3,6 @@
 /**
  * @file
  * Clients - client for feeds module 
- * @author Django Beatty - adub
  */
 require_once(dirname(__FILE__) .'/clients_feeds.features.inc'); 
 /**

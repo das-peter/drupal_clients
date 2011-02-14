@@ -2,7 +2,6 @@
 // $Id$
 /**
  * @file
- * @author Django Beatty - adub
  * Install, update and uninstall functions for the Clients module.
  */
  

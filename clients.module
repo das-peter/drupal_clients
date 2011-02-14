@@ -4,7 +4,6 @@
  * @file
  * Clients module - handles keys and service connections 
  * and provides an API for  clients
- * @author Django Beatty - adub
  */
 
 /**
