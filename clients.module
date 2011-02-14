@@ -1034,6 +1034,20 @@ function clients_connections_select_options($types = array(), $required = TRUE) 
   return $options;
 }
 
-
+/**
+ * FormAPI helper to get a list of clients for a checkboxes form element.
+ *
+ * @param $types
+ *  (optional) Specify a single type or a list of types to include. 
+ *  If omitted, all are returned.
+ */
+function clients_connections_checkbox_options($types = array()) {
+  $options = array();
+  foreach (clients_get_connections($types) as $cid => $connection) {
+    $options[$cid] = check_plain($connection['name']);
+  }
+  
+  return $options;  
+}
 
 
