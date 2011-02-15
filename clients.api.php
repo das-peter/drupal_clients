@@ -20,7 +20,7 @@
  *   Each type is itself an array, with following keys:
  *     'label': the human-readable label.
  */
-function hook_imagecache_actions() {
+function hook_clients_connection_type_info() {
     return array(
       'my_client' => array(
         'label'  => t('My Client Type'),
