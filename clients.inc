@@ -17,6 +17,16 @@ abstract class clients_connection_base {
   public $configuration;
   
   /**
+   * Submit handler for saving/updating connections of this class.
+   *
+   * @see clients_connection_form_submit().
+   */
+  static function connectionSettingsForm_submit($form, &$form_state) {
+    // Base class does nothing; saving of the connection is handled by the
+    // 'real' FormAPI submit handler.
+  }
+  
+  /**
    * Constructor method.
    *
    * @param $connection_data
