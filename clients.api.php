@@ -21,10 +21,9 @@
  *     'label': the human-readable label.
  */
 function hook_clients_connection_type_info() {
-    return array(
-      'my_client' => array(
-        'label'  => t('My Client Type'),
-      ),
-    );
-  }
+  return array(
+    'my_client' => array(
+      'label'  => t('My Client Type'),
+    ),
+  );
 }
