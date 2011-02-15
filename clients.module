@@ -771,7 +771,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
   // been entered, even when the form item has temporarily been removed from
   // the form. So if a form item *once* had a value, you *always* can retrieve
   // it.
-  ahah_helper_register($form, $form_state);
+  //ahah_helper_register($form, $form_state);
   $wrapper = 'clients-resource'; // can be anything
   $wrapper_values = $form_state['storage'][$wrapper];
 
@@ -811,12 +811,14 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
     '#default_value' => isset($connection_id) ? $connection_id : key($connections), // needs reset?
     '#options' => $connections,
     '#required' => TRUE,
+    /*
     '#ahah' => array(
       'path' => ahah_helper_path(array($wrapper)),
       'wrapper' => $wrapper,
       'method' => 'replace',
       'effect' => 'fade',
     ),
+    */
   );
 
   if (isset($connection_id)) {

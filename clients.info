@@ -4,7 +4,6 @@ description = Basic service management and API for Web Services clients
 core = 6.x
 php = 5.1
 package = Clients
-dependencies[] = ahah_helper
 
 
 ; Information added by drupal.org packaging script on 2010-01-22
