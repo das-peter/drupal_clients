@@ -26,7 +26,8 @@ Defining Connection types
 To define your own connection type, you need:
 
 - an implementation of hook_clients_connection_type_info().
-- a class definition for your connection type, with the following methods:
+- a class definition for your connection type. This should be named
+  'clients_connection_YOUR_TYPE_ID' and implement the following methods:
   - connectionSettingsForm(), which should return a FormAPI array for your
     connection type's edit form.
   - connectionSettingsForm_submit(), which should provide any processing of
