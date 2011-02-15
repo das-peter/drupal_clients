@@ -468,7 +468,8 @@ function clients_connection_add(&$form_state, $type) {
  */
 function clients_connection_add_validate($form, &$form_state) {
   // Names must be unique.
-  if (clients_connection_load($form['name']['#value'])) {
+  $cid = db_result(db_query("SELECT cid FROM {clients_connections} WHERE name = '%s'", $form_state['values']['name']));
+  if ($cid) {
     form_set_error('name', 'A service by this name already exists!');
   }
   
