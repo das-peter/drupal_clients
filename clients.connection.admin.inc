@@ -267,13 +267,14 @@ function clients_connection_test_form(&$form_state, $cid) {
   );
   
   // Get the core buttons provided by the connection class.
-  // In due course, applications that use this connection may be able to provide
-  // their own test buttons too: TODO.
-  $core_buttons = $connection->getTestOperations($form_state, $cid);
+  $buttons = $connection->getTestOperations($form_state, $cid);
+  
+  // Allow applications that use this connection to add their own test buttons.
+  drupal_alter('client_connection_test_buttons', $buttons, $form_state, $cid);
   
   // Some processing of the buttons to simplify the method of specifying them.
   // see ClientsServicesDrupal_5::getTestOperations for an example of how this works.
-  foreach ($core_buttons as $key => $button) {
+  foreach ($buttons as $key => $button) {
     // If the button is just a plain button, wrap it in a fieldset.
     // This allows you to return just a button if there are no extra form elements.
     if ($button['#type'] == 'submit') {
@@ -358,7 +359,14 @@ function clients_connection_test_form_submit($form, &$form_state) {
   
   // Only pass the method the values that are related to it; everything else is just cruft.
   $button_form_values = $form_state['values']['buttons'][$button_key];
-  $result = $connection->$submit_handler($button_form_values);
+  
+  // The submit callback is either a method on the connection object or a regular function.
+  if ($form_state['clicked_button']['#action_type'] == 'method') {
+    $result = $connection->$submit_handler($button_form_values);
+  }
+  else {
+    $result = $submit_handler($button_form_values);
+  }
   
   // Place the data returned from the connection in the form for display.
   $form_state['storage'][$button_key] = $result;

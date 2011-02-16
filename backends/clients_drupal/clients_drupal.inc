@@ -506,6 +506,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
       '#value' => 'Test connection',
       '#type' => 'submit',
       //'#name' => 'connect', // wtf does this do?
+      '#action_type' => 'method',
       '#action_submit' => 'testConnectionConnect',
       '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
     );
@@ -513,6 +514,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
       '#value' => 'Test user login',
       '#type' => 'submit',
       //'#name' => 'login',
+      '#action_type' => 'method',
       '#action_submit' => 'testConnectionLogin',
       '#description' => t('Test the remote user settings and by calling user.login on the remote server.'),
     );
@@ -530,6 +532,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
       '#type' => 'submit',
       //'#name' => 'login',
       // TODO: tidy up these method names!
+      '#action_type' => 'method',
       '#action_submit' => 'testConnectionNodeLoad',
       '#action_validate' => 'testConnectionNodeLoadValidate',      
       '#description' => t('Attempt to load a remote node.'),
@@ -584,7 +587,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
    */
   function testConnectionNodeLoadValidate(&$button_form_values) {
     if (empty($button_form_values['nid'])) {
-      form_set_error('buttons][node_load][nid', 'Node id is required for the node.load operation.');
+      form_set_error('buttons][node_load][nid', 'Node id is required for the node retrieval test.');
     }
   }  
   
@@ -752,51 +755,10 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
    *  This is passed in so you can set defaults based on user input.
    */
   function getTestOperations($form_state, $cid) {
-    $buttons['connect'] = array(
-      '#value' => 'Test connection',
-      '#type' => 'submit',
-      //'#name' => 'connect', // wtf does this do?
-      '#action_submit' => 'testConnectionConnect', // Inherited from D6-2 class.
-      '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
-    );
-    $buttons['login'] = array(
-      '#value' => 'Test user login',
-      '#type' => 'submit',
-      //'#name' => 'login',
-      '#action_submit' => 'testConnectionLogin', // Inherited from D6-2 class.
-      '#description' => t('Test the remote user settings and by calling user.login on the remote server.'),
-    );
-    $buttons['node_load'] = array(
-      '#type' => 'fieldset',
-    );
-    $buttons['node_load']['nid'] = array(
-      '#type' => 'textfield',
-      '#title' => 'Node ID',
-      '#size' => 6,
-      '#default_value' => isset($form_state['values']['buttons']['node_load']['nid']) ? $form_state['values']['buttons']['node_load']['nid'] : NULL,
-    );
-    $buttons['node_load']['button'] = array(
-      '#value' => 'Test node retrieval',
-      '#type' => 'submit',
-      //'#name' => 'login',
-      // TODO: tidy up these method names!
-      '#action_submit' => 'testConnectionNodeLoad',
-      '#action_validate' => 'testConnectionNodeLoadValidate',      
-      '#description' => t('Attempt to load a remote node.'),
-    
-    );
-    return $buttons;
+    // Just making the inheritance explicit for debugging... ;)
+    return parent::getTestOperations($form_state, $cid);
   }
-  
-  /**
-   * Connection test button validate handler: loading a node.
-   */
-  function testConnectionNodeLoadValidate(&$button_form_values) {
-    if (empty($button_form_values['nid'])) {
-      form_set_error('buttons][node_load][nid', 'Node id is required for the node.load operation.');
-    }
-  }  
-  
+
   /**
    * Connection test button handler: loading a node.
    *
