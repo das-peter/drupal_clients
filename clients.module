@@ -167,14 +167,13 @@ function clients_menu() {
 
   $items['admin/settings/clients/settings'] = array(
     'title' => 'Settings',
-    'weight' => 3,
-    'description' => 'Clients cache settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_admin_cache'),
     'access arguments' => array('admin clients resources'),
+    'weight' => 10,
     'type' => MENU_LOCAL_TASK,
   );
-  
+
   $items['admin/settings/clients/settings/cache'] = array(
     'title' => 'Cache',
     'weight' => -1,
@@ -367,6 +366,9 @@ function clients_fields($resource = NULL) {
  */
 function clients_service_options($connection_id, $wrapper, $wrapper_values, $resource) {
   $service = clients_connection_load($connection_id);
+  // TODO: this pattern is completely wrong: each resource has only one client,
+  // therefore invoking ALL hook implementations is silly -- find out the base
+  // module of the current resource and invoke the hook in JUST that one.
   return module_invoke_all('clients_service_options', $service, $wrapper, $wrapper_values, $resource);
 }
 
@@ -468,7 +470,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
   );
 
   if (isset($connection_id)) {
-    // triggers hook_clients_service_options in backend modules to inject configuration form fragment here which can use ahah wrapper defined above
+    // Invokes hook_clients_service_options in backend modules to inject configuration form fragment here which can use ahah wrapper defined above
     $form[$wrapper]['options'] = clients_service_options($connection_id, $wrapper, $wrapper_values, $resource);
   }
 
