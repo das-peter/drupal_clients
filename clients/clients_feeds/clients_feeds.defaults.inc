@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Actual function bodies for default hook definitions in

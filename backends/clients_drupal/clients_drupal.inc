@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Defines methods and calls to Drupal services

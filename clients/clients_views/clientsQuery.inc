@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Using devseed extendr module as a base... 

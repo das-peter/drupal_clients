@@ -1,4 +1,3 @@
-// $Id$
 
 Clients for Drupal Services
 ===========================

@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file 
  * Wrapper for PEAR Crypt Blowfish

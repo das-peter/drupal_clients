@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file clients.connection.admin.inc
  * Page callbacks relating to client connection admin.

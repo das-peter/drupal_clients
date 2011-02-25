@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Checks blowfish configuration - directory and password are set

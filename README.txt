@@ -1,4 +1,3 @@
-// $Id$
 
 Using the Clients API
 =====================

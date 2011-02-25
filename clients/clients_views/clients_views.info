@@ -1,4 +1,3 @@
-; $Id$
 name = Clients Views
 description = Create views of content from clients
 package = Clients

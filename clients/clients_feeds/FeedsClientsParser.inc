@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Parser for clients. Contains source selector

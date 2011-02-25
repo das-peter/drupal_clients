@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Sets system variables and deletes connections on uninstall

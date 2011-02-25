@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Base class for backends. Handles XML-RPC, REST calls and caching results

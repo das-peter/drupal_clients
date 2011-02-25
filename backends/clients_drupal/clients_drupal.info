@@ -1,4 +1,3 @@
-;$Id$
 name = Drupal Services
 description = Drupal Services backend for Clients API
 core = 6.x

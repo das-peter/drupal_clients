@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Defines Flickr services and calls
