@@ -6,11 +6,6 @@
  */
 
 /**
- *
- */
-require_once('clients.inc');
-
-/**
  * Implementation of hook_help()
  *
  * @param $path

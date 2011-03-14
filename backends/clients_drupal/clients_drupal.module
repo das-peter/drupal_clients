@@ -5,11 +5,6 @@
  */
 
 /**
- * Contains classes extending clients_connection_base.
- */
-require_once('clients_drupal.inc');
-
-/**
  * Implementation of hook_help()
  * @param path which path of the site we're displaying help
  * @param arg array that holds the current path as would be returned from arg() function

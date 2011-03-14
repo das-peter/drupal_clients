@@ -3,6 +3,8 @@ description = Basic service management and API for Web Services clients
 core = 6.x
 php = 5.1
 package = Clients
+dependencies[] = autoload
+files[] = clients.inc
 
 ; Information added by drupal.org packaging script on 2010-01-22
 version = "6.x-1.x-dev"
