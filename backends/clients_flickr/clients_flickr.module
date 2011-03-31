@@ -48,7 +48,7 @@ function clients_flickr_perm() {
  */
 function clients_flickr_menu() {
   $items = array();
-  $items['admin/settings/clients/connections/flickr'] = array(
+  $items['admin/build/clients/connections/flickr'] = array(
      'title' => 'Add Flickr connection',
      'description' => 'Add Flickr connection',
      'page callback' => 'drupal_get_form',
@@ -57,7 +57,7 @@ function clients_flickr_menu() {
      'weight' => 10,
      'type' => MENU_NORMAL_ITEM,
   );
-  $items['admin/settings/clients/connections/flickr/%/edit'] = array(
+  $items['admin/build/clients/connections/flickr/%/edit'] = array(
      'title' => 'Edit Flickr connection',
      'description' => 'Edit Flickr connection',
      'page callback' => 'drupal_get_form',
@@ -283,7 +283,7 @@ function clients_flickr_clients_service_options($connection, $wrapper, $wrapper_
  */
 function clients_flickr_clients_connection_load(&$connection) {
   if($connection->type == variable_get('clients_flickr_type', 'Flickr')){
-    $connection->operations =  l(t('Edit'), 'admin/settings/clients/connections/flickr/'. $connection->cid .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/connections/'. $connection->cid .'/delete');
+    $connection->operations =  l(t('Edit'), 'admin/build/clients/connections/flickr/'. $connection->cid .'/edit') .' | '. l(t('Delete'), 'admin/build/clients/connections/'. $connection->cid .'/delete');
   }
 }
 

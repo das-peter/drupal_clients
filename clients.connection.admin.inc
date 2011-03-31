@@ -17,12 +17,12 @@ function clients_connections_list() {
   foreach (array_keys(clients_get_connections()) as $cid) {
     $connection = clients_connection_load($cid);      
     $connections[] = array(
-      'name' => l($connection->name, 'admin/settings/clients/connections/view/'. $cid),
+      'name' => l($connection->name, 'admin/build/clients/connections/view/'. $cid),
       'type' => $connection->type,
       'endpoint' => $connection->endpoint,
-      'edit' => l('edit', 'admin/settings/clients/connections/edit/'. $cid),
-      'test' => l('test', 'admin/settings/clients/connections/test/'. $cid),
-      'delete' => l('delete', 'admin/settings/clients/connections/delete/'. $cid),
+      'edit' => l('edit', 'admin/build/clients/connections/edit/'. $cid),
+      'test' => l('test', 'admin/build/clients/connections/test/'. $cid),
+      'delete' => l('delete', 'admin/build/clients/connections/delete/'. $cid),
     );
   }
   
@@ -42,7 +42,7 @@ function clients_connections_list() {
   // Add a list of connection types that can be created.
   foreach ($connection_types as $type => $type_data) {
     //dsm($type_data);
-    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/settings/clients/connections/add/' . $type);
+    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/build/clients/connections/add/' . $type);
   }
   $output .= theme('item_list', $items);
   
@@ -202,7 +202,7 @@ function clients_connection_form_submit($form, &$form_state) {
   }
 
   drupal_set_message(t('Connection saved.'));
-  $form_state['redirect'] = 'admin/settings/clients/connections';  
+  $form_state['redirect'] = 'admin/build/clients/connections';  
 }
 
 /**
@@ -227,9 +227,9 @@ function clients_connection_view($cid) {
     
   }
   $operations = array(
-    'edit' => l('edit', 'admin/settings/clients/connections/edit/' . $cid),
-    'test' => l('test', 'admin/settings/clients/connections/test/' . $cid),
-    'delete' => l('delete', 'admin/settings/clients/connections/delete/' . $cid),
+    'edit' => l('edit', 'admin/build/clients/connections/edit/' . $cid),
+    'test' => l('test', 'admin/build/clients/connections/test/' . $cid),
+    'delete' => l('delete', 'admin/build/clients/connections/delete/' . $cid),
   );
   
   $rows[] = array('Operations', implode(' | ', $operations));

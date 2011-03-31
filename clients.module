@@ -21,12 +21,12 @@ function clients_help($path, $arg) {
     case "admin/help#clients":
       $output = '<p>'.  t("Clients API .") .'</p>';
       break;
-    case 'admin/settings/clients':
+    case 'admin/build/clients':
       $output = '<p>' . t("The clients module allows you to define connections to remote sites that provide services. ")
         . t("Use the list below to configure and review the connections defined on your site.")
         . '</p>';
       break;      
-    case 'admin/settings/clients/connections/test/%':
+    case 'admin/build/clients/connections/test/%':
       $output  = '<p>' . t('Use this page to test your connection is set up correctly.') . '</p>';
       break;
   }
@@ -49,7 +49,7 @@ function clients_menu() {
 
   $items = array();
   
-  $items['admin/settings/clients'] = array(
+  $items['admin/build/clients'] = array(
     'title' => 'Clients',
     'description' => 'Clients',
     'page callback' => 'clients_connections_list',
@@ -58,7 +58,7 @@ function clients_menu() {
     'type' => MENU_NORMAL_ITEM,
     );
 
-  $items['admin/settings/clients/connections'] = array(
+  $items['admin/build/clients/connections'] = array(
     'title' => 'Connections',
     'weight' => 1,
     'description' => 'List connections',
@@ -68,7 +68,7 @@ function clients_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
-  $items['admin/settings/clients/connections/add/%'] = array(
+  $items['admin/build/clients/connections/add/%'] = array(
     'title' => 'Add connection',
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('clients_connection_add', 5),
@@ -76,7 +76,7 @@ function clients_menu() {
     'access arguments' => array('admin clients connections'),
   );
   
-  $items['admin/settings/clients/connections/view/%'] = array(
+  $items['admin/build/clients/connections/view/%'] = array(
     'title' => 'Show connection',
     'description' => 'Show connection',
     'page callback' => 'clients_connection_view',
@@ -86,7 +86,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/connections/edit/%'] = array(
+  $items['admin/build/clients/connections/edit/%'] = array(
     'title' => 'Edit connection',
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('clients_connection_edit', 5),
@@ -95,7 +95,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/connections/delete/%'] = array(
+  $items['admin/build/clients/connections/delete/%'] = array(
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
     'page callback' => 'drupal_get_form',    
@@ -104,7 +104,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
   
-  $items['admin/settings/clients/connections/test/%'] = array(
+  $items['admin/build/clients/connections/test/%'] = array(
     'title' => 'Test connection',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_connection_test_form', 5),
@@ -113,7 +113,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );  
 
-  $items['admin/settings/clients/resources'] = array(
+  $items['admin/build/clients/resources'] = array(
     'title' => 'Resources',
     'weight' => 2,
     'description' => 'List resources',
@@ -122,7 +122,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/settings/clients/resources/add'] = array(
+  $items['admin/build/clients/resources/add'] = array(
     'title' => 'Add resource',
     'weight' => 1,
     'description' => 'Add resource',
@@ -131,7 +131,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/settings/clients/resources/%'] = array(
+  $items['admin/build/clients/resources/%'] = array(
     'title' => 'Show resource',
     'description' => 'Show resource',
     'page callback' => 'clients_resource_view',
@@ -140,7 +140,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/resources/%/edit'] = array(
+  $items['admin/build/clients/resources/%/edit'] = array(
     'title' => 'Edit resource',
     'weight' => 1,
     'description' => 'Edit data source',
@@ -150,7 +150,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/resources/%/delete'] = array(
+  $items['admin/build/clients/resources/%/delete'] = array(
     'title' => 'Delete resource',
     'description' => 'Delete a resource',
     'page callback' => 'drupal_get_form',    
@@ -159,7 +159,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/settings/clients/settings'] = array(
+  $items['admin/build/clients/settings'] = array(
     'title' => 'Settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_admin_cache'),
@@ -168,7 +168,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/settings/clients/settings/cache'] = array(
+  $items['admin/build/clients/settings/cache'] = array(
     'title' => 'Cache',
     'weight' => -1,
     'description' => 'cccc connections',
@@ -264,7 +264,7 @@ function client_delete_confirm_submit($form, &$form_state) {
     if ($result = db_query("DELETE FROM {clients_connections} WHERE cid = %d", $cid)) {
       @db_query("DELETE FROM {clients_resources} WHERE cid = %d", $cid); // error suppression is less expensive than a query to check if there are any resources
       drupal_set_message(t('Connection @name deleted.', array('@name' => $form_state['values']['name'])));
-      $form_state['redirect'] = 'admin/settings/clients/connections';
+      $form_state['redirect'] = 'admin/build/clients/connections';
     } 
     else {
       drupal_set_message(t('Problem deleting connection: ') . $form_state['values']['name']);
@@ -273,7 +273,7 @@ function client_delete_confirm_submit($form, &$form_state) {
   elseif ($form_state['values']['type'] == 'resource') {
     if ($result =  db_query_range("DELETE FROM {clients_resources} WHERE rid = %d", $form_state['values']['cid'])) {
       drupal_set_message(t('Resource @name deleted.', array('@name' => $form_state['values']['name'])));
-      $form_state['redirect'] = 'admin/settings/clients/resources';
+      $form_state['redirect'] = 'admin/build/clients/resources';
     }
     else {
       drupal_set_message(t('Problem deleting resource: ') . $form_state['values']['name']);
@@ -392,7 +392,7 @@ function clients_resources_form_submit($form, &$form_state) {
   elseif ($result = drupal_write_record('clients_resources', $values)) {
       drupal_set_message('Resource added');
   }
-  drupal_goto('admin/settings/clients/resources');
+  drupal_goto('admin/build/clients/resources');
 }
 
 /**
@@ -486,9 +486,9 @@ function clients_resources() {
   foreach (clients_resources_load() as $resource_id => $resource) {
     $connection = clients_connection_load($resource['connection']);
     $resources[] = array(
-      'name' => l($resource['name'], 'admin/settings/clients/resources/'. $resource_id),
+      'name' => l($resource['name'], 'admin/build/clients/resources/'. $resource_id),
       'connection' => $connection->type .': '. $connection->name,
-      'operations' => l(t('Edit'), 'admin/settings/clients/resources/'. $resource_id .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/resources/'. $resource_id .'/delete')
+      'operations' => l(t('Edit'), 'admin/build/clients/resources/'. $resource_id .'/edit') .' | '. l(t('Delete'), 'admin/build/clients/resources/'. $resource_id .'/delete')
     );
   }
 
@@ -513,8 +513,8 @@ function clients_resource_view($arg) {
           l(t('Home'), NULL),
           l(t('Administer'), 'admin'),
           l(t('Site configuration'), 'admin/settings'),
-          l(t('Clients'), 'admin/settings/clients'),
-          l(t('Resources'), 'admin/settings/clients/resources'),
+          l(t('Clients'), 'admin/build/clients'),
+          l(t('Resources'), 'admin/build/clients/resources'),
           ));
 
   $resource = clients_resource_load($arg);
@@ -530,7 +530,7 @@ function clients_resource_view($arg) {
     }
     $output[] = array(ucfirst($label), $val);
   }
-  $operations = l(t('Edit'), 'admin/settings/clients/resources/'. $arg .'/edit') .' | '. l(t('Delete'), 'admin/settings/clients/resources/'. $arg .'/delete');
+  $operations = l(t('Edit'), 'admin/build/clients/resources/'. $arg .'/edit') .' | '. l(t('Delete'), 'admin/build/clients/resources/'. $arg .'/delete');
   $output[] = array('Operations', $operations);
 
   // add any service agnostic stuff here
@@ -556,7 +556,7 @@ function clients_connection_save($values) {
   else {
       drupal_set_message('Problem adding connection - drupal_write_record() result: '. $resultbase);
   }
-  drupal_goto('admin/settings/clients/connections');
+  drupal_goto('admin/build/clients/connections');
 }
 
 /**
