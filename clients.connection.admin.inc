@@ -157,7 +157,7 @@ function clients_connection_edit(&$form_state, $cid) {
     '#disabled' => TRUE,
   );
 
-  $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $cid);
+  $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $connection);
   
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;

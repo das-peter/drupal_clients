@@ -23,8 +23,8 @@ class clients_connection_drupal_services extends clients_connection_base {
    *
    * @param $type
    *  The type of the connection.
-   * @param $cid
-   * (optional) The id of the connection, if this is an edit.
+   * @param $connection
+   * (optional) The connection object, if this is an edit.
    *
    * @return
    *  A FormAPI form array. This will be merged in with basic data and the
@@ -33,10 +33,10 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @see clients_connection_add()
    * @see clients_connection_edit()
    */
-  static function connectionSettingsForm(&$form_state, $type, $cid = NULL) {
+  static function connectionSettingsForm(&$form_state, $type, $connection = NULL) {
     $form = array();
 
-    if (is_null($cid)) {
+    if (is_null($connection)) {
       $new = TRUE;
       $connection_types = clients_get_connection_types();
       drupal_set_title(t('Add @type connection', array(
@@ -44,10 +44,9 @@ class clients_connection_drupal_services extends clients_connection_base {
       )));
     }
     else {
-      $connection = clients_connection_load((int) $cid);
       $form['cid'] = array(
         '#type' => 'value',
-        '#value' => $cid,
+        '#value' => $connection->cid,
       );
     }
 
@@ -59,7 +58,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['name'] = array(
       '#type' => 'textfield',
       '#title' => t('Connection name'),
-      '#default_value' => $cid ? $connection->name : '',
+      '#default_value' => isset($connection) ? $connection->name : '',
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('Must be unique, any characters allowed'),
@@ -69,7 +68,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['endpoint'] = array(
       '#type' => 'textfield',
       '#title' => t('Connection endpoint'),
-      '#default_value' => $cid ? $connection->endpoint : '',
+      '#default_value' => isset($connection) ? $connection->endpoint : '',
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('Remote service URL e.g. http://mysite.com/services/xmlrpc'),
@@ -86,7 +85,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['domain'] = array(
       '#type' => 'textfield',
       '#title' => t('Domain'),
-      '#default_value' =>  $cid ? $connection->configuration['domain'] : '',
+      '#default_value' => isset($connection) ? $connection->configuration['domain'] : '',
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('This should be same as the \'Domain\' field used by the Services authentication key on the server you are connecting to.'),
@@ -95,7 +94,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['servicekey'] = array(
       '#type' => 'textfield',
       '#title' => t('Service key'),
-      '#default_value' =>  $cid ? $connection->configuration['servicekey'] : '',
+      '#default_value' => isset($connection) ? $connection->configuration['servicekey'] : '',
       '#size' => 50,
       '#maxlength' => 40,
       '#attributes' => array('autocomplete' => 'off'),
@@ -105,7 +104,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['username'] = array(
       '#type' => 'textfield',
       '#title' => t('Service username'),
-      '#default_value' =>  $cid ? $connection->configuration['username'] : '',
+      '#default_value' => isset($connection) ? $connection->configuration['username'] : '',
       '#size' => 30,
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
@@ -114,7 +113,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     );
 
 
-    $password_desc = $cid ? 
+    $password_desc = isset($connection) ?
       t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.') : 'This should be same as the password on the server you are connecting to.';
   
     $form['configuration']['password'] = array(
@@ -130,14 +129,14 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['methods_enabled'] = array(
       '#type' => 'textarea',
       '#title' => t('Services'),
-      '#default_value' =>  $cid ? $connection->configuration['methods_enabled'] : '',
+      '#default_value' => isset($connection) ? $connection->configuration['methods_enabled'] : '',
       '#description' => t('List of Drupal services on remote servers that you want to enable here (e.g. views.service). Resources can select from this list. One per line.'),
     );
 
     $form['configuration']['views_enabled'] = array(
       '#type' => 'textarea',
       '#title' => t('Views'),
-      '#default_value' =>  $cid ? $connection->configuration['views_enabled'] : '',
+      '#default_value' => isset($connection) ? $connection->configuration['views_enabled'] : '',
       '#description' => t('List of Drupal views on remote servers. Resources can select from this list. One per line.'),
     );
 
