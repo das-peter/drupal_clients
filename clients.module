@@ -39,7 +39,7 @@ function clients_help($path, $arg) {
  *   An array of valid permissions for the clients module
  */
 function clients_perm() {
-  return array('admin clients connections', 'admin clients resources');
+  return array('administer clients connections', 'administer clients resources');
 }
 
 /**
@@ -64,7 +64,7 @@ function clients_menu() {
     'description' => 'List connections',
     'page callback' => 'clients_connections_list',
     'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('admin clients connections'),
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
@@ -73,7 +73,7 @@ function clients_menu() {
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('clients_connection_add', 5),
     'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('admin clients connections'),
+    'access arguments' => array('administer clients connections'),
   );
   
   $items['admin/build/clients/connections/view/%'] = array(
@@ -82,7 +82,7 @@ function clients_menu() {
     'page callback' => 'clients_connection_view',
     'page arguments' => array(5),
     'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('admin clients connections'),
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
   );
 
@@ -91,7 +91,7 @@ function clients_menu() {
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('clients_connection_edit', 5),
     'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('admin clients connections'),
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
   );
 
@@ -100,7 +100,7 @@ function clients_menu() {
     'description' => 'Delete a connection',
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('client_delete_confirm', 'connection', 5),
-    'access arguments' => array('admin clients connections'),
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
   );
   
@@ -109,7 +109,7 @@ function clients_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_connection_test_form', 5),
     'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('admin clients connections'),
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
   );  
 
@@ -118,7 +118,7 @@ function clients_menu() {
     'weight' => 2,
     'description' => 'List resources',
     'page callback' => 'clients_resources',
-    'access arguments' => array('admin clients resources'),
+    'access arguments' => array('administer clients resources'),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -127,7 +127,7 @@ function clients_menu() {
     'weight' => 1,
     'description' => 'Add resource',
     'page callback' => 'clients_resources_add',
-    'access arguments' => array('admin clients resources'),
+    'access arguments' => array('administer clients resources'),
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -136,7 +136,7 @@ function clients_menu() {
     'description' => 'Show resource',
     'page callback' => 'clients_resource_view',
     'page arguments' => array(4),
-    'access arguments' => array('admin clients resources'),
+    'access arguments' => array('administer clients resources'),
     'type' => MENU_CALLBACK,
   );
 
@@ -146,7 +146,7 @@ function clients_menu() {
     'description' => 'Edit data source',
     'page callback' => 'clients_resources_edit',
     'page arguments' => array(4),
-    'access arguments' => array('admin clients resources'),
+    'access arguments' => array('administer clients resources'),
     'type' => MENU_CALLBACK,
   );
 
@@ -155,7 +155,7 @@ function clients_menu() {
     'description' => 'Delete a resource',
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('client_delete_confirm', 'resource', 5),
-    'access arguments' => array('admin clients connections'),
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
   );
 
@@ -163,7 +163,7 @@ function clients_menu() {
     'title' => 'Settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_admin_cache'),
-    'access arguments' => array('admin clients resources'),
+    'access arguments' => array('administer clients resources'),
     'weight' => 10,
     'type' => MENU_LOCAL_TASK,
   );
@@ -174,7 +174,7 @@ function clients_menu() {
     'description' => 'cccc connections',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_admin_cache'),
-    'access arguments' => array('admin clients resources'),
+    'access arguments' => array('administer clients resources'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   
@@ -186,7 +186,7 @@ function clients_menu() {
  * any defined perms in this module
  */
 function clients_access_callback() {
-  return user_access('admin clients connections') || user_access('admin clients resources');
+  return user_access('administer clients connections') || user_access('administer clients resources');
 }
 
 /**
