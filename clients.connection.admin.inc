@@ -218,6 +218,7 @@ function clients_connection_view($cid) {
   // Build summary table.
   $rows = array();
   $rows[] = array('Name', check_plain($connection->name));
+  $rows[] = array('Type', $connection->type);
   $rows[] = array('Endpoint', check_plain($connection->endpoint));
   foreach ($connection->configuration as $label => $val) {
     if (is_array($val)) {
