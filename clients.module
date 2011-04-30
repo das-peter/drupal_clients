@@ -76,26 +76,46 @@ function clients_menu() {
     'access arguments' => array('administer clients connections'),
   );
   
-  $items['admin/build/clients/connections/view/%'] = array(
-    'title' => 'Show connection',
+  $items['admin/build/clients/connections/%'] = array(
+    'title' => 'Connection',
     'description' => 'Show connection',
     'page callback' => 'clients_connection_view',
-    'page arguments' => array(5),
+    'page arguments' => array(4),
     'file' => 'clients.connection.admin.inc',
     'access arguments' => array('administer clients connections'),
+    'weight' => 0,
+    // This prevents the tabs showing under the connection list admin where
+    // they have no meaning. Cribbed from taxonomy_menu().
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/build/clients/connections/edit/%'] = array(
-    'title' => 'Edit connection',
+  $items['admin/build/clients/connections/%/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['admin/build/clients/connections/%/edit'] = array(
+    'title' => 'Edit',
     'page callback' => 'drupal_get_form',    
-    'page arguments' => array('clients_connection_edit', 5),
+    'page arguments' => array('clients_connection_edit', 4),
     'file' => 'clients.connection.admin.inc',
     'access arguments' => array('administer clients connections'),
-    'type' => MENU_CALLBACK,
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/build/clients/connections/delete/%'] = array(
+  $items['admin/build/clients/connections/%/test'] = array(
+    'title' => 'Test',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('clients_connection_test_form', 4),
+    'file' => 'clients.connection.admin.inc',
+    'access arguments' => array('administer clients connections'),
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['admin/build/clients/connections/%/delete'] = array(
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
     'page callback' => 'drupal_get_form',    
@@ -103,15 +123,6 @@ function clients_menu() {
     'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
   );
-  
-  $items['admin/build/clients/connections/test/%'] = array(
-    'title' => 'Test connection',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('clients_connection_test_form', 5),
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-    'type' => MENU_CALLBACK,
-  );  
 
   $items['admin/build/clients/resources'] = array(
     'title' => 'Resources',

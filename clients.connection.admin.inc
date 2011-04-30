@@ -17,12 +17,12 @@ function clients_connections_list() {
   foreach (array_keys(clients_get_connections()) as $cid) {
     $connection = clients_connection_load($cid);      
     $connections[] = array(
-      'name' => l($connection->name, 'admin/build/clients/connections/view/'. $cid),
+      'name' => l($connection->name, "admin/build/clients/connections/$cid/view"),
       'type' => $connection->type,
       'endpoint' => $connection->endpoint,
-      'edit' => l('edit', 'admin/build/clients/connections/edit/'. $cid),
-      'test' => l('test', 'admin/build/clients/connections/test/'. $cid),
-      'delete' => l('delete', 'admin/build/clients/connections/delete/'. $cid),
+      'edit' => l('edit', "admin/build/clients/connections/$cid/edit"),
+      'test' => l('test', "admin/build/clients/connections/$cid/test"),
+      'delete' => l('delete', "admin/build/clients/connections/$cid/delete"),
     );
   }
   
@@ -226,13 +226,6 @@ function clients_connection_view($cid) {
     $rows[] = array(ucfirst(check_plain($label)), nl2br(check_plain($val)));
     
   }
-  $operations = array(
-    'edit' => l('edit', 'admin/build/clients/connections/edit/' . $cid),
-    'test' => l('test', 'admin/build/clients/connections/test/' . $cid),
-    'delete' => l('delete', 'admin/build/clients/connections/delete/' . $cid),
-  );
-  
-  $rows[] = array('Operations', implode(' | ', $operations));
 
   return theme_table(array(), $rows);
 }
