@@ -126,20 +126,6 @@ class clients_connection_drupal_services extends clients_connection_base {
       '#required' => $new,
     );
 
-    $form['configuration']['methods_enabled'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Services'),
-      '#default_value' => isset($connection) ? $connection->configuration['methods_enabled'] : '',
-      '#description' => t('List of Drupal services on remote servers that you want to enable here (e.g. views.service). Resources can select from this list. One per line.'),
-    );
-
-    $form['configuration']['views_enabled'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Views'),
-      '#default_value' => isset($connection) ? $connection->configuration['views_enabled'] : '',
-      '#description' => t('List of Drupal views on remote servers. Resources can select from this list. One per line.'),
-    );
-
     return $form;      
   }
   
