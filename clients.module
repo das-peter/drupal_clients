@@ -119,7 +119,7 @@ function clients_menu() {
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
     'page callback' => 'drupal_get_form',    
-    'page arguments' => array('client_delete_confirm', 'connection', 5),
+    'page arguments' => array('client_delete_confirm', 'connection', 4),
     'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
   );
@@ -242,6 +242,23 @@ function client_delete_confirm(&$form_state, $type, $id) {
      */
     $service = array();
   }
+
+  // Store values for the submit handler.
+  $form['type'] = array('#type' => 'value', '#value' => $type);
+  $form['cid'] = array('#type' => 'value', '#value' => $id);
+  $form['name'] = array('#type' => 'value', '#value' => $service->name);
+
+  return confirm_form($form,
+    t('Are you sure you want to delete !type %title?', array(
+      '!type' => $type,
+      '%title' => $service->name,
+    )),
+    isset($_GET['destination']) ? $_GET['destination'] : "admin/build/clients/{$type}s/$id",
+    t('This action cannot be undone.'),
+    t('Delete'),
+    t('Cancel')
+  );
+
   $form = array();
   $form['type'] = array('#type' => 'value', '#value' => $type);
   $form['cid'] = array('#type' => 'value', '#value' => $id);
