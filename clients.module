@@ -76,7 +76,7 @@ function clients_menu() {
     'access arguments' => array('administer clients connections'),
   );
   
-  $items['admin/build/clients/connections/%'] = array(
+  $items['admin/build/clients/connections/%clients_connection'] = array(
     'title' => 'Connection',
     'description' => 'Show connection',
     'page callback' => 'clients_connection_view',
@@ -89,13 +89,13 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/build/clients/connections/%/view'] = array(
+  $items['admin/build/clients/connections/%clients_connection/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
 
-  $items['admin/build/clients/connections/%/edit'] = array(
+  $items['admin/build/clients/connections/%clients_connection/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',    
     'page arguments' => array('clients_connection_edit', 4),
@@ -105,7 +105,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/build/clients/connections/%/test'] = array(
+  $items['admin/build/clients/connections/%clients_connection/test'] = array(
     'title' => 'Test',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_connection_test_form', 4),
@@ -115,7 +115,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/build/clients/connections/%/delete'] = array(
+  $items['admin/build/clients/connections/%clients_connection/delete'] = array(
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
     'page callback' => 'drupal_get_form',    
@@ -229,23 +229,10 @@ function clients_admin_cache() {
 /**
  * Form builder for confirmation of deletion of a connection or resource.
  */
-function client_delete_confirm(&$form_state, $type, $id) {
-  if ($type == 'connection') {
-    $service = clients_connection_load($id);
-  }
-  elseif ($type == 'resource') {
-    $service = clients_resource_load($id);
-  }
-  else {
-    /**
-     * @todo error
-     */
-    $service = array();
-  }
-
+function client_delete_confirm(&$form_state, $type, $service) {
   // Store values for the submit handler.
   $form['type'] = array('#type' => 'value', '#value' => $type);
-  $form['cid'] = array('#type' => 'value', '#value' => $id);
+  $form['cid'] = array('#type' => 'value', '#value' => $service->cid);
   $form['name'] = array('#type' => 'value', '#value' => $service->name);
 
   return confirm_form($form,
@@ -253,7 +240,7 @@ function client_delete_confirm(&$form_state, $type, $id) {
       '!type' => $type,
       '%title' => $service->name,
     )),
-    isset($_GET['destination']) ? $_GET['destination'] : "admin/build/clients/{$type}s/$id",
+    isset($_GET['destination']) ? $_GET['destination'] : "admin/build/clients/{$type}s/$service->cid",
     t('This action cannot be undone.'),
     t('Delete'),
     t('Cancel')
@@ -261,7 +248,7 @@ function client_delete_confirm(&$form_state, $type, $id) {
 
   $form = array();
   $form['type'] = array('#type' => 'value', '#value' => $type);
-  $form['cid'] = array('#type' => 'value', '#value' => $id);
+  $form['cid'] = array('#type' => 'value', '#value' => $service->cid);
   $form['name'] = array('#type' => 'value', '#value' => $service->name);
   $form['check'] = array(
     '#value' => '<p>' . t('Really delete !type @service?', array(

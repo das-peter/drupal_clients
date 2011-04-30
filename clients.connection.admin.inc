@@ -136,13 +136,12 @@ function clients_connection_add_validate($form, &$form_state) {
 /**
  * Form builder for editing a connection.
  *
- * @param $cid
- *  The id of a connection.
+ * @param $connection
+ *  A loaded connection.
  *
  * @see clients_connection_form_submit() 
  */
-function clients_connection_edit(&$form_state, $cid) {
-  $connection = clients_connection_load($cid);
+function clients_connection_edit(&$form_state, $connection) {
   $type = $connection->type;
   $class = 'clients_connection_' . $type;
   
@@ -208,13 +207,10 @@ function clients_connection_form_submit($form, &$form_state) {
 /**
  * Page callback to view a single connection.
  *
- * @param $cid
- *  The id of a connection.
+ * @param $connection
+ *  A loaded connection.
  */
-function clients_connection_view($cid) {
-  // Load the connection.
-  $connection = clients_connection_load($cid);
-  
+function clients_connection_view($connection) {
   // Build summary table.
   $rows = array();
   $rows[] = array('Name', check_plain($connection->name));
@@ -235,11 +231,13 @@ function clients_connection_view($cid) {
 /**
  * Page callback to test a connection.
  *
- * @param $cid
- *  The id of a connection.
+ * @param $connection
+ *  A loaded connection.
  */
-function clients_connection_test_form(&$form_state, $cid) {  
-  $connection = clients_get_connection($cid);
+function clients_connection_test_form(&$form_state, $connection) {
+  // Load the connection object rather than just the loaded data...
+  // ... sigh yes this is a WTF and a TODO.
+  $connection = clients_get_connection($connection->cid);
   $form['#connection'] = $connection;
 
   $form['connection'] = array(
@@ -260,10 +258,10 @@ function clients_connection_test_form(&$form_state, $cid) {
   );
   
   // Get the core buttons provided by the connection class.
-  $buttons = $connection->getTestOperations($form_state, $cid);
+  $buttons = $connection->getTestOperations($form_state, $connection->cid);
   
   // Allow applications that use this connection to add their own test buttons.
-  drupal_alter('client_connection_test_buttons', $buttons, $form_state, $cid);
+  drupal_alter('client_connection_test_buttons', $buttons, $form_state, $connection->cid);
   
   // Some processing of the buttons to simplify the method of specifying them.
   // see ClientsServicesDrupal_5::getTestOperations for an example of how this works.
