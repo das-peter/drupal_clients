@@ -298,12 +298,16 @@ function client_delete_confirm_submit($form, &$form_state) {
 
 /**
  * defines hook_clients_call
+ *
+ * TODO: this will need work when resources are reinstated.
  */
 function clients_call($resource) {
+  /*
   $connection = clients_connection_load($resource->cid);
   $result = module_invoke_all('clients_call', $connection, $resource);
   module_invoke_all('clients_call_postprocess', $result, $connection, $resource);
   return $result;
+  */
 }
 
 /**
@@ -321,52 +325,6 @@ function clients_call($resource) {
  */
 function clients_get_connection($cid) {
   return clients_connection_load($cid);
-}
-
-/**
- * nano API for callback to resources
- * @param $arg
- *   Array Takes the form array('name1'=>'value1', 'name2'=>'value2')
- */
-function clients_setparams(&$resource, $arg) {
-  module_invoke_all('clients_setparams', $resource, $arg);
-}
-/**
- * defines hook_clients_arguments()
- * return array of rows with following fields: 
- * $foo->name, $foo->title, $foo->help,
- */
-function clients_arguments($source) {
-  return module_invoke_all('clients_arguments', $source);
-}
-
-/**
- * defines hook_clients_fields
- */
-function clients_fields($resource = NULL) {
-  $fields = module_invoke_all('clients_fields', $resource);
-  // module_invoke_all performs an array_merge_recursive. This flattens out multiple fields with same name to use the first value
-  $result = array();
-  foreach ($fields as $field => $val) {
-    if (is_array($val['name'])) {
-      $val['name'] = $val['name'][0];
-      $val['description'] = $val['description'][0];
-    }
-    $result[$field] = $val;
-  }
-  return $result;
-}
-
-
-/**
- * hook_clients_service_options, configure options
- */
-function clients_service_options($connection_id, $wrapper, $wrapper_values, $resource) {
-  $service = clients_connection_load($connection_id);
-  // TODO: this pattern is completely wrong: each resource has only one client,
-  // therefore invoking ALL hook implementations is silly -- find out the base
-  // module of the current resource and invoke the hook in JUST that one.
-  return module_invoke_all('clients_service_options', $service, $wrapper, $wrapper_values, $resource);
 }
 
 /**
@@ -545,21 +503,6 @@ function clients_resource_view($arg) {
  */
 function clients_flush_caches() {
   return array('cache_clients');
-}
-
-// TODO: obsolete.
-function clients_connection_save($values) {
-  $values = module_invoke_all('clients_connection_save', $values);
-  if (
-      $resultbase = drupal_write_record('clients_connections', $values)
-     ) {
-      // @todo add watchdog
-      drupal_set_message('Added connection');
-  } 
-  else {
-      drupal_set_message('Problem adding connection - drupal_write_record() result: '. $resultbase);
-  }
-  drupal_goto('admin/build/clients/connections');
 }
 
 /**
