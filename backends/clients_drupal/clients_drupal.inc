@@ -160,9 +160,9 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @param $connection_data
    *  An object containing connection data, as returned from clients_connection_load().
    */
-  function __construct($connection_data) {
+  function __construct($row) {
     // Call the base class to set the connection properties.
-    parent::__construct($connection_data);
+    parent::__construct($row);
 
     // Decrypt the password.
     $this->configuration['password'] = clients_drupal_decrypt($this->configuration['password']);

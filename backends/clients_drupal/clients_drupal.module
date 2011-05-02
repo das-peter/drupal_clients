@@ -64,16 +64,6 @@ function clients_drupal_menu() {
 }
 
 /**
- * Implementation of hook_clients_connection_load
- */
-function clients_drupal_clients_connection_load(&$connection) {
-  if ($connection->type == 'drupal_services') {
-    $connection->configuration['password'] = clients_drupal_decrypt($connection->configuration['password']); // or ***
-  }
-}
-
-
-/**
  * Implementation of hook_clients_service_options
  */
 function clients_drupal_clients_service_options($connection, $wrapper, $wrapper_values, $resource) {

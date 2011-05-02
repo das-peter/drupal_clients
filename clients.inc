@@ -28,15 +28,18 @@ abstract class clients_connection_base {
   /**
    * Constructor method.
    *
-   * @param $connection_data
-   *  An object containing connection data, as returned from clients_connection_load().
+   * @param $row
+   *  The database row containing the connection data.
    */  
-  function __construct($connection_data) {
-    // Set the connection properties.
-    // TODO: incoming $connection_data should change to an array in due course.
-    foreach (array('name', 'cid', 'endpoint', 'configuration', 'type') as $property) {
-      $this->$property = $connection_data->$property;
+  function __construct($row) {
+    // Lump all data unto the object...
+    foreach ($row as $field => $value) {
+      $this->$field = $value;
     }
+
+    $this->configuration = unserialize($row['configuration']);
+
+    return $this;
   }
 
   /**

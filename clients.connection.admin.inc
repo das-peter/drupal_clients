@@ -13,13 +13,13 @@ function clients_connections_list() {
   $connection_types = clients_get_connection_types();
   
   $connections = array();
-  // TODO: clients_get_connections and clients_connection_load make the same queries!!!
-  foreach (array_keys(clients_get_connections()) as $cid) {
-    $connection = clients_connection_load($cid);      
+  // TODO: clients_get_connection_rows and clients_connection_load make the same queries!!!
+  // next job here.
+  foreach (clients_get_connection_rows() as $cid => $connection) {
     $connections[] = array(
-      'name' => l($connection->name, "admin/build/clients/connections/$cid/view"),
-      'type' => $connection->type,
-      'endpoint' => $connection->endpoint,
+      'name' => l($connection['name'], "admin/build/clients/connections/$cid/view"),
+      'type' => $connection['type'],
+      'endpoint' => $connection['endpoint'],
       'edit' => l('edit', "admin/build/clients/connections/$cid/edit"),
       'test' => l('test', "admin/build/clients/connections/$cid/test"),
       'delete' => l('delete', "admin/build/clients/connections/$cid/delete"),

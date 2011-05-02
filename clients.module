@@ -309,6 +309,9 @@ function clients_call($resource) {
 /**
  * Create a connection object which can then be used to make method calls.
  *
+ * This is just a wrapper around clients_connection_load() and only kept here
+ * to prevent breaking dependent modules.
+ *
  * Usage:
  *  $client = clients_get_connection($cid);
  *  $client->callMethod('node.load', array(1));
@@ -317,22 +320,7 @@ function clients_call($resource) {
  *  The id of a connection.
  */
 function clients_get_connection($cid) {
-  // TODO: Look at how flag module does this, as it's the same principle -- 
-  // create an object of a particular class based on settings -- and the 
-  // pattern there may be better.
-  $connection_types = clients_get_connection_types();
-
-  $connection_data = clients_connection_load($cid);
-  
-  if (isset($connection_types[$connection_data->type])) {
-    $class = 'clients_connection_' . $connection_data->type;
-    $connection = new $class($connection_data);
-  }
-  else {
-    // error, but we would only get here if the DB held a type that no longer had a hook...
-  }
-
-  return $connection;
+  return clients_connection_load($cid);
 }
 
 /**
@@ -443,7 +431,7 @@ function clients_resources_form(&$form_state, $rid = FALSE) {
   );
   $connections = array();
 
-  foreach (clients_get_connections() as $cid => $connection) {
+  foreach (clients_get_connection_rows() as $cid => $connection) {
       $connections[$cid] = $connection['name'];
   }
 
@@ -577,44 +565,46 @@ function clients_connection_save($values) {
 /**
  * Load a client connection.
  *
- * TODO: there's no need for this to be an object -- change to an array.
+ * Used as a menu loader.
  *
- * @param $connection_info
- *  Either a connection ID or the name of the connection.
+ * @param $cid
+ *  A connection id.
+ * @return
+ *  A fully loaded connection handler object.
  */
-function clients_connection_load($connection_info) {
-  if (is_numeric($connection_info)) {
-    $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.cid = %d", $connection_info);
-  } 
-  elseif (is_string($connection_info)) {
-    $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.name = '%s'", $connection_info);
-  } 
-  else {
-    // @todo watchdog
-    drupal_set_message('error');
-    return; // or FALSE?
+function clients_connection_load($cid) {
+  // Static caching is essential for a menu loader.
+  static $connections;
+
+  if (!isset($connections[$cid])) {
+    // Load the connection's data from the database.
+    $result = db_query("SELECT * FROM {clients_connections} WHERE {clients_connections}.cid = %d", $cid);
+    $row = db_fetch_array($result);
+
+    $type = $row['type'];
+    $class = 'clients_connection_' . $type;
+
+    // Hand the row over to the constructor which takes care of putting the
+    // data into the handler object and any processing that needs doing.
+    $connection = new $class($row);
+
+    $connections[$cid] = $connection;
   }
-  $connection = db_fetch_object($result);
-  //dsm($connection);
-  $connection->configuration = unserialize($connection->configuration);
-  // invoke hook for contrib modules to process configuration
-  // TODO: this has no need to be an invoke all pattern -- instead, call only 
-  // the function TYPE_clients_connection_load.
-  module_invoke_all('clients_connection_load', $connection);
-  // TODO: not working!!
-  return $connection;
+
+  return $connections[$cid];
 }
 
 /**
- * Loads all connections
+ * Loads all connection data, returning rows rather than handlers.
  *
  * @param $types
  *  (optional) Specify a single type or a list of types to include. 
  *  If omitted, all are returned.
  * @return
- *   Array of connections.
+ *  Array of rows of connection data from the database.
+ *  Note that configuration data is not unserialized.
  */
-function clients_get_connections($types = array()) {
+function clients_get_connection_rows($types = array()) {
   if (!is_array($types)) {
     $types = array($types);
   }
@@ -626,16 +616,12 @@ function clients_get_connections($types = array()) {
     $where = '';
   }
   
-  $connections = array();
+  $connection_rows = array();
   $result = db_query("SELECT * FROM {clients_connections}  $where ORDER BY name", $types);
-  while ($connection = db_fetch_object($result)) {
-    $connections[$connection->cid] = array(
-      'name' => $connection->name,
-      'type' => $connection->type,
-      'endpoint' => $connection->endpoint,
-    );
+  while ($row = db_fetch_array($result)) {
+    $connection_rows[$row['cid']] = $row;
   }
-  return $connections;
+  return $connection_rows;
 }
 
 /**
@@ -715,7 +701,7 @@ function clients_connections_select_options($types = array(), $required = TRUE) 
     $options[0] = t('- None selected -');
   }
 
-  foreach (clients_get_connections($types) as $cid => $connection) {
+  foreach (clients_get_connection_rows($types) as $cid => $connection) {
     $options[$cid] = $connection['name'];
   }
   
@@ -731,7 +717,7 @@ function clients_connections_select_options($types = array(), $required = TRUE) 
  */
 function clients_connections_checkbox_options($types = array()) {
   $options = array();
-  foreach (clients_get_connections($types) as $cid => $connection) {
+  foreach (clients_get_connection_rows($types) as $cid => $connection) {
     $options[$cid] = check_plain($connection['name']);
   }
   
