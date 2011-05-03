@@ -49,21 +49,6 @@ class clients_connection_drupal_services extends clients_connection_base {
       );
     }
 
-    $form['type'] = array(
-      '#type' => 'value',
-      '#value' => $type,
-    );
-
-    $form['name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Connection name'),
-      '#default_value' => isset($connection) ? $connection->name : '',
-      '#size' => 50,
-      '#maxlength' => 100,
-      '#description' => t('Must be unique, any characters allowed'),
-      '#required' => TRUE,
-    );
-
     $form['endpoint'] = array(
       '#type' => 'textfield',
       '#title' => t('Connection endpoint'),

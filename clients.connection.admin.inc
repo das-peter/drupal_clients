@@ -83,6 +83,16 @@ function clients_connection_add(&$form_state, $type) {
       '#disabled' => TRUE,
     );
 
+    $form['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Connection machine name'),
+      '#default_value' => isset($connection) ? $connection->name : '',
+      '#size' => 50,
+      '#maxlength' => 100,
+      '#description' => t('The connection name must contain only lowercase letters, numbers, and underscores. It must be unique.'),
+      '#required' => TRUE,
+    );
+
     // When PHP 5.3 is the norm, we can just say $class::$method().
     $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type);
 
@@ -105,7 +115,12 @@ function clients_connection_add(&$form_state, $type) {
  * Validator handler for the add connection form.
  */
 function clients_connection_add_validate($form, &$form_state) {
-  // Names must be unique.
+  // Validate machine name.
+  if (!preg_match('!^[a-z0-9_]+$!', $form_state['values']['name'])) {
+    form_set_error('name', t('The machine-readable name must contain only lowercase letters, numbers, and underscores.'));
+  }
+
+  // Machine names must be unique.
   $cid = db_result(db_query("SELECT cid FROM {clients_connections} WHERE name = '%s'", $form_state['values']['name']));
   if ($cid) {
     form_set_error('name', 'A service by this name already exists!');
@@ -156,6 +171,16 @@ function clients_connection_edit(&$form_state, $connection) {
     '#disabled' => TRUE,
   );
 
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Connection machine name'),
+    '#default_value' => isset($connection) ? $connection->name : '',
+    '#size' => 50,
+    '#maxlength' => 100,
+    '#description' => t('The connection name must contain only lowercase letters, numbers, and underscores. It must be unique.'),
+    '#required' => TRUE,
+  );
+
   $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $connection);
 
   $form['#connection_type'] = $type;
@@ -166,6 +191,8 @@ function clients_connection_edit(&$form_state, $connection) {
     '#value' => t('Save connection'),
   );
 
+  // WTF to resolve when we merge the add and edit forms.
+  $form['#validate'] = array('clients_connection_add_validate');
   // Add our submit handler common with the add form.
   $form['#submit'] = array('clients_connection_form_submit');
 
