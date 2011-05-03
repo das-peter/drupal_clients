@@ -1,8 +1,7 @@
 <?php
 /**
  * @file
- * Defines methods and calls to Drupal services
- *
+ * Contains classes for Client connections handlers.
  */
 
 /**
@@ -112,10 +111,9 @@ class clients_connection_drupal_services extends clients_connection_base {
       '#required' => TRUE,
     );
 
-
-    $password_desc = isset($connection) ?
-      t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.') : 'This should be same as the password on the server you are connecting to.';
-  
+    $password_desc = isset($connection)
+      ? t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.')
+      : 'This should be same as the password on the server you are connecting to.';
     $form['configuration']['password'] = array(
       '#type' => 'password',
       '#title' => t('Service password'),
@@ -126,9 +124,9 @@ class clients_connection_drupal_services extends clients_connection_base {
       '#required' => $new,
     );
 
-    return $form;      
+    return $form;
   }
-  
+
   /**
    * Submit handler for saving/updating connections of this class.
    *
@@ -144,16 +142,16 @@ class clients_connection_drupal_services extends clients_connection_base {
     else {
       // Prepare password for serialized storage
       if (empty($form_state['values']['configuration']['password'])) {
-        // Need to load connection and set password to original if blank
+        // Need to load connection and set password to original if blank.
         $original = clients_connection_load((int) $form_state['values']['cid']);
         $form_state['values']['configuration']['password'] = $original->configuration['password'];
       }
       $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
     }
   }
-  
-  // ============================================ Constructor.  
-  
+
+  // ============================================ Constructor.
+
   /**
    * Constructor method.
    *
@@ -167,7 +165,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     // Decrypt the password.
     $this->configuration['password'] = clients_drupal_decrypt($this->configuration['password']);
   }
-  
+
   // ============================================ Connection API.
 
   /**
@@ -181,7 +179,7 @@ class clients_connection_drupal_services extends clients_connection_base {
    *  should pass in defaults (eg an empty string or 0) instead of omitting a parameter.
    *
    * @return
-   *  Whatever is returned from the remote site. 
+   *  Whatever is returned from the remote site.
    */
   function callMethod($method) {
     // TODO: Needs to be written for Services D7.
@@ -203,7 +201,7 @@ class clients_connection_drupal_services extends clients_connection_base {
   }
 
   /**
-   * Prepares a hashed token for the service, based on current time, 
+   * Prepares a hashed token for the service, based on current time,
    * the required service and config values; serviceKey and serviceDomain
    *t
    * @param $connection
@@ -276,11 +274,11 @@ class clients_connection_drupal_services extends clients_connection_base {
         return;
       }
       $token = self::getToken($connection, $resource->configuration['options']['method']);
-      
+
       // catch empty arguments
       $arguments = array_values($resource->configuration['options']['arguments']);
       $arguments = trim($arguments[0]) != '' ? $arguments : array();
-      
+
       $result = parent::doCall(
         'xmlrpc',
         $cacheid,
@@ -297,7 +295,7 @@ class clients_connection_drupal_services extends clients_connection_base {
         (int)$resource->configuration['options']['offset'],
         (int)$resource->configuration['options']['limit']
       );
-      
+
       return $result;
   }
 
@@ -314,33 +312,33 @@ class clients_connection_drupal_services extends clients_connection_base {
       $processed_result = new stdClass;
       $processed_result->created = $result->created;
       $processed_result->data = array();
-      
+
       foreach ($result->data as $item) {
-        
+
         foreach ($item as $k => $v) { // handle CCK field data structure
           if (strpos($k, 'field_') !== FALSE) {
-            $item[$k] = $v[0]['value'];        
-          } 
+            $item[$k] = $v[0]['value'];
+          }
         }
-        
+
         // nid will interfere with local nids in client
         $item['remote_nid'] = $item['nid'];
         unset($item['nid']);
         // remote taxonomy is not understood locally so flatten to RSS-style bag of tags (TODO: develop this to preserve vocabs)
         $tags = array();
         if (isset($item['taxonomy'])) {
-          foreach ((array)$item['taxonomy'] as $term) { 
+          foreach ((array)$item['taxonomy'] as $term) {
               $tags = $term['name'];
           }
           unset($item['taxonomy']);
         }
         $item['tags'] = $tags;
-        
+
         $processed_result->data[] = $item;
       }
       return $processed_result;
     } // else method not supported yet
-    
+
   }
 
 }
@@ -350,7 +348,7 @@ class clients_connection_drupal_services extends clients_connection_base {
  *
  * Developed against Services 6.x-2.4.
  */
-class clients_connection_drupal_services_6_2 extends clients_connection_drupal_services {  
+class clients_connection_drupal_services_6_2 extends clients_connection_drupal_services {
   /**
    * Call a remote method.
    *
@@ -360,7 +358,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
    *  All other parameters are passed to the remote method.
    *
    * @return
-   *  Whatever is returned from the remote site. 
+   *  Whatever is returned from the remote site.
    */
   function callMethod($method) {
     // If HTTP requests are enabled, report the error and do nothing.
@@ -370,7 +368,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
       watchdog('integration', 'Drupal is unable to make HTTP requests. Please reset the HTTP request status.', array(), WATCHDOG_CRITICAL);
       return;
     }
-    
+
     $config = $this->configuration;
     $endpoint = $this->endpoint;
     $api_key = $this->configuration['servicekey'];
@@ -381,14 +379,14 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
 
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
-      return $connect; 
+      return $connect;
     }
-    
+
     // Log in
     // Get the API key-related arguments.
     $key_args = $this->xmlrpc_key_args('user.login');
     //dsm($key_args);
-    
+
     // Build the array of connection arguments we need to log in.
     $username = $this->configuration['username'];
     $password = $this->configuration['password'];
@@ -398,26 +396,26 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
       array($session_id),                   // sessid
       array($username, $password)           // username, password
     );
-    
-    // Call the xmlrpc method with our array of arguments. This accounts for 
+
+    // Call the xmlrpc method with our array of arguments. This accounts for
     // whether we use a key or not, and the extra parameters to pass to the method.
     $login = call_user_func_array('xmlrpc', $login_args);
     $login_session_id = $login['sessid'];
-    
+
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
-      return $login; 
+      return $login;
     }
 
     // Get all the arguments this function has been passed.
     $function_args  = func_get_args();
     // Slice out the ones that are arguments to the method call: everything past
     // the 1st argument.
-    $method_args    = array_slice($function_args, 1);    
+    $method_args    = array_slice($function_args, 1);
 
     // Get the API key-related arguments.
     $key_args = $this->xmlrpc_key_args($method);
-    
+
     // Build the array of connection arguments for the method we want to call.
     $xmlrpc_args = array_merge(
       array($this->endpoint, $method),
@@ -428,21 +426,21 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
 
     // Call the xmlrpc method with our array of arguments.
     $result = call_user_func_array('xmlrpc', $xmlrpc_args);
-    
+
     if ($result === FALSE) {
       //dsm('error');
       return xmlrpc_error();
     }
-    
+
     return $result;
-  }  
-  
+  }
+
   /**
    * Helper function to get key-related method arguments for the XMLRPC call.
    *
    * TODO: merge with getToken.
    */
-  function xmlrpc_key_args($method) { 
+  function xmlrpc_key_args($method) {
     $api_key = $this->configuration['servicekey'];
 
     // Build the API key arguments - if no key supplied supplied, presume not required
@@ -478,7 +476,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
 
     return $key_args;
   }
-  
+
   /**
    * Provide buttons for the connection testing page.
    *
@@ -518,20 +516,20 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
       // TODO: tidy up these method names!
       '#action_type' => 'method',
       '#action_submit' => 'testConnectionNodeLoad',
-      '#action_validate' => 'testConnectionNodeLoadValidate',      
+      '#action_validate' => 'testConnectionNodeLoadValidate',
       '#description' => t('Attempt to load a remote node.'),
-    
+
     );
     return $buttons;
   }
-  
+
   /**
    * Connection test button handler: basic connection.
    *
    * Connection test handlers should return the raw data they got back from the
    * connection for display to the user.
    */
-  function testConnectionConnect(&$button_form_values) {  
+  function testConnectionConnect(&$button_form_values) {
     // Call the connect method.
     $connect = $this->callMethod('system.connect');
 
@@ -541,10 +539,10 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     else {
       drupal_set_message(t('Could not connect to the remote site.'), 'warning');
     }
-    
+
     return $connect;
   }
-  
+
   /**
    * Connection test button handler: user login.
    */
@@ -562,7 +560,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     else {
       drupal_set_message(t('Could not log in to the remote site.'), 'warning');
     }
-    
+
     return $login;
   }
 
@@ -573,18 +571,18 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     if (empty($button_form_values['nid'])) {
       form_set_error('buttons][node_load][nid', 'Node id is required for the node retrieval test.');
     }
-  }  
-  
+  }
+
   /**
    * Connection test button handler: loading a node.
    */
-  function testConnectionNodeLoad(&$button_form_values) { 
-    // Must be cast to integer for faffiness of XMLRPC and Services. 
+  function testConnectionNodeLoad(&$button_form_values) {
+    // Must be cast to integer for faffiness of XMLRPC and Services.
     $nid = (int) $button_form_values['nid'];
-    
+
     $fields = array();
     $node = $this->callMethod('node.get', $nid, $fields);
-    
+
     if (is_array($node) && isset($node['nid'])) {
       drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
         '%title' => $node['title'],
@@ -597,7 +595,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
 
     return $node;
   }
-  
+
 }
 
 /**
@@ -606,7 +604,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
  * Works with Services 5.x-0.92.
  *
  * We extend from the Services 6.x-2.x class as not much actually changes
- * these versions between when it comes to making calls.
+ * between these versions when it comes to making calls.
  */
 class clients_connection_drupal_services_5 extends clients_connection_drupal_services_6_2 {
   /**
@@ -623,27 +621,27 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
    *  should pass in defaults (eg an empty string or 0) instead of omitting a parameter.
    *
    * @return
-   *  Whatever is returned from the remote site. 
+   *  Whatever is returned from the remote site.
    */
   function callMethod($method) {
     //dsm($this);
     //dsm($method);
-    
+
     $config = $this->configuration;
-    
+
     $connect = xmlrpc($this->endpoint, 'system.connect');
     $session_id = $connect['sessid'];
-    
+
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
-      return $connect; 
+      return $connect;
     }
-    
+
     // Log in
     // Get the API key-related arguments.
     $key_args = $this->xmlrpc_key_args('user.login');
     //dsm($key_args);
-    
+
     // Build the array of connection arguments we need to log in.
     $username = $this->configuration['username'];
     $password = $this->configuration['password'];
@@ -653,34 +651,34 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
       array($session_id),                   // sessid
       array($username, $password)           // username, password
     );
-    
-    // Call the xmlrpc method with our array of arguments. This accounts for 
+
+    // Call the xmlrpc method with our array of arguments. This accounts for
     // whether we use a key or not, and the extra parameters to pass to the method.
     $login = call_user_func_array('xmlrpc', $login_args);
     $login_session_id = $login['sessid'];
-    
+
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
-      return $login; 
+      return $login;
     }
-    
+
     //dsm($login);
-    
+
     // Get all the arguments this function has been passed.
     $function_args  = func_get_args();
     // Slice out the ones that are arguments to the method call: everything past
     // the 1st argument.
-    $method_args    = array_slice($function_args, 1);    
-    
+    $method_args    = array_slice($function_args, 1);
+
     // The node.load method on D5 is an evil special case because it's defined
     // to not use an API key.
     if ($method == 'node.load') {
-      // Be nice. Let the caller specify just the nid, and provide the 
+      // Be nice. Let the caller specify just the nid, and provide the
       // empty default for the optional fields parameter.
       if (count($method_args) == 1) {
         $method_args[] = array();
       }
-      
+
       // Be nice part 2: the number one (in my experience) cause of lost
       // hours on Services is the way XMLRPC and/or services get their
       // knickers in a twist when they want an integer but think they've got
@@ -688,19 +686,19 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
       // So cast the nid here, since we're already in a special case for this
       // method anyway.
       $method_args[0] = (int) $method_args[0];
-      
+
       // Build the array of connection arguments for the method we want to call.
       $xmlrpc_args = array_merge(
         array($this->endpoint, $method),
         array($login_session_id),
         $method_args
       );
-      
+
       //dsm($xmlrpc_args);
 
       // Call the xmlrpc method with our array of arguments.
       $result = call_user_func_array('xmlrpc', $xmlrpc_args);
-      
+
       if ($result === FALSE) {
         //dsm('error');
         return xmlrpc_error();
@@ -708,7 +706,7 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
       return $result;
     }
-    
+
     // Get the API key-related arguments.
     $key_args = $this->xmlrpc_key_args($method);
 
@@ -722,16 +720,16 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
     // Call the xmlrpc method with our array of arguments.
     $result = call_user_func_array('xmlrpc', $xmlrpc_args);
-    
+
     if ($result === FALSE) {
       //dsm('error');
       return xmlrpc_error();
     }
-    
+
     return $result;
-    
+
   }
-  
+
   /**
    * Provide buttons for the connection testing page.
    *
@@ -748,11 +746,11 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
    *
    * This uses a different method on Services 5.x-0.92.
    */
-  function testConnectionNodeLoad(&$button_form_values) {  
+  function testConnectionNodeLoad(&$button_form_values) {
     $nid = $button_form_values['nid'];
-    
+
     $node = $this->callMethod('node.load', $nid);
-    
+
     if (is_array($node) && isset($node['nid'])) {
       drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
         '%title' => $node['title'],
@@ -765,7 +763,7 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
     return $node;
   }
-  
-  
+
+
 }
 

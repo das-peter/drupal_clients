@@ -20,9 +20,9 @@ function clients_drupal_install() {
 function clients_drupal_uninstall() {
   // remove any drupal services from connections table
   db_query(
-      "DELETE {clients_connections} FROM {clients_connections} 
+      "DELETE {clients_connections} FROM {clients_connections}
       WHERE {clients_connections}.type = 'drupal_services'"
-  );  
+  );
   // clean up any variables created by module
   $module_variables = array(
   );

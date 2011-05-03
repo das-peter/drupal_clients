@@ -14,7 +14,7 @@ abstract class clients_connection_base {
   public $cid;
   public $endpoint;
   public $configuration;
-  
+
   /**
    * Submit handler for saving/updating connections of this class.
    *
@@ -24,13 +24,13 @@ abstract class clients_connection_base {
     // Base class does nothing; saving of the connection is handled by the
     // 'real' FormAPI submit handler.
   }
-  
+
   /**
    * Constructor method.
    *
    * @param $row
    *  The database row containing the connection data.
-   */  
+   */
   function __construct($row) {
     // Lump all data unto the object...
     foreach ($row as $field => $value) {
@@ -43,7 +43,7 @@ abstract class clients_connection_base {
   }
 
   /**
-   * Takes variable number of params after cacheid. 
+   * Takes variable number of params after cacheid.
    */
   static protected function doCall($method, $cacheid) {
 
@@ -52,25 +52,25 @@ abstract class clients_connection_base {
 
     $cache_table = 'cache_clients';
     $cache_time = variable_get('clients_api_cache_time', '0');
-    
+
     if ($cache_time == '0' || !$result = cache_get($cacheid, $cache_table)) {
       if ($method == 'xmlrpc') {
-        $data = call_user_func_array('xmlrpc', $args); 
+        $data = call_user_func_array('xmlrpc', $args);
       }
       elseif ($method == 'rest') {
-        $data = call_user_func_array('drupal_http_request', $args); 
+        $data = call_user_func_array('drupal_http_request', $args);
       }
       else {
-        $data = t('@method not yet supported', array('@method' => $method)); 
+        $data = t('@method not yet supported', array('@method' => $method));
       }
-      
+
       // @todo error handling/reporting
       if ($cache_time != '0') {
         cache_set(
-          $cacheid, 
-          $data, 
-          $cache_table, 
-          $cache_time == 'cron' ? CACHE_TEMPORARY : 
+          $cacheid,
+          $data,
+          $cache_table,
+          $cache_time == 'cron' ? CACHE_TEMPORARY :
             time() + ((int)$cache_time * 60)
           );
       }
@@ -78,9 +78,9 @@ abstract class clients_connection_base {
       $result->data = $data;
       $result->created = time();
     }
-    return $result; 
+    return $result;
   }
-  
+
   /**
    * Provide buttons for the connection testing page.
    */
@@ -91,9 +91,9 @@ abstract class clients_connection_base {
   /**
    * Connection extending classes must implement the interface below:
    */
-   
+
   /**
-   * Sets cacheid and parameters for the service/method and calls self::doCall() 
+   * Sets cacheid and parameters for the service/method and calls self::doCall()
    */
   abstract static public function call($serviceConfig, $serviceOptions);
 }

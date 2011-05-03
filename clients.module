@@ -1,32 +1,34 @@
 <?php
 /**
  * @file
- * Clients module - handles keys and service connections 
- * and provides an API for  clients
+ * Clients module provides a UI, storage, and an API for handling connections
+ * to remote webservices, including those provided by Services module on other
+ * Drupal sites.
  */
 
 /**
- * Implementation of hook_help()
+ * Implementation of hook_help().
  *
  * @param $path
- *   Which path of the site we're displaying help
+ *   Which path of the site we're displaying help.
  * @param $arg
- *   Holds the current path as would be returned from arg() function
+ *   Holds the current path as would be returned from arg() function.
  * @return
- *   Help text for the path
+ *   Help text for the path.
  */
 function clients_help($path, $arg) {
   $output = '';
   switch ($path) {
     case "admin/help#clients":
-      $output = '<p>'.  t("Clients API .") .'</p>';
+      $output = '<p>' . t("Clients module provides a UI, storage, and an API for handling connections to remote webservices, including those provided by Services module on other Drupal sites.") . '</p>';
       break;
     case 'admin/build/clients':
       $output = '<p>' . t("The clients module allows you to define connections to remote sites that provide services. ")
         . t("Use the list below to configure and review the connections defined on your site.")
         . '</p>';
-      break;      
-    case 'admin/build/clients/connections/test/%':
+      break;
+    case 'admin/build/clients/connections/%/test':
+      // (For some reason menu loaders don't work in hook_help() it seems.)
       $output  = '<p>' . t('Use this page to test your connection is set up correctly.') . '</p>';
       break;
   }
@@ -34,21 +36,21 @@ function clients_help($path, $arg) {
 }
 
 /**
- * Implementation of hook_perm()
+ * Implementation of hook_perm().
+ *
  * @return
- *   An array of valid permissions for the clients module
+ *   An array of valid permissions for the clients module.
  */
 function clients_perm() {
   return array('administer clients connections', 'administer clients resources');
 }
 
 /**
- * Implementation of hook_menu()
+ * Implementation of hook_menu().
  */
 function clients_menu() {
-
   $items = array();
-  
+
   $items['admin/build/clients'] = array(
     'title' => 'Clients',
     'description' => 'Clients',
@@ -70,12 +72,12 @@ function clients_menu() {
 
   $items['admin/build/clients/connections/add/%'] = array(
     'title' => 'Add connection',
-    'page callback' => 'drupal_get_form',    
+    'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_connection_add', 5),
     'file' => 'clients.connection.admin.inc',
     'access arguments' => array('administer clients connections'),
   );
-  
+
   $items['admin/build/clients/connections/%clients_connection'] = array(
     'title' => 'Connection',
     'description' => 'Show connection',
@@ -97,7 +99,7 @@ function clients_menu() {
 
   $items['admin/build/clients/connections/%clients_connection/edit'] = array(
     'title' => 'Edit',
-    'page callback' => 'drupal_get_form',    
+    'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_connection_edit', 4),
     'file' => 'clients.connection.admin.inc',
     'access arguments' => array('administer clients connections'),
@@ -118,7 +120,7 @@ function clients_menu() {
   $items['admin/build/clients/connections/%clients_connection/delete'] = array(
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
-    'page callback' => 'drupal_get_form',    
+    'page callback' => 'drupal_get_form',
     'page arguments' => array('client_delete_confirm', 'connection', 4),
     'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
@@ -164,7 +166,7 @@ function clients_menu() {
   $items['admin/build/clients/resources/%/delete'] = array(
     'title' => 'Delete resource',
     'description' => 'Delete a resource',
-    'page callback' => 'drupal_get_form',    
+    'page callback' => 'drupal_get_form',
     'page arguments' => array('client_delete_confirm', 'resource', 5),
     'access arguments' => array('administer clients connections'),
     'type' => MENU_CALLBACK,
@@ -188,24 +190,21 @@ function clients_menu() {
     'access arguments' => array('administer clients resources'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
-  
 
   return $items;
 }
 
 /**
- * any defined perms in this module
+ * Menu access callback for admin pages.
  */
 function clients_access_callback() {
   return user_access('administer clients connections') || user_access('administer clients resources');
 }
 
 /**
- * Set cache time in minutes
- * @return
- *   Form array
+ * Form builder for the admin settings form.
  */
-function clients_admin_cache() {
+function clients_admin_cache($form_state) {
   $form = array();
 
   $form['clients_cache_time'] = array(
@@ -245,23 +244,6 @@ function client_delete_confirm(&$form_state, $type, $service) {
     t('Delete'),
     t('Cancel')
   );
-
-  $form = array();
-  $form['type'] = array('#type' => 'value', '#value' => $type);
-  $form['cid'] = array('#type' => 'value', '#value' => $service->cid);
-  $form['name'] = array('#type' => 'value', '#value' => $service->name);
-  $form['check'] = array(
-    '#value' => '<p>' . t('Really delete !type @service?', array(
-      '@service' => $service->name,
-      '!type' => $type,
-      )) . '</p>',
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete'),
-  );
-
-  return $form;
 }
 
 /**
@@ -271,7 +253,9 @@ function client_delete_confirm_validate($form, &$form_state) {
 }
 
 /**
-* @todo: refactor?
+ * Form submit handler for the deletion form.
+ *
+ * @todo: refactor?
  */
 function client_delete_confirm_submit($form, &$form_state) {
   $cid = (int) $form_state['values']['cid'];
@@ -280,9 +264,9 @@ function client_delete_confirm_submit($form, &$form_state) {
       @db_query("DELETE FROM {clients_resources} WHERE cid = %d", $cid); // error suppression is less expensive than a query to check if there are any resources
       drupal_set_message(t('Connection @name deleted.', array('@name' => $form_state['values']['name'])));
       $form_state['redirect'] = 'admin/build/clients/connections';
-    } 
+    }
     else {
-      drupal_set_message(t('Problem deleting connection: ') . $form_state['values']['name']);
+      drupal_set_message(t('Problem deleting connection @name.', array('@name' => $form_state['values']['name'])), 'error');
     }
   }
   elseif ($form_state['values']['type'] == 'resource') {
@@ -311,29 +295,11 @@ function clients_call($resource) {
 }
 
 /**
- * Create a connection object which can then be used to make method calls.
- *
- * This is just a wrapper around clients_connection_load() and only kept here
- * to prevent breaking dependent modules.
- *
- * Usage:
- *  $client = clients_get_connection($cid);
- *  $client->callMethod('node.load', array(1));
- *
- * @param $cid
- *  The id of a connection.
- */
-function clients_get_connection($cid) {
-  return clients_connection_load($cid);
-}
-
-/**
- *
+ * Menu callback to add a resource.
  */
 function clients_resources_add() {
   return drupal_get_form('clients_resources_form');
 }
-
 
 /**
  *
@@ -466,7 +432,7 @@ function clients_resources() {
 }
 
 /**
- * @todo hide password until clicked to prevent overshoulder attacks 
+ * @todo hide password until clicked to prevent overshoulder attacks
  * when keys are being checked
  **/
 function clients_resource_view($arg) {
@@ -506,6 +472,23 @@ function clients_flush_caches() {
 }
 
 /**
+ * Create a connection object which can then be used to make method calls.
+ *
+ * This is just a wrapper around clients_connection_load() and only kept here
+ * to prevent breaking dependent modules.
+ *
+ * Usage:
+ *  $client = clients_get_connection($cid);
+ *  $client->callMethod('node.load', array(1));
+ *
+ * @param $cid
+ *  The id of a connection.
+ */
+function clients_get_connection($cid) {
+  return clients_connection_load($cid);
+}
+
+/**
  * Load a client connection.
  *
  * Used as a menu loader.
@@ -541,7 +524,7 @@ function clients_connection_load($cid) {
  * Loads all connection data, returning rows rather than handlers.
  *
  * @param $types
- *  (optional) Specify a single type or a list of types to include. 
+ *  (optional) Specify a single type or a list of types to include.
  *  If omitted, all are returned.
  * @return
  *  Array of rows of connection data from the database.
@@ -552,13 +535,13 @@ function clients_get_connection_rows($types = array()) {
     $types = array($types);
   }
   if (count($types)) {
-    $placeholders = implode(',', array_fill(0, count($types), "'%s'"));    
+    $placeholders = implode(',', array_fill(0, count($types), "'%s'"));
     $where = "WHERE type IN ($placeholders)";
   }
   else {
     $where = '';
   }
-  
+
   $connection_rows = array();
   $result = db_query("SELECT * FROM {clients_connections}  $where ORDER BY name", $types);
   while ($row = db_fetch_array($result)) {
@@ -594,10 +577,10 @@ function clients_resources_load() {
 function clients_resource_load($identifier) {
   if (is_numeric($identifier)) {
     $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.rid = %d", $identifier);
-  } 
+  }
   elseif (is_string($identifier)) {
     $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.name = '%s'", $identifier);
-  } 
+  }
   else {
     // @todo watchdog
     drupal_set_message('error');
@@ -618,7 +601,7 @@ function clients_get_connection_types() {
   static $connection_types;
   if (!isset($connection_types)) {
     // Invoke hook_clients_connection_type_info().
-    $connection_types = module_invoke_all('clients_connection_type_info');    
+    $connection_types = module_invoke_all('clients_connection_type_info');
   }
   return $connection_types;
 }
@@ -627,7 +610,7 @@ function clients_get_connection_types() {
  * FormAPI helper to get a list of clients for a select form element.
  *
  * @param $types
- *  (optional) Specify a single type or a list of types to include. 
+ *  (optional) Specify a single type or a list of types to include.
  *  If omitted, all are returned.
  * @param $required
  *  Whether the select element is required.
@@ -647,7 +630,7 @@ function clients_connections_select_options($types = array(), $required = TRUE) 
   foreach (clients_get_connection_rows($types) as $cid => $connection) {
     $options[$cid] = $connection['name'];
   }
-  
+
   return $options;
 }
 
@@ -655,7 +638,7 @@ function clients_connections_select_options($types = array(), $required = TRUE) 
  * FormAPI helper to get a list of clients for a checkboxes form element.
  *
  * @param $types
- *  (optional) Specify a single type or a list of types to include. 
+ *  (optional) Specify a single type or a list of types to include.
  *  If omitted, all are returned.
  */
 function clients_connections_checkbox_options($types = array()) {
@@ -663,8 +646,8 @@ function clients_connections_checkbox_options($types = array()) {
   foreach (clients_get_connection_rows($types) as $cid => $connection) {
     $options[$cid] = check_plain($connection['name']);
   }
-  
-  return $options;  
+
+  return $options;
 }
 
 

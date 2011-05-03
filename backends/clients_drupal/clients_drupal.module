@@ -1,7 +1,8 @@
 <?php
 /**
  * @file
- * Drupal Services plugin for Clients module
+ * Provides connection types for Clients module that connect to remote Drupal
+ * sites running Services module.
  */
 
 /**
@@ -14,7 +15,7 @@ function clients_drupal_help($path, $arg) {
   $output = '';
   switch ($path) {
     case "admin/help#clients_drupal":
-      $output = '<p>'.  t("Clients - Drupal Services.") .'</p>';
+      $output = '<p>' .  t("Provides connection plugins for Clients module that connect to remote Drupal sites running Services module.") . '</p>';
       break;
   }
   return $output;
@@ -23,7 +24,7 @@ function clients_drupal_help($path, $arg) {
 /**
  * Implementation of hook_clients_connection_type_info().
  *
- * Define the connection type we provide.
+ * Define the connection types we provide.
  */
 function clients_drupal_clients_connection_type_info() {
   return array(
@@ -64,16 +65,9 @@ function clients_drupal_menu() {
 }
 
 /**
- * Caller function. This gets us into the class.
+ * Form builder for the Drupal clients admin settings.
  */
-function drupal_services_clients_call($connection, $method, $parameters = array()) {
-  return ClientsServicesDrupal::call_method($connection, $method, $parameters);
-}
- 
-/**
- * @return array Form
- */
-function clients_drupal_admin() {
+function clients_drupal_admin($form_states) {
   $form = array();
   $options = clients_drupal_encryption_methods();
   $form['clients_drupal_encryption_method'] = array(
@@ -87,22 +81,35 @@ function clients_drupal_admin() {
   return system_settings_form($form);
 }
 
+/**
+ * Helper function to retrieve all available encryption methods.
+ */
 function clients_drupal_encryption_methods() {
+  // Invoke hook_clients_drupal_encryption_methods().
   $options = module_invoke_all('clients_drupal_encryption_methods');
   $options['no_encryption'] = t('No encryption');
   return $options;
 }
 
+/**
+ * Encrypt a value with the chosen encryption method.
+ */
 function clients_drupal_encrypt($val) {
   $encryption_method = variable_get('clients_drupal_encryption_method', 'no_encryption');
   if ($encryption_method == 'no_encryption') {
     return $val;
   }
   else {
+    // This is brittle: it depends on the thing declared in
+    // hook_clients_drupal_encryption_methods() having the same key
+    // as the providing module.
     return module_invoke($encryption_method, 'clients_drupal_encrypt', $val);
   }
 }
 
+/**
+ * Decrypt a value with the chosen encryption method.
+ */
 function clients_drupal_decrypt($val) {
   $encryption_method = variable_get('clients_drupal_encryption_method', 'no_encryption');
   if ($encryption_method == 'no_encryption') {
