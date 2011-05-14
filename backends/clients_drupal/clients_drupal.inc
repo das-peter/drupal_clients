@@ -16,6 +16,9 @@ class clients_connection_drupal_services extends clients_connection_base {
   /**
    * Form builder for adding or editing connections of this class.
    *
+   * This is the same pattern as node_form() -- just ignore the object behind
+   * the curtain ;)
+   *
    * Static function, call without an object.
    *
    * This (so far) is common to all versions of Drupal Services.
@@ -29,8 +32,9 @@ class clients_connection_drupal_services extends clients_connection_base {
    *  A FormAPI form array. This will be merged in with basic data and the
    *  submit button added.
    *
-   * @see clients_connection_add()
-   * @see clients_connection_edit()
+   * @see clients_connection_form()
+   * @see clients_connection_form()
+   * @see clients_connection_form_submit()
    */
   static function connectionSettingsForm(&$form_state, $type, $connection = NULL) {
     $form = array();
@@ -115,7 +119,7 @@ class clients_connection_drupal_services extends clients_connection_base {
   /**
    * Submit handler for saving/updating connections of this class.
    *
-   * @see clients_connection_form_submit().
+   * @see clients_connection_form_submit()
    */
   static function connectionSettingsForm_submit($form, &$form_state) {
     // Presence of the cid tells us whether we're editing or adding a new connection.

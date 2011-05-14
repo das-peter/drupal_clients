@@ -72,8 +72,8 @@ function clients_menu() {
 
   $items['admin/build/clients/connections/add/%'] = array(
     'title' => 'Add connection',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('clients_connection_add', 5),
+    'page callback' => 'clients_connection_add',
+    'page arguments' => array(5),
     'file' => 'clients.connection.admin.inc',
     'access arguments' => array('administer clients connections'),
   );
@@ -100,7 +100,7 @@ function clients_menu() {
   $items['admin/build/clients/connections/%clients_connection/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('clients_connection_edit', 4),
+    'page arguments' => array('clients_connection_form', 4),
     'file' => 'clients.connection.admin.inc',
     'access arguments' => array('administer clients connections'),
     'weight' => 1,

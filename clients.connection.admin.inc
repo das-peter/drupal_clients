@@ -50,80 +50,92 @@ function clients_connections_list() {
 }
 
 /**
- * Form builder for adding a connection.
+ * Menu callback for adding a new connection.
+ *
+ * @param $type
+ *  The name of a connection type.
+ */
+function clients_connection_add($type) {
+  // Check the type exists.
+  $connection_types = clients_get_connection_types();
+  if (!isset($connection_types[$type])) {
+    return drupal_not_found();
+  }
+
+  drupal_set_title(t('Create @name connection', array('@name' => $type)));
+  // Make a basic default connection object to pass to the form builder.
+  $connection = new stdClass();
+  $connection->type = $type;
+  $connection->name = '';
+  return drupal_get_form('clients_connection_form', $connection);
+}
+
+/**
+ * Form builder for editing a connection.
  *
  * Gets the class of the connection from the data in the form and calls the
  * connectionSettingsForm() method on the class to build the form.
  * This allows different elements for different connection types.
  *
- * @param $type
- *  The machine name of a connection type.
+ * @param $connection
+ *  A connection object.
  *
+ * @see clients_connection_form_validate()
  * @see clients_connection_form_submit()
  */
-function clients_connection_add(&$form_state, $type) {
-  $connection = new stdClass();
-  $connection->$type = $type;
-  $connection->name = '';
-
+function clients_connection_form(&$form_state, $connection) {
   $form = array();
-  $connection_types = clients_get_connection_types();
-  //dsm($connection_types);
+
+  $type = $connection->type;
+  $class = 'clients_connection_' . $type;
 
   $form['old_connection'] = array(
     '#type' => 'value',
     '#value' => $connection,
   );
 
-  if (isset($connection_types[$type])) {
-    $class = 'clients_connection_' . $type;
+  //dsm($connection);
 
-    // When 5.3 is the norm, we can do:
-    //$form = $class::connectionSettingsForm($form_state);
-    $form['#connection_type'] = $type;
-    $form['#connection_class'] = $class;
+  $form['type'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Connection type'),
+    '#description' => t('The type of this connection. May not be changed.'),
+    '#value' => $connection->type,
+    '#size' => 50,
+    '#disabled' => TRUE,
+  );
 
-    $form['type'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Connection type'),
-      '#description' => t('The type of connection to create. May not be changed.'),
-      '#value' => $type,
-      '#size' => 50,
-      '#disabled' => TRUE,
-    );
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Connection machine name'),
+    '#default_value' => $connection->name,
+    '#size' => 50,
+    '#maxlength' => 100,
+    '#description' => t('The connection name must contain only lowercase letters, numbers, and underscores. It must be unique.'),
+    '#required' => TRUE,
+  );
 
-    $form['name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Connection machine name'),
-      '#default_value' => isset($connection) ? $connection->name : '',
-      '#size' => 50,
-      '#maxlength' => 100,
-      '#description' => t('The connection name must contain only lowercase letters, numbers, and underscores. It must be unique.'),
-      '#required' => TRUE,
-    );
+  $form['#connection_type'] = $type;
+  $form['#connection_class'] = $class;
 
-    // When PHP 5.3 is the norm, we can just say $class::$method().
-    $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type);
+  // When PHP 5.3 is the norm, we can just say $class::$method().
+  $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $connection);
 
-    $form['buttons']['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Add connection'),
-    );
+  $form['buttons']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save connection'),
+  );
 
-    // Add our submit handler common with the edit form.
-    $form['#submit'] = array('clients_connection_form_submit');
-
-    return $form;
-  }
-  else {
-    return drupal_not_found();
-  }
+  return $form;
 }
 
 /**
- * Validator handler for the add connection form.
+ * Form validator handler for the connection form.
+ *
+ * @see clients_connection_form()
+ * @see clients_connection_form_submit()
  */
-function clients_connection_add_validate($form, &$form_state) {
+function clients_connection_form_validate($form, &$form_state) {
   // Validate machine name.
   if (!preg_match('!^[a-z0-9_]+$!', $form_state['values']['name'])) {
     form_set_error('name', t('The machine-readable name must contain only lowercase letters, numbers, and underscores.'));
@@ -165,70 +177,14 @@ function clients_connection_add_validate($form, &$form_state) {
 }
 
 /**
- * Form builder for editing a connection.
- *
- * @param $connection
- *  A loaded connection.
- *
- * @see clients_connection_form_submit()
- */
-function clients_connection_edit(&$form_state, $connection) {
-  $type = $connection->type;
-  $class = 'clients_connection_' . $type;
-
-  $form['old_connection'] = array(
-    '#type' => 'value',
-    '#value' => $connection,
-  );
-
-  //dsm($connection);
-
-  $form['type'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Connection type'),
-    '#description' => t('The type of this connection. May not be changed.'),
-    '#value' => $type,
-    '#size' => 50,
-    '#disabled' => TRUE,
-  );
-
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Connection machine name'),
-    '#default_value' => isset($connection) ? $connection->name : '',
-    '#size' => 50,
-    '#maxlength' => 100,
-    '#description' => t('The connection name must contain only lowercase letters, numbers, and underscores. It must be unique.'),
-    '#required' => TRUE,
-  );
-
-  $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $connection);
-
-  $form['#connection_type'] = $type;
-  $form['#connection_class'] = $class;
-
-  $form['buttons']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save connection'),
-  );
-
-  // WTF to resolve when we merge the add and edit forms.
-  $form['#validate'] = array('clients_connection_add_validate');
-  // Add our submit handler common with the add form.
-  $form['#submit'] = array('clients_connection_form_submit');
-
-  return $form;
-}
-
-/**
- * Common submit handler for connection add and edit forms.
+ * Form submit handler for the connection form.
  *
  * Gets the class of the connection from the data in the form and calls the
  * connectionSettingsForm_submit() method on the class.
  * This allows different behaviour for different connection types.
  *
- * @see clients_connection_add()
- * @see clients_connection_edit()
+ * @see clients_connection_form()
+ * @see clients_connection_form_validate()
  */
 function clients_connection_form_submit($form, &$form_state) {
   //dsm($form);
