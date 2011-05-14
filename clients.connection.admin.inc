@@ -62,9 +62,18 @@ function clients_connections_list() {
  * @see clients_connection_form_submit()
  */
 function clients_connection_add(&$form_state, $type) {
+  $connection = new stdClass();
+  $connection->$type = $type;
+  $connection->name = '';
+
   $form = array();
   $connection_types = clients_get_connection_types();
   //dsm($connection_types);
+
+  $form['old_connection'] = array(
+    '#type' => 'value',
+    '#value' => $connection,
+  );
 
   if (isset($connection_types[$type])) {
     $class = 'clients_connection_' . $type;
@@ -121,9 +130,16 @@ function clients_connection_add_validate($form, &$form_state) {
   }
 
   // Machine names must be unique.
-  $cid = db_result(db_query("SELECT cid FROM {clients_connections} WHERE name = '%s'", $form_state['values']['name']));
-  if ($cid) {
-    form_set_error('name', 'A service by this name already exists!');
+  // Work out what the machine name was before the user submitted this form.
+  $old_connection = $form_state['values']['old_connection'];
+  $connections = clients_get_connection_rows();
+  // Messy.
+  // TODO: clients_get_connection_rows() should key by machine name when we switch to use Ctools.
+  foreach ($connections as $c) {
+    $connection_names[$c['name']] = $c['name'];
+  }
+  if (isset($connection_names[$form_state['values']['name']]) && $form_state['values']['name'] != $old_connection->name) {
+    form_set_error('name', 'This connection name is already taken.');
   }
 
   // TODO: consider cleaning up the following code to test on form submit:
@@ -159,6 +175,11 @@ function clients_connection_add_validate($form, &$form_state) {
 function clients_connection_edit(&$form_state, $connection) {
   $type = $connection->type;
   $class = 'clients_connection_' . $type;
+
+  $form['old_connection'] = array(
+    '#type' => 'value',
+    '#value' => $connection,
+  );
 
   //dsm($connection);
 
