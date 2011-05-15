@@ -62,11 +62,12 @@ function clients_connection_add($type) {
     return drupal_not_found();
   }
 
-  drupal_set_title(t('Create @name connection', array('@name' => $type)));
+  drupal_set_title(t('Add @name connection', array('@name' => $type)));
   // Make a basic default connection object to pass to the form builder.
   $connection = new stdClass();
   $connection->type = $type;
   $connection->name = '';
+  $connection->new = TRUE;
   return drupal_get_form('clients_connection_form', $connection);
 }
 
@@ -181,7 +182,8 @@ function clients_connection_form_validate($form, &$form_state) {
  *
  * Gets the class of the connection from the data in the form and calls the
  * connectionSettingsForm_submit() method on the class.
- * This allows different behaviour for different connection types.
+ * This allows different behaviour for different connection types, while
+ * saving is handled here.
  *
  * @see clients_connection_form()
  * @see clients_connection_form_validate()
@@ -191,17 +193,26 @@ function clients_connection_form_submit($form, &$form_state) {
   //dsm($form_state);
   $class = $form['#connection_class'];
 
+  $old_connection = $form_state['values']['old_connection'];
+  unset($form_state['values']['old_connection']);
+
   // Use call_user_func_array() so form state can be passed by reference.
   call_user_func_array(array($class, 'connectionSettingsForm_submit'), array($form, &$form_state));
 
   // Common actions for all forms.
-  // Presence of the cid tells us whether we're editing or adding a new connection.
-  $new = !isset($form_state['values']['cid']);
-  if ($new) {
-    drupal_write_record('clients_connections', $form_state['values']);
+
+  $connection = $form_state['values'];
+  // Add in the cid, if there was one originally.
+  // Check whether we're editing or adding a new connection.
+  // We could use $old_connection->new to determine whether this is an insert
+  // or an update, but that's probably not going to work come Ctools, as a
+  // connection may not be 'new' but may not have a cid if it's from code.
+  if (isset($old_connection->cid)) {
+    $connection['cid'] = $old_connection->cid;
+    drupal_write_record('clients_connections', $connection, 'cid');
   }
   else {
-    drupal_write_record('clients_connections', $form_state['values'], 'cid');
+    drupal_write_record('clients_connections', $connection);
   }
 
   drupal_set_message(t('Connection saved.'));

@@ -26,7 +26,8 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @param $type
    *  The type of the connection.
    * @param $connection
-   * (optional) The connection object, if this is an edit.
+   * The connection object. If a connection is being added, this will only have
+   * the name and type properties set, as well as the flag $connection->new.
    *
    * @return
    *  A FormAPI form array. This will be merged in with basic data and the
@@ -36,27 +37,13 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    */
-  static function connectionSettingsForm(&$form_state, $type, $connection = NULL) {
+  static function connectionSettingsForm(&$form_state, $type, $connection) {
     $form = array();
-
-    if (is_null($connection)) {
-      $new = TRUE;
-      $connection_types = clients_get_connection_types();
-      drupal_set_title(t('Add @type connection', array(
-        '@type' => $connection_types[$type]['label'],
-      )));
-    }
-    else {
-      $form['cid'] = array(
-        '#type' => 'value',
-        '#value' => $connection->cid,
-      );
-    }
 
     $form['endpoint'] = array(
       '#type' => 'textfield',
       '#title' => t('Connection endpoint'),
-      '#default_value' => isset($connection) ? $connection->endpoint : '',
+      '#default_value' => $connection->new ? '' : $connection->endpoint,
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('Remote service URL e.g. http://mysite.com/services/xmlrpc'),
@@ -73,7 +60,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['domain'] = array(
       '#type' => 'textfield',
       '#title' => t('Domain'),
-      '#default_value' => isset($connection) ? $connection->configuration['domain'] : '',
+      '#default_value' => $connection->new ? '' : $connection->configuration['domain'],
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('This should be same as the \'Domain\' field used by the Services authentication key on the server you are connecting to.'),
@@ -82,7 +69,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['servicekey'] = array(
       '#type' => 'textfield',
       '#title' => t('Service key'),
-      '#default_value' => isset($connection) ? $connection->configuration['servicekey'] : '',
+      '#default_value' => $connection->new ? '' : $connection->configuration['servicekey'],
       '#size' => 50,
       '#maxlength' => 40,
       '#attributes' => array('autocomplete' => 'off'),
@@ -92,7 +79,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['username'] = array(
       '#type' => 'textfield',
       '#title' => t('Service username'),
-      '#default_value' => isset($connection) ? $connection->configuration['username'] : '',
+      '#default_value' => $connection->new ? '' : $connection->configuration['username'],
       '#size' => 30,
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
@@ -100,9 +87,9 @@ class clients_connection_drupal_services extends clients_connection_base {
       '#required' => TRUE,
     );
 
-    $password_desc = isset($connection)
-      ? t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.')
-      : 'This should be same as the password on the server you are connecting to.';
+    $password_desc = $connection->new
+      ? 'This should be same as the password on the server you are connecting to.'
+      : t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.');
     $form['configuration']['password'] = array(
       '#type' => 'password',
       '#title' => t('Service password'),
@@ -110,7 +97,7 @@ class clients_connection_drupal_services extends clients_connection_base {
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
       '#description' => $password_desc,
-      '#required' => $new,
+      '#required' => $connection->new,
     );
 
     return $form;
@@ -122,18 +109,17 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @see clients_connection_form_submit()
    */
   static function connectionSettingsForm_submit($form, &$form_state) {
-    // Presence of the cid tells us whether we're editing or adding a new connection.
-    $new = !isset($form_state['values']['cid']);
+    $old_connection = $form_state['values']['old_connection'];
 
-    if ($new) {
+    // Check whether we're editing or adding a new connection.
+    if ($old_connection->new) {
       $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
     }
     else {
       // Prepare password for serialized storage
       if (empty($form_state['values']['configuration']['password'])) {
-        // Need to load connection and set password to original if blank.
-        $original = clients_connection_load((int) $form_state['values']['cid']);
-        $form_state['values']['configuration']['password'] = $original->configuration['password'];
+        // Set password to original if blank.
+        $form_state['values']['configuration']['password'] = $old_connection->configuration['password'];
       }
       $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
     }
