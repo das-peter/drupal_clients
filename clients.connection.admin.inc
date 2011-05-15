@@ -216,7 +216,7 @@ function clients_connection_form_submit($form, &$form_state) {
   }
 
   drupal_set_message(t('Connection saved.'));
-  $form_state['redirect'] = 'admin/build/clients/connections';
+  $form_state['redirect'] = 'admin/build/clients/connections/' . $connection['cid'];
 }
 
 /**
