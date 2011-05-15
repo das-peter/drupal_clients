@@ -43,6 +43,49 @@ abstract class clients_connection_base {
   }
 
   /**
+   * Call a remote method.
+   *
+   * This is a wrapper around callMethodArray that gives the convenience of
+   * being able to pass method name and parameters as one flat list, and hence
+   * is the main API for connection objects.
+   *
+   * @param $method
+   *  The name of the remote method to call.
+   * @param ...
+   *  All other parameters are passed to the remote method.
+   *
+   * @return
+   *  Whatever is returned from the remote site.
+   */
+  function callMethod($method) {
+    // Get all the arguments this function has been passed.
+    $function_args  = func_get_args();
+    // Slice out the ones that are arguments to the method call: everything past
+    // the 1st argument.
+    $method_params  = array_slice($function_args, 1);
+
+    return $this->callMethodArray($method, $method_params);
+  }
+
+  /**
+   * Call a remote method with an array of parameters.
+   *
+   * This is intended for internal use from callMethod() and
+   * clients_connection_call().
+   * If you need to call a method on given connection object, use callMethod
+   * which has a nicer form.
+   *
+   * @param $method
+   *  The name of the remote method to call.
+   * @param $method_params
+   *  An array of parameters to passed to the remote method.
+   *
+   * @return
+   *  Whatever is returned from the remote site.
+   */
+  function callMethodArray($method, $method_params = array()) {}
+
+  /**
    * Takes variable number of params after cacheid.
    */
   static protected function doCall($method, $cacheid) {

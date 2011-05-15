@@ -9,15 +9,22 @@ stuff.
 Once a connection is defined in the admin UI, you can call a remote method on it
 like this:
 
+  // $connection_name is the machine name of the connection.
+  $result = clients_connection_call('my_connection', 'method.name', $param1, $param2, $param_etc);
+
+So for example, to load a node from a remote Drupal site, do:
+  
+  $node = clients_connection_call('my_connection', 'node.get', $remote_nid);
+  // Note that the $node will be an array.
+
+If you need to make several calls, you can use the connection object yourself:
+
   // $connection_id is the ID of the connection.
   $connection = clients_get_connection($connection_id);
   $result = $connection->callMethod('method.name', $param1, $param2, $param_etc);
   
-Example: getting a node from a remote site:
-
-  $connection = clients_get_connection($drupal_site_connection_id);
-  $node = $connection->callMethod('node.get', $remote_nid);
-  // Note that the $node will be an array.
+Note however that this second form is subject to change when support for Ctools
+exportables is added.
 
 Defining Connection types
 =========================

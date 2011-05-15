@@ -7,6 +7,60 @@
  */
 
 /**
+ * Call a remote method on a client.
+ *
+ * This the main API for Client connections.
+ * It can be considered stable (though its internals are due to change with 
+ * the arrival of Ctools exportables support).
+ *
+ * Used thus:
+ *  clients_connection_call('connection_machine_name', 'method_name', $params...);
+ * For example:
+ *  clients_connection_call('my_connection', 'node.load', 1);
+ * will return node 1 loaded from the remote site.
+ *
+ * @param $name
+ *  The connection machine name.
+ * @param $method
+ *  The name of the remote method to call.
+ * @param ...
+ *  All other parameters are passed to the remote method.
+ */
+function clients_connection_call($name, $method) {
+  // Temporary stuff until Ctools integration happens (we're blocked by
+  // patches to Ctools).
+  $result = db_query("SELECT cid FROM {clients_connections} WHERE {clients_connections}.name = '%s'", $name);
+  $cid = db_result($result);
+  $connection = clients_connection_load($cid);
+  
+  // Get all the arguments this function has been passed.
+  $function_args  = func_get_args();
+  // Slice out the ones that are arguments to the method call: everything past
+  // the 2nd argument.
+  $method_args    = array_slice($function_args, 2);
+
+  $return = $connection->callMethodArray($method, $method_args);
+  return $return;
+}
+
+/**
+ * Create a connection object which can then be used to make method calls.
+ *
+ * This is just a wrapper around clients_connection_load() and only kept here
+ * to prevent breaking dependent modules.
+ *
+ * Usage:
+ *  $client = clients_get_connection($cid);
+ *  $client->callMethod('node.load', array(1));
+ *
+ * @param $cid
+ *  The id of a connection.
+ */
+function clients_get_connection($cid) {
+  return clients_connection_load($cid);
+}
+
+/**
  * Implementation of hook_help().
  *
  * @param $path
@@ -469,23 +523,6 @@ function clients_resource_view($arg) {
  */
 function clients_flush_caches() {
   return array('cache_clients');
-}
-
-/**
- * Create a connection object which can then be used to make method calls.
- *
- * This is just a wrapper around clients_connection_load() and only kept here
- * to prevent breaking dependent modules.
- *
- * Usage:
- *  $client = clients_get_connection($cid);
- *  $client->callMethod('node.load', array(1));
- *
- * @param $cid
- *  The id of a connection.
- */
-function clients_get_connection($cid) {
-  return clients_connection_load($cid);
 }
 
 /**
