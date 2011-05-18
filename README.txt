@@ -1,3 +1,11 @@
+Connections
+===========
+
+Clients module provides a simple UI for creating, editing, and testing
+connections to remote sites.
+
+Connections are exportable with CTools and thus can be added to Features.
+
 
 Using the Clients API
 =====================
@@ -20,11 +28,9 @@ So for example, to load a node from a remote Drupal site, do:
 If you need to make several calls, you can use the connection object yourself:
 
   // $connection_id is the ID of the connection.
-  $connection = clients_get_connection($connection_id);
+  $connection = clients_connection_load($name);
   $result = $connection->callMethod('method.name', $param1, $param2, $param_etc);
-  
-Note however that this second form is subject to change when support for Ctools
-exportables is added.
+
 
 Defining Connection types
 =========================

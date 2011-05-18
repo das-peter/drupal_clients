@@ -11,24 +11,26 @@ function clients_connections_list() {
   $output = '';
 
   $connection_types = clients_get_connection_types();
+  $connections = clients_connection_load_all();
 
-  $connections = array();
-  // TODO: clients_get_connection_rows and clients_connection_load make the same queries!!!
-  // next job here.
-  foreach (clients_get_connection_rows() as $cid => $connection) {
-    $connections[] = array(
-      'name' => l($connection['name'], "admin/build/clients/connections/$cid/view"),
-      'type' => $connection['type'],
-      'endpoint' => $connection['endpoint'],
-      'edit' => l('edit', "admin/build/clients/connections/$cid/edit"),
-      'test' => l('test', "admin/build/clients/connections/$cid/test"),
-      'delete' => l('delete', "admin/build/clients/connections/$cid/delete"),
+  $rows = array();
+  foreach ($connections as $name => $connection) {
+    $delete_label = ($connection->export_type & EXPORT_IN_CODE) ? t('revert') : t('delete');
+    $delete_link  = ($connection->export_type & EXPORT_IN_DATABASE) ? l($delete_label, "admin/build/clients/connections/$name/delete") : '';
+    $rows[] = array(
+      'name' => l($connection->name, "admin/build/clients/connections/$name/view"),
+      'type' => $connection->type,
+      'endpoint' => $connection->endpoint,
+      'storage' => $connection->export_type_label,
+      'edit' => l('edit', "admin/build/clients/connections/$name/edit"),
+      'test' => l('test', "admin/build/clients/connections/$name/test"),
+      'delete' => $delete_link,
     );
   }
 
   // Ensure the table has a row if there are no connections at all.
-  if (!count($connections)) {
-    $connections[] = array(
+  if (!count($rows)) {
+    $rows[] = array(
       array(
         'data' => t('No connections defined yet.'),
         'colspan' => '5',
@@ -36,8 +38,8 @@ function clients_connections_list() {
     );
   }
 
-  $headers = array('Name', 'Type', 'Endpoint', array('data' => 'Operations', 'colspan' => 3));
-  $output .= theme_table($headers, $connections);
+  $headers = array('Name', 'Type', 'Endpoint', 'Storage', array('data' => 'Operations', 'colspan' => 3));
+  $output .= theme_table($headers, $rows);
 
   // Add a list of connection types that can be created.
   foreach ($connection_types as $type => $type_data) {
@@ -115,6 +117,9 @@ function clients_connection_form(&$form_state, $connection) {
     '#description' => t('The connection name must contain only lowercase letters, numbers, and underscores. It must be unique.'),
     '#required' => TRUE,
   );
+  if ($connection->name) {
+    $form['name']['#description'] .= '<br /><strong>' . t('Warning: Changing the name of an existing connection may affect any data you have stored based on that connection.') . '</strong>';
+  }
 
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;
@@ -145,13 +150,9 @@ function clients_connection_form_validate($form, &$form_state) {
   // Machine names must be unique.
   // Work out what the machine name was before the user submitted this form.
   $old_connection = $form_state['values']['old_connection'];
-  $connections = clients_get_connection_rows();
-  // Messy.
-  // TODO: clients_get_connection_rows() should key by machine name when we switch to use Ctools.
-  foreach ($connections as $c) {
-    $connection_names[$c['name']] = $c['name'];
-  }
-  if (isset($connection_names[$form_state['values']['name']]) && $form_state['values']['name'] != $old_connection->name) {
+  // Get all connections.
+  $connections = clients_connection_load_all();
+  if (isset($connections[$form_state['values']['name']]) && $form_state['values']['name'] != $old_connection->name) {
     form_set_error('name', 'This connection name is already taken.');
   }
 
@@ -204,7 +205,7 @@ function clients_connection_form_submit($form, &$form_state) {
   // Add in the cid, if there was one originally.
   // Check whether we're editing or adding a new connection.
   // We could use $old_connection->new to determine whether this is an insert
-  // or an update, but that's probably not going to work come Ctools, as a
+  // or an update, but that's probably not going to work come CTools, as a
   // connection may not be 'new' but may not have a cid if it's from code.
   if (isset($old_connection->cid)) {
     $connection['cid'] = $old_connection->cid;
@@ -215,7 +216,7 @@ function clients_connection_form_submit($form, &$form_state) {
   }
 
   drupal_set_message(t('Connection saved.'));
-  $form_state['redirect'] = 'admin/build/clients/connections/' . $connection['cid'];
+  $form_state['redirect'] = 'admin/build/clients/connections/' . $connection['name'];
 }
 
 /**
@@ -230,6 +231,7 @@ function clients_connection_view($connection) {
   $rows[] = array('Name', check_plain($connection->name));
   $rows[] = array('Type', $connection->type);
   $rows[] = array('Endpoint', check_plain($connection->endpoint));
+  $rows[] = array('Storage', $connection->export_type_label);
   foreach ($connection->configuration as $label => $val) {
     if (is_array($val)) {
       $val = implode(', ', $val); // needs to be recursive?
@@ -249,9 +251,6 @@ function clients_connection_view($connection) {
  *  A loaded connection.
  */
 function clients_connection_test_form(&$form_state, $connection) {
-  // Load the connection object rather than just the loaded data...
-  // ... sigh yes this is a WTF and a TODO.
-  $connection = clients_get_connection($connection->cid);
   $form['#connection'] = $connection;
 
   $form['connection'] = array(

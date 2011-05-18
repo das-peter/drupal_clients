@@ -28,16 +28,19 @@ abstract class clients_connection_base {
   /**
    * Constructor method.
    *
-   * @param $row
-   *  The database row containing the connection data.
+   * @param $object
+   *  An object of class stdClass returned from CTools.
    */
-  function __construct($row) {
+  function __construct($object) {
     // Lump all data unto the object...
-    foreach ($row as $field => $value) {
+    foreach ((array) $object as $field => $value) {
       $this->$field = $value;
     }
 
-    $this->configuration = unserialize($row['configuration']);
+    // Connections defined in code are already unserialized.
+    if (!is_array($object->configuration)) {
+      $this->configuration = unserialize($object->configuration);
+    }
 
     return $this;
   }

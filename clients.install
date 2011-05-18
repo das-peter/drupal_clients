@@ -35,12 +35,30 @@ function clients_schema() {
 
   $schema['clients_connections'] = array(
     'description' => 'Stores service connection configurations',
+    // CTools exportables support:
+    'export' => array(
+      'key' => 'name',
+      'key name' => 'Name',
+      'primary key' => 'cid',
+      'identifier' => 'connection', // Exports will be as $myobj
+      'default hook' => 'clients_default_connections',  // Function hook name.
+      'export type string' => 'export_type_label',
+      'object factory' => 'clients_connection_unpack_object',
+      'export callback' => 'clients_export_object',
+      'api' => array(
+        'owner' => 'clients',
+        'api' => 'clients',  // Base name for api include files.
+        'minimum_version' => 3,
+        'current_version' => 3,
+      ),
+    ),
     'fields' => array(
       'cid' => array(
         'description' => 'The primary identifier for a service connection.',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'no export' => TRUE, // CTools: do not export database-only keys.
       ),
       'name' => array(
         'description' => 'Connection name, must be unique',
