@@ -194,7 +194,6 @@ function clients_connection_form_submit($form, &$form_state) {
   $class = $form['#connection_class'];
 
   $old_connection = $form_state['values']['old_connection'];
-  unset($form_state['values']['old_connection']);
 
   // Use call_user_func_array() so form state can be passed by reference.
   call_user_func_array(array($class, 'connectionSettingsForm_submit'), array($form, &$form_state));
