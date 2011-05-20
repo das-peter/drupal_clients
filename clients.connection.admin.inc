@@ -20,7 +20,7 @@ function clients_connections_list() {
     $rows[] = array(
       'name' => l($connection->name, "admin/build/clients/connections/$name/view"),
       'type' => $connection->type,
-      'endpoint' => $connection->endpoint,
+      'endpoint' => $connection->formatEndpoint($connection->endpoint),
       'storage' => $connection->export_type_label,
       'edit' => l('edit', "admin/build/clients/connections/$name/edit"),
       'test' => l('test', "admin/build/clients/connections/$name/test"),
@@ -230,7 +230,7 @@ function clients_connection_view($connection) {
   $rows = array();
   $rows[] = array('Name', check_plain($connection->name));
   $rows[] = array('Type', $connection->type);
-  $rows[] = array('Endpoint', check_plain($connection->endpoint));
+  $rows[] = array('Endpoint', $connection->formatEndpoint($connection->endpoint));
   $rows[] = array('Storage', $connection->export_type_label);
   foreach ($connection->configuration as $label => $val) {
     if (is_array($val)) {

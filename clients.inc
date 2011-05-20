@@ -16,6 +16,20 @@ abstract class clients_connection_base {
   public $configuration;
 
   /**
+   * Format the connection's endpoint as a link.
+   *
+   * @param $url
+   *  The connection's endpoint.
+   *
+   * @return
+   *  The string to display in the admin UI. Subclasses may format this as a
+   *  link to the remote site.
+   */
+  function formatEndpoint($url) {
+    return $url;
+  }
+
+  /**
    * Submit handler for saving/updating connections of this class.
    *
    * @see clients_connection_form_submit().

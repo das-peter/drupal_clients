@@ -325,6 +325,22 @@ class clients_connection_drupal_services extends clients_connection_base {
  */
 class clients_connection_drupal_services_6_2 extends clients_connection_drupal_services {
   /**
+   * Format the connection's endpoint as a link.
+   *
+   * @param $url
+   *  The connection's endpoint.
+   *
+   * @return
+   *  The string to display in the admin UI. Subclasses may format this as a
+   *  link to the remote site.
+   */
+  function formatEndpoint($url) {
+    $base_url = str_replace('services/xmlrpc', '', $url);
+    $link = l($base_url, $base_url);
+    return $link . 'services/xmlrpc';
+  }
+
+  /**
    * Call a remote method with an array of parameters.
    *
    * @param $method
