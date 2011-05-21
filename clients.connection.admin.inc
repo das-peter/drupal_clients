@@ -22,8 +22,8 @@ function clients_connections_list() {
       'type' => $connection->type,
       'endpoint' => $connection->formatEndpoint($connection->endpoint),
       'storage' => $connection->export_type_label,
-      'edit' => l('edit', "admin/build/clients/connections/$name/edit"),
-      'test' => l('test', "admin/build/clients/connections/$name/test"),
+      'edit' => l(t('edit'), "admin/build/clients/connections/$name/edit"),
+      'test' => l(t('test'), "admin/build/clients/connections/$name/test"),
       'delete' => $delete_link,
     );
   }
@@ -38,7 +38,7 @@ function clients_connections_list() {
     );
   }
 
-  $headers = array('Name', 'Type', 'Endpoint', 'Storage', array('data' => 'Operations', 'colspan' => 3));
+  $headers = array(t('Name'), t('Type'), t('Endpoint'), t('Storage'), array('data' => t('Operations'), 'colspan' => 3));
   $output .= theme_table($headers, $rows);
 
   // Add a list of connection types that can be created.
@@ -153,7 +153,7 @@ function clients_connection_form_validate($form, &$form_state) {
   // Get all connections.
   $connections = clients_connection_load_all();
   if (isset($connections[$form_state['values']['name']]) && $form_state['values']['name'] != $old_connection->name) {
-    form_set_error('name', 'This connection name is already taken.');
+    form_set_error('name', t('This connection name is already taken.'));
   }
 
   // TODO: consider cleaning up the following code to test on form submit:
@@ -228,15 +228,15 @@ function clients_connection_form_submit($form, &$form_state) {
 function clients_connection_view($connection) {
   // Build summary table.
   $rows = array();
-  $rows[] = array('Name', check_plain($connection->name));
-  $rows[] = array('Type', $connection->type);
-  $rows[] = array('Endpoint', $connection->formatEndpoint($connection->endpoint));
-  $rows[] = array('Storage', $connection->export_type_label);
+  $rows[] = array(t('Name'), check_plain($connection->name));
+  $rows[] = array(t('Type'), $connection->type);
+  $rows[] = array(t('Endpoint'), $connection->formatEndpoint($connection->endpoint));
+  $rows[] = array(t('Storage'), $connection->export_type_label);
   foreach ($connection->configuration as $label => $val) {
     if (is_array($val)) {
       $val = implode(', ', $val); // needs to be recursive?
     }
-    $rows[] = array(ucfirst(check_plain($label)), nl2br(check_plain($val)));
+    $rows[] = array(ucfirst(t($label)), nl2br(check_plain($val)));
 
   }
 

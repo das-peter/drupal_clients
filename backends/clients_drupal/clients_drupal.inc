@@ -88,7 +88,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     );
 
     $password_desc = $connection->new
-      ? 'This should be same as the password on the server you are connecting to.'
+      ? t('This should be same as the password on the server you are connecting to.')
       : t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.');
     $form['configuration']['password'] = array(
       '#type' => 'password',
@@ -333,7 +333,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
    */
   function getTestOperations($form_state, $cid) {
     $buttons['connect'] = array(
-      '#value' => 'Test connection',
+      '#value' => t('Test connection'),
       '#type' => 'submit',
       //'#name' => 'connect', // wtf does this do?
       '#action_type' => 'method',
@@ -341,7 +341,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
       '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
     );
     $buttons['login'] = array(
-      '#value' => 'Test user login',
+      '#value' => t('Test user login'),
       '#type' => 'submit',
       //'#name' => 'login',
       '#action_type' => 'method',
@@ -353,12 +353,12 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     );
     $buttons['node_load']['nid'] = array(
       '#type' => 'textfield',
-      '#title' => 'Node ID',
+      '#title' => t('Node ID'),
       '#size' => 6,
       '#default_value' => isset($form_state['values']['buttons']['node_load']['nid']) ? $form_state['values']['buttons']['node_load']['nid'] : NULL,
     );
     $buttons['node_load']['button'] = array(
-      '#value' => 'Test node retrieval',
+      '#value' => t('Test node retrieval'),
       '#type' => 'submit',
       //'#name' => 'login',
       // TODO: tidy up these method names!
@@ -417,7 +417,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
    */
   function testConnectionNodeLoadValidate(&$button_form_values) {
     if (empty($button_form_values['nid'])) {
-      form_set_error('buttons][node_load][nid', 'Node id is required for the node retrieval test.');
+      form_set_error('buttons][node_load][nid', t('Node id is required for the node retrieval test.'));
     }
   }
 
