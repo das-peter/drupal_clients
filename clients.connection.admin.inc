@@ -318,7 +318,7 @@ function clients_connection_test_form(&$form_state, $connection) {
         '#title' => t('Results'),
         '#collapsible' => TRUE,
       );
-      $title = $form['buttons'][$button_id]['#value'];
+      $title = t($form['buttons'][$button_id]['button']['#value']);
       $data  = check_plain(print_r($form_state['storage'][$button_id], TRUE));
       $form['buttons'][$button_id]['results'][$button_id] = array(
         '#type' => 'markup',
