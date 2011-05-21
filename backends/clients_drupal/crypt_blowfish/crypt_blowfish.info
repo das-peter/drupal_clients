@@ -3,12 +3,3 @@ description = Provides integration with PEAR Crypt_Blowfish class for password s
 core = 6.x
 php = 5.1
 package = Clients
-
-
-
-; Information added by drupal.org packaging script on 2010-01-22
-version = "6.x-1.x-dev"
-core = "6.x"
-project = "clients"
-datestamp = "1264118574"
-
