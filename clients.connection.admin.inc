@@ -202,6 +202,10 @@ function clients_connection_form_submit($form, &$form_state) {
   // Common actions for all forms.
 
   $connection = $form_state['values'];
+  // Connections with no configuration nonetheless need the array.
+  if (!isset($connection['configuration'])) {
+    $connection['configuration'] = array();
+  }
   // Add in the cid, if there was one originally.
   // Check whether we're editing or adding a new connection.
   // We could use $old_connection->new to determine whether this is an insert
