@@ -6,6 +6,17 @@ connections to remote sites.
 
 Connections are exportable with CTools and thus can be added to Features.
 
+Requirements
+============
+
+Clients requires the following modules:
+
+- Autoload
+- CTools 6.x-1.x-dev.
+  If you'd rather not run a development version, these are the patches to
+  6.x-1.0 that Clients needs:
+  - http://drupal.org/node/1094014
+  - http://drupal.org/node/1146604
 
 Using the Clients API
 =====================
