@@ -2,17 +2,7 @@
 /**
  * @file
  * Sets system variables and deletes connections on uninstall
- * @todo Delete resources on uninstall
- *
  */
-
-/**
- * Implementation of hook_install().
- */
-function clients_drupal_install() {
-  $weight = (int) db_result(db_query("SELECT weight FROM {system} WHERE name = 'clients'"));
-  db_query("UPDATE {system} SET weight = %d WHERE name = 'clients_drupal'", $weight + 1);
-}
 
 /**
  * Implementation of hook_uninstall().
