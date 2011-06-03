@@ -32,6 +32,35 @@ abstract class clients_connection_base {
   }
 
   /**
+   * Extra form elements specific to a class's edit form.
+   *
+   * This is the same pattern as node_form() -- just ignore the object behind
+   * the curtain ;)
+   *
+   * Static function, call without an object.
+   *
+   * This (so far) is common to all versions of Drupal Services.
+   *
+   * @param $type
+   *  The type of the connection.
+   * @param $connection
+   * The connection object. If a connection is being added, this will only have
+   * the name and type properties set, as well as the flag $connection->new.
+   *
+   * @return
+   *  A FormAPI form array. This will be merged in with basic data and the
+   *  submit button added.
+   *
+   * @see clients_connection_form()
+   * @see clients_connection_form()
+   * @see clients_connection_form_submit()
+   */
+  static function connectionSettingsForm(&$form_state, $type, $connection) {
+    $form = array();
+    return $form;
+  }
+
+  /**
    * Submit handler for saving/updating connections of this class.
    *
    * @see clients_connection_form_submit().
