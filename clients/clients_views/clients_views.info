@@ -1,6 +1,0 @@
-name = Clients Views
-description = Create views of content from clients
-package = Clients
-core = 6.x
-dependencies[] = views
-dependencies[] = clients

@@ -72,7 +72,7 @@ function clients_help($path, $arg) {
  *   An array of valid permissions for the clients module.
  */
 function clients_perm() {
-  return array('administer clients connections', 'administer clients resources');
+  return array('administer clients connections');
 }
 
 /**
@@ -86,7 +86,7 @@ function clients_menu() {
     'description' => 'Clients',
     'page callback' => 'clients_connections_list',
     'file' => 'clients.connection.admin.inc',
-    'access callback' => 'clients_access_callback', // TODO: this is doomed.
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_NORMAL_ITEM,
     );
 
@@ -156,57 +156,11 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/build/clients/resources'] = array(
-    'title' => 'Resources',
-    'weight' => 2,
-    'description' => 'List resources',
-    'page callback' => 'clients_resources',
-    'access arguments' => array('administer clients resources'),
-    'type' => MENU_LOCAL_TASK,
-  );
-
-  $items['admin/build/clients/resources/add'] = array(
-    'title' => 'Add resource',
-    'weight' => 1,
-    'description' => 'Add resource',
-    'page callback' => 'clients_resources_add',
-    'access arguments' => array('administer clients resources'),
-    'type' => MENU_LOCAL_TASK,
-  );
-
-  $items['admin/build/clients/resources/%'] = array(
-    'title' => 'Show resource',
-    'description' => 'Show resource',
-    'page callback' => 'clients_resource_view',
-    'page arguments' => array(4),
-    'access arguments' => array('administer clients resources'),
-    'type' => MENU_CALLBACK,
-  );
-
-  $items['admin/build/clients/resources/%/edit'] = array(
-    'title' => 'Edit resource',
-    'weight' => 1,
-    'description' => 'Edit data source',
-    'page callback' => 'clients_resources_edit',
-    'page arguments' => array(4),
-    'access arguments' => array('administer clients resources'),
-    'type' => MENU_CALLBACK,
-  );
-
-  $items['admin/build/clients/resources/%/delete'] = array(
-    'title' => 'Delete resource',
-    'description' => 'Delete a resource',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('client_delete_confirm', 'resource', 5),
-    'access arguments' => array('administer clients connections'),
-    'type' => MENU_CALLBACK,
-  );
-
   $items['admin/build/clients/settings'] = array(
     'title' => 'Settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_admin_cache'),
-    'access arguments' => array('administer clients resources'),
+    'access arguments' => array('administer clients connections'),
     'weight' => 10,
     'type' => MENU_LOCAL_TASK,
   );
@@ -217,18 +171,11 @@ function clients_menu() {
     'description' => 'cccc connections',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_admin_cache'),
-    'access arguments' => array('administer clients resources'),
+    'access arguments' => array('administer clients connections'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
   return $items;
-}
-
-/**
- * Menu access callback for admin pages.
- */
-function clients_access_callback() {
-  return user_access('administer clients connections') || user_access('administer clients resources');
 }
 
 /**
@@ -256,7 +203,7 @@ function clients_admin_cache($form_state) {
 }
 
 /**
- * Form builder for confirmation of deletion of a connection or resource.
+ * Form builder for confirmation of deletion of a connection.
  */
 function client_delete_confirm(&$form_state, $type, $service) {
   // Store values for the submit handler.
@@ -277,12 +224,6 @@ function client_delete_confirm(&$form_state, $type, $service) {
 }
 
 /**
- * @todo validate a connection has no associated resources
- */
-function client_delete_confirm_validate($form, &$form_state) {
-}
-
-/**
  * Form submit handler for the deletion form.
  *
  * @todo: refactor?
@@ -291,7 +232,6 @@ function client_delete_confirm_submit($form, &$form_state) {
   $cid = (int) $form_state['values']['cid'];
   if ($form_state['values']['type'] == 'connection') {
     if ($result = db_query("DELETE FROM {clients_connections} WHERE cid = %d", $cid)) {
-      @db_query("DELETE FROM {clients_resources} WHERE cid = %d", $cid); // error suppression is less expensive than a query to check if there are any resources
       drupal_set_message(t('Connection @name deleted.', array('@name' => $form_state['values']['name'])));
       $form_state['redirect'] = 'admin/build/clients/connections';
     }
@@ -299,199 +239,6 @@ function client_delete_confirm_submit($form, &$form_state) {
       drupal_set_message(t('Problem deleting connection @name.', array('@name' => $form_state['values']['name'])), 'error');
     }
   }
-  elseif ($form_state['values']['type'] == 'resource') {
-    if ($result =  db_query_range("DELETE FROM {clients_resources} WHERE rid = %d", $form_state['values']['cid'])) {
-      drupal_set_message(t('Resource @name deleted.', array('@name' => $form_state['values']['name'])));
-      $form_state['redirect'] = 'admin/build/clients/resources';
-    }
-    else {
-      drupal_set_message(t('Problem deleting resource: ') . $form_state['values']['name']);
-    }
-  }
-}
-
-/**
- * defines hook_clients_call
- *
- * TODO: this will need work when resources are reinstated.
- */
-function clients_call($resource) {
-  /*
-  $connection = clients_connection_load($resource->cid);
-  $result = module_invoke_all('clients_call', $connection, $resource);
-  module_invoke_all('clients_call_postprocess', $result, $connection, $resource);
-  return $result;
-  */
-}
-
-/**
- * Menu callback to add a resource.
- */
-function clients_resources_add() {
-  return drupal_get_form('clients_resources_form');
-}
-
-/**
- *
- */
-function clients_resources_form_submit($form, &$form_state) {
-  $values = array();
-  $values['name'] = $form_state['values']['name'];
-  $values['cid'] = $form_state['values']['clients-resource']['connection']; // was backend in case this breaks
-  $values['configuration'] = $form_state['values']['clients-resource'];
-    // needs try catch?
-  if (isset($form['#rid'])) { // edit
-    $values['rid'] = $form['#rid'];
-    if ($result = drupal_write_record('clients_resources', $values, 'rid')) {
-      drupal_set_message('Resource edited');
-    }
-  }
-  elseif ($result = drupal_write_record('clients_resources', $values)) {
-      drupal_set_message('Resource added');
-  }
-  drupal_goto('admin/build/clients/resources');
-}
-
-/**
- * @todo validate uniqueness of name
- */
-function clients_resources_form(&$form_state, $rid = FALSE) {
-
-  $form = array();
-
-  $resource = FALSE;
-  if ($rid) { // edit existing
-    $resource = clients_resource_load($rid);
-    $form['#rid'] = $rid;
-  }
-
-  // Register the form with ahah_helper so we can use it. Also updates
-  // $form_state['storage'] to ensure it contains the latest values that have
-  // been entered, even when the form item has temporarily been removed from
-  // the form. So if a form item *once* had a value, you *always* can retrieve
-  // it.
-  //ahah_helper_register($form, $form_state);
-  $wrapper = 'clients-resource'; // can be anything
-  $wrapper_values = $form_state['storage'][$wrapper];
-
-  $form['name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Resource name'),
-      '#default_value' => $rid ? $resource->name : '',
-      '#size' => 50,
-      '#maxlength' => 100,
-      '#description' => t('Must be unique'),
-      '#required' => TRUE,
-  );
-  $connections = array();
-
-  foreach (clients_get_connection_rows() as $cid => $connection) {
-      $connections[$cid] = $connection['name'];
-  }
-
-  $form[$wrapper] = array(
-    '#type'   => 'fieldset',
-    '#title'  => t('Resource'),
-    '#prefix' => '<div id="'. $wrapper .'">', // This is our wrapper div.
-    '#suffix' => '</div>',
-    '#tree'   => TRUE, // Don't forget to set #tree!
-  );
-
-  /**
-   * @todo fix cid being saved as string
-   */
-  $connection_id =
-    (isset($wrapper_values['connection']) ? (int)$wrapper_values['connection'] :
-    ($rid ? (int)$resource->configuration['connection'] : NULL));
-
-  $form[$wrapper]['connection'] = array(
-    '#type' => 'select',
-    '#title' => t('Connection'),
-    '#default_value' => isset($connection_id) ? $connection_id : key($connections), // needs reset?
-    '#options' => $connections,
-    '#required' => TRUE,
-    /*
-    '#ahah' => array(
-      'path' => ahah_helper_path(array($wrapper)),
-      'wrapper' => $wrapper,
-      'method' => 'replace',
-      'effect' => 'fade',
-    ),
-    */
-  );
-
-  if (isset($connection_id)) {
-    // Invokes hook_clients_service_options in backend modules to inject configuration form fragment here which can use ahah wrapper defined above
-    $form[$wrapper]['options'] = clients_service_options($connection_id, $wrapper, $wrapper_values, $resource);
-  }
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-  );
-
-  return $form;
-}
-
-
-/**
- *
- */
-function clients_resources() {
-  $sources = array();
-
-  foreach (clients_resources_load() as $resource_id => $resource) {
-    $connection = clients_connection_load($resource['connection']);
-    $resources[] = array(
-      'name' => l($resource['name'], 'admin/build/clients/resources/'. $resource_id),
-      'connection' => $connection->type .': '. $connection->name,
-      'operations' => l(t('Edit'), 'admin/build/clients/resources/'. $resource_id .'/edit') .' | '. l(t('Delete'), 'admin/build/clients/resources/'. $resource_id .'/delete')
-    );
-  }
-
-  if (!count($resources)) {
-    $resources[] = array(
-      array(
-        'data' => t('No resources defined yet.'),
-        'colspan' => '3',
-      ),
-    );
-  }
-
-  return theme_table(array('Name', 'Connection', 'Operations'), $resources);
-}
-
-/**
- * @todo hide password until clicked to prevent overshoulder attacks
- * when keys are being checked
- **/
-function clients_resource_view($arg) {
-  drupal_set_breadcrumb(array(
-          l(t('Home'), NULL),
-          l(t('Administer'), 'admin'),
-          l(t('Site configuration'), 'admin/settings'),
-          l(t('Clients'), 'admin/build/clients'),
-          l(t('Resources'), 'admin/build/clients/resources'),
-          ));
-
-  $resource = clients_resource_load($arg);
-  $output[] = array('Name', $resource->name);
-  $connection = clients_connection_load($resource->cid);
-
-  $output[] = array('Connection', $connection->name);
-  $output[] = array('Type', $connection->type);
-
-  foreach ($resource->configuration['options'] as $label => $val) {
-    if (is_array($val)) {
-      $val = implode(', ', $val); // needs to be recursive?
-    }
-    $output[] = array(ucfirst($label), $val);
-  }
-  $operations = l(t('Edit'), 'admin/build/clients/resources/'. $arg .'/edit') .' | '. l(t('Delete'), 'admin/build/clients/resources/'. $arg .'/delete');
-  $output[] = array('Operations', $operations);
-
-  // add any service agnostic stuff here
-  return theme_table(array(), $output);
 }
 
 /**
@@ -612,50 +359,6 @@ function clients_connection_unpack_object($schema, $data) {
   $object = new $class($data);
 
   return $object;
-}
-
-/**
- * Loads all resources
- *
- * @return
- *   Array
- */
-function clients_resources_load() {
-  $resources = array();
-  $result =  db_query("SELECT * FROM {clients_resources} ORDER BY name");
-  while ($data = db_fetch_object($result)) {
-      $resources[$data->rid] = array(
-        'name' => $data->name,
-        'connection' => $data->cid,
-      );
-  }
-  return $resources;
-}
-
-/**
- * Loads a resource
- *
- * @return
- *   Array
- */
-function clients_resource_load($identifier) {
-  if (is_numeric($identifier)) {
-    $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.rid = %d", $identifier);
-  }
-  elseif (is_string($identifier)) {
-    $result = db_query("SELECT * FROM {clients_resources} WHERE {clients_resources}.name = '%s'", $identifier);
-  }
-  else {
-    // @todo watchdog
-    drupal_set_message('error');
-    return; // or FALSE?
-  }
-  $resource = db_fetch_object($result);
-  /**
-    * @TODO test resource has loaded successfully, return FALSE if not
-    */
-  $resource->configuration = unserialize($resource->configuration);
-  return $resource;
 }
 
 /**
