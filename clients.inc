@@ -1,18 +1,31 @@
 <?php
 /**
  * @file
- * Base class for backends. Handles XML-RPC, REST calls and caching results
- *
+ * Contains the base class for client connections.
  */
 
 /**
- * Base class for Client connections.
+ * Base class for client connections.
  */
 abstract class clients_connection_base {
-  // Class properties.
+  /**
+   * The machine name of the connection.
+   */
   public $name;
+
+  /**
+   * The connection id. Only set if this is stored in the database.
+   */
   public $cid;
+
+  /**
+   * The URL this connection connects to.
+   */
   public $endpoint;
+
+  /**
+   * An array of further configuration options.
+   */
   public $configuration;
 
   // ============================================ Connection UI
