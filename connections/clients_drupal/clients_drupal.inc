@@ -14,7 +14,7 @@ class clients_connection_drupal_services extends clients_connection_base {
   // ============================================ Connection form methods.
 
   /**
-   * Form builder for adding or editing connections of this class.
+   * Extra form elements specific to a class's edit form.
    *
    * This is the same pattern as node_form() -- just ignore the object behind
    * the curtain ;)
