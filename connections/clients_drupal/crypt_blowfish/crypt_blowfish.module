@@ -61,7 +61,7 @@ function crypt_blowfish_admin() {
       $keyinfo = t('<strong>You still need to set this key. Go to this module\'s install directory and change the file \'crypt_blowfish_key.inc\'</strong>');
   }
   else {
-      $keyinfo = t('The key is set to: <em>'. Crypt_Blowfish::getkey() .'</em>');
+      $keyinfo = t('The key is set to: <em>'. Drupal_Crypt_Blowfish::getkey() .'</em>');
   }
   $form['crypt_info'] = array(
     '#value' => t("<p>Remote login passwords are stored using reversible encryption. This means that they should be reasonably safe in case anybody has access to your database if you choose a strong key. This key is stored in plaintext in the file 'crypt_blowfish.key' in this module's install directory and can include any characters.</p><p>!keyinfo</p><p>The PEAR <a href=\"http://pear.php.net/package/Crypt_Blowfish\">Crypt_Blowfish</a> package must be installed for this module to work (see <a href=\"http://pear.php.net/manual/en/guide.users.commandline.installing.php\">installing packages</a>). If you do not have permission to install PEAR packages, you can download this to a local directory.</p>", array('!keyinfo' => $keyinfo)),
