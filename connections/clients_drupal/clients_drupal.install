@@ -8,11 +8,10 @@
  * Implementation of hook_uninstall().
  */
 function clients_drupal_uninstall() {
-  // remove any drupal services from connections table
-  db_query(
-      "DELETE {clients_connections} FROM {clients_connections}
-      WHERE {clients_connections}.type = 'drupal_services'"
-  );
+  // Delete all of this module's connections.
+  module_load_install('clients');
+  clients_connection_uninstall_connection_delete('clients_drupal');
+
   // clean up any variables created by module
   $module_variables = array(
   );

@@ -91,3 +91,20 @@ function clients_schema() {
 
   return $schema;
 }
+
+/**
+ * Helper function for connection type modules to delete all their connections.
+ *
+ * For example usage, see clients_drupal_uninstall().
+ *
+ * @param $module
+ *  The name of the module whose connections should be deleted.
+ */
+function clients_connection_uninstall_connection_delete($module) {
+  // Invoke hook_clients_connection_type_info().
+  // This works even when the module is about to be uninstalled.
+  $connection_types = module_invoke($module, 'clients_connection_type_info');
+  foreach ($connection_types as $type => $info) {
+    db_query("DELETE FROM {clients_connections} WHERE type = '%s'", $type);
+  }
+}
