@@ -19,15 +19,10 @@ class clients_connection_drupal_services extends clients_connection_base {
    * This is the same pattern as node_form() -- just ignore the object behind
    * the curtain ;)
    *
-   * Static function, call without an object.
-   *
    * This (so far) is common to all versions of Drupal Services.
    *
-   * @param $type
-   *  The type of the connection.
-   * @param $connection
-   * The connection object. If a connection is being added, this will only have
-   * the name and type properties set, as well as the flag $connection->new.
+   * @param $form_state
+   *  The form state from the main form, which you probably don't need anyway.
    *
    * @return
    *  A FormAPI form array. This will be merged in with basic data and the
@@ -37,13 +32,13 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    */
-  static function connectionSettingsForm(&$form_state, $type, $connection) {
+  function connectionSettingsForm(&$form_state) {
     $form = array();
 
     $form['endpoint'] = array(
       '#type' => 'textfield',
       '#title' => t('Connection endpoint'),
-      '#default_value' => $connection->new ? '' : $connection->endpoint,
+      '#default_value' => $this->new ? '' : $this->endpoint,
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('Remote service URL e.g. http://mysite.com/services/xmlrpc'),
@@ -60,7 +55,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['domain'] = array(
       '#type' => 'textfield',
       '#title' => t('Domain'),
-      '#default_value' => $connection->new ? '' : $connection->configuration['domain'],
+      '#default_value' => $this->new ? '' : $this->configuration['domain'],
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('This should be same as the \'Domain\' field used by the Services authentication key on the server you are connecting to.'),
@@ -69,7 +64,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['servicekey'] = array(
       '#type' => 'textfield',
       '#title' => t('Service key'),
-      '#default_value' => $connection->new ? '' : $connection->configuration['servicekey'],
+      '#default_value' => $this->new ? '' : $this->configuration['servicekey'],
       '#size' => 50,
       '#maxlength' => 40,
       '#attributes' => array('autocomplete' => 'off'),
@@ -79,7 +74,7 @@ class clients_connection_drupal_services extends clients_connection_base {
     $form['configuration']['username'] = array(
       '#type' => 'textfield',
       '#title' => t('Service username'),
-      '#default_value' => $connection->new ? '' : $connection->configuration['username'],
+      '#default_value' => $this->new ? '' : $this->configuration['username'],
       '#size' => 30,
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
@@ -87,7 +82,7 @@ class clients_connection_drupal_services extends clients_connection_base {
       '#required' => TRUE,
     );
 
-    $password_desc = $connection->new
+    $password_desc = $this->new
       ? t('This should be same as the password on the server you are connecting to.')
       : t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.');
     $form['configuration']['password'] = array(
@@ -97,7 +92,7 @@ class clients_connection_drupal_services extends clients_connection_base {
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
       '#description' => $password_desc,
-      '#required' => $connection->new,
+      '#required' => $this->new,
     );
 
     return $form;

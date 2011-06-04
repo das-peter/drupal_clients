@@ -124,8 +124,7 @@ function clients_connection_form(&$form_state, $connection) {
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;
 
-  // When PHP 5.3 is the norm, we can just say $class::$method().
-  $form += call_user_func(array($class, 'connectionSettingsForm'), $form_state, $type, $connection);
+  $form += $connection->connectionSettingsForm($form_state);
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',

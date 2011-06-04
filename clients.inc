@@ -50,15 +50,10 @@ abstract class clients_connection_base {
    * This is the same pattern as node_form() -- just ignore the object behind
    * the curtain ;)
    *
-   * Static function, call without an object.
-   *
    * This (so far) is common to all versions of Drupal Services.
    *
-   * @param $type
-   *  The type of the connection.
-   * @param $connection
-   * The connection object. If a connection is being added, this will only have
-   * the name and type properties set, as well as the flag $connection->new.
+   * @param $form_state
+   *  The form state from the main form, which you probably don't need anyway.
    *
    * @return
    *  A FormAPI form array. This will be merged in with basic data and the
@@ -68,7 +63,7 @@ abstract class clients_connection_base {
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    */
-  static function connectionSettingsForm(&$form_state, $type, $connection) {
+  function connectionSettingsForm(&$form_state) {
     $form = array();
     return $form;
   }
