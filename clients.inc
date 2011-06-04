@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Contains the base class for client connections.
+ * Contains basic classes for client connections.
  */
 
 /**
@@ -152,5 +152,40 @@ abstract class clients_connection_base {
    */
   function callMethodArray($method, $method_params = array()) {
     // Up to subclasses to override this to do something.
+  }
+}
+
+/**
+ * Connection class for broken connections.
+ */
+class clients_connection_broken extends clients_connection_base {
+  /**
+   * Constructor method for broken connections.
+   *
+   * This expects the originator to have set a readable message in
+   * $object->broken_message.
+   *
+   * @param $object
+   *  An object of class stdClass returned from CTools.
+   */
+  function __construct($object) {
+    // Call the base class to set the connection properties.
+    parent::__construct($object);
+
+    // Add some output for the view connection page.
+    $this->configuration['WARNING'] = t("This connection is broken.");
+    $this->configuration['broken message'] = $object->broken_message;
+
+    $connection_path = 'admin/build/clients/connections/' . $this->name;
+    if ($_GET['q'] == $connection_path) {
+      $message = t('This connection is broken.');
+    }
+    else {
+      $message = t('This connection is broken. See its <a href="@url">view page</a> for further details.', array(
+        '@url' => url($connection_path),
+      ));
+    }
+
+    drupal_set_message($message, 'warning');
   }
 }

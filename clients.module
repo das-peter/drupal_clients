@@ -355,6 +355,12 @@ function clients_connection_unpack_object($schema, $data) {
   $type = $data->type;
   $class = 'clients_connection_' . $type;
 
+  // Handle missing classes. Note that class_exists() works with autoloading!
+  if (!class_exists($class)) {
+    $class = 'clients_connection_broken';
+    $data->broken_message = t('The class for this connection is missing. Perhaps the module providing this is not available?');
+  }
+
   // The connection's __construct() takes over from here.
   $object = new $class($data);
 
