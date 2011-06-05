@@ -5,10 +5,7 @@
  */
 
 /**
- * General Drupal client class.
- *
- * This should connect to Drupal 7 services. Which are still at the RC stage...
- * so it's largely an abstract class for the moment.
+ * Base class for Drupal client connections.
  */
 class clients_connection_drupal_services extends clients_connection_base {
   // ============================================ Base: Constructor.
