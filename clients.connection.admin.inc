@@ -66,10 +66,14 @@ function clients_connection_add($type) {
 
   drupal_set_title(t('Add @name connection', array('@name' => $type)));
   // Make a basic default connection object to pass to the form builder.
-  $connection = new stdClass();
-  $connection->type = $type;
-  $connection->name = '';
-  $connection->new = TRUE;
+  $data = new stdClass();
+  $data->type = $type;
+  $data->name = '';
+  $data->new = TRUE;
+  // This is a bit convoluted but it's simpler to just follow the same pattern
+  // that using CTools imposes on us rather than have two ways of doing it.
+  $class = 'clients_connection_' . $type;
+  $connection = new $class($data);
   return drupal_get_form('clients_connection_form', $connection);
 }
 
