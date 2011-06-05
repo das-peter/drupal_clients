@@ -35,6 +35,9 @@ function clients_drupal_clients_connection_type_info() {
     'drupal_services_6_2' => array(
       'label'  => t('Drupal Services 6.x-2.x'),
     ),
+    'drupal_services_7_3' => array(
+      'label'  => t('Drupal Services 7.x-3.x'),
+    ),
   );
 }
 
