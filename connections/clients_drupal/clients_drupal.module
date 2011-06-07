@@ -42,15 +42,6 @@ function clients_drupal_clients_connection_type_info() {
 }
 
 /**
- * Implementation of hook_perm()
- * @TODO
- * @return array An array of valid permissions for the clients_drupal module
- */
-function clients_drupal_perm() {
-  return array('clients_drupal admin');
-}
-
-/**
  * Implementation of hook_menu()
  */
 function clients_drupal_menu() {
@@ -60,7 +51,7 @@ function clients_drupal_menu() {
      'title' => 'Configure Drupal',
      'page callback' => 'drupal_get_form',
      'page arguments' => array('clients_drupal_admin'),
-     'access arguments' => array('clients_drupal admin'),
+     'access arguments' => array('administer clients connections'),
      'type' => MENU_LOCAL_TASK,
   );
 
