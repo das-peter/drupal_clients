@@ -17,9 +17,14 @@ function clients_connections_list() {
   foreach ($connections as $name => $connection) {
     $delete_label = ($connection->export_type & EXPORT_IN_CODE) ? t('revert') : t('delete');
     $delete_link  = ($connection->export_type & EXPORT_IN_DATABASE) ? l($delete_label, "admin/build/clients/connections/$name/delete") : '';
+    $type = $connection->type;
+    if (isset($connection->broken_message)) {
+      // Not sure where best to shove this, will take suggestions.
+      $type .= ' ' . t('(broken)');
+    }
     $rows[] = array(
       'name' => l($connection->name, "admin/build/clients/connections/$name/view"),
-      'type' => $connection->type,
+      'type' => $type,
       'endpoint' => $connection->formatEndpoint($connection->endpoint),
       'storage' => $connection->export_type_label,
       'edit' => l(t('edit'), "admin/build/clients/connections/$name/edit"),

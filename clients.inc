@@ -181,7 +181,7 @@ class clients_connection_broken extends clients_connection_base {
       $message = t('This connection is broken.');
     }
     else {
-      $message = t('This connection is broken. See its <a href="@url">view page</a> for further details.', array(
+      $message = t('A connection is broken. See its <a href="@url">view page</a> for further details.', array(
         '@url' => url($connection_path),
       ));
     }
