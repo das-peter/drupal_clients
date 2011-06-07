@@ -63,18 +63,18 @@ function clients_schema() {
       'name' => array(
         'description' => 'Connection name, must be unique',
         'type' => 'varchar',
-        'length' => 100,
+        'length' => 128,
         'not null' => TRUE,
       ),
       'type' => array(
         'description' => 'Connection type',
         'type' => 'varchar',
-        'length' => 100,
+        'length' => 64,
       ),
       'endpoint' => array(
         'description' => 'Connection endpoint',
         'type' => 'varchar',
-        'length' => 100,
+        'length' => 256,
       ),
       'configuration' => array(
         'description' => 'Connection configuration - serialized',
