@@ -32,6 +32,12 @@
 function clients_connection_call($name, $method) {
   $connection = clients_connection_load($name);
 
+  if (!$connection) {
+    throw new Exception(t('Client connection %connection not found.', array(
+      '%connection' => $name,
+    )));
+  }
+
   // Get all the arguments this function has been passed.
   $function_args  = func_get_args();
   // Slice out the ones that are arguments to the method call: everything past
@@ -289,7 +295,9 @@ function clients_get_connection($cid) {
  * @param $name
  *  A connection machine name.
  * @return
- *  A fully loaded connection handler object.
+ *  A fully loaded connection handler object. If there is a problem, such as
+ *  the machine name or connection type not existing, a connection of class
+ *  'clients_connection_broken' is returned.
  */
 function clients_connection_load($name) {
   ctools_include('export');
@@ -298,6 +306,15 @@ function clients_connection_load($name) {
     $connection = $result[$name]; // new $class($result[$name]);
     
     return $connection;
+  }
+  else {
+    $connection = array(
+      'name' => $name,
+      'broken_message' => t('Client connection %name not found.', array(
+        '%name' => $name,
+      )),
+    );
+    return new clients_connection_broken($connection);
   }
 }
 

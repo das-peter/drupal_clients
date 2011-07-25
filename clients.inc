@@ -176,7 +176,7 @@ class clients_connection_broken extends clients_connection_base {
    */
   function __construct($object) {
     // Call the base class to set the connection properties.
-    parent::__construct($object);
+    $object = parent::__construct($object);
 
     // Add some output for the view connection page.
     $this->configuration['WARNING'] = t("This connection is broken.");
@@ -193,5 +193,20 @@ class clients_connection_broken extends clients_connection_base {
     }
 
     drupal_set_message($message, 'warning');
+  }
+
+  /**
+   * Fail to call a remote method with an array of parameters.
+   *
+   * This is provided so attempting to call a method on a bad connection
+   * throws an exception.
+   *
+   * @return
+   *  Nothing.
+   *
+   * @throws Exception with the error the handler set on creation.
+   */
+  function callMethodArray($method, $method_params = array()) {
+    throw new Exception($this->configuration['broken message']);
   }
 }
