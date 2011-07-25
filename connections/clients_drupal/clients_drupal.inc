@@ -23,6 +23,28 @@ class clients_connection_drupal_services extends clients_connection_base {
     $this->configuration['password'] = clients_drupal_decrypt($this->configuration['password']);
   }
 
+  // ============================================ Base: Method calling.
+  /**
+   * Common helper for reacting to an error from an XMLRPC call.
+   *
+   * Gets the error from Drupal core's XMLRPC library, logs the error message,
+   * and throws an exception, which should be caught by the module making use
+   * of the Clients connection API.
+   */
+  function handleXmlrpcError() {
+    // If the remote call resulted in an error, log it and throw an exception.
+    $error = xmlrpc_error();
+    if (is_object($error)) {
+      watchdog('clients', 'Error calling method @method. Error was code @code with message "@message".', array(
+        '@method'   => $this->method, // Technically safe but who knows where this may come from, hence '@'.
+        '@code'     => $error->code,
+        '@message'  => $error->message,
+      ));
+
+      throw new Exception($error->message, $error->code);
+    }
+  }
+
   // ============================================ Base: Testing system.
   /**
    * Provide buttons for the connection testing page.
@@ -270,10 +292,8 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     // Call the xmlrpc method with our array of arguments.
     $result = call_user_func_array('xmlrpc', $xmlrpc_args);
 
-    if ($result === FALSE) {
-      //dsm('error');
-      return xmlrpc_error();
-    }
+    // Throw an exception for errors from the remote call.
+    $this->handleXmlrpcError();
 
     return $result;
   }
@@ -286,7 +306,17 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     // Must be cast to integer for faffiness of XMLRPC and Services.
     $nid = (int) $button_form_values['nid'];
 
-    $node = $this->callMethodArray('node.retrieve', array($nid));
+    try {
+      $node = $this->callMethodArray('node.retrieve', array($nid));
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('Could not retrieve a node from the remote site, got error message "@message".', array(
+        '@message' => $e->getMessage(),
+      )), 'warning');
+      //dsm($e);
+
+      return;
+    }
 
     if (is_array($node) && isset($node['nid'])) {
       drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
@@ -496,6 +526,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     $config = $this->configuration;
     $endpoint = $this->endpoint;
     $api_key = $this->configuration['servicekey'];
+    $this->method = $method;
 
     // Connect to the remote system service to get an initial session id to log in with.
     $connect = xmlrpc($this->endpoint, 'system.connect');
@@ -529,10 +560,8 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     // Call the xmlrpc method with our array of arguments.
     $result = call_user_func_array('xmlrpc', $xmlrpc_args);
 
-    if ($result === FALSE) {
-      //dsm('error');
-      return xmlrpc_error();
-    }
+    // Throw an exception for errors from the remote call.
+    $this->handleXmlrpcError();
 
     return $result;
   }
@@ -584,18 +613,25 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
   function testConnectionNodeLoad(&$button_form_values) {
     // Must be cast to integer for faffiness of XMLRPC and Services.
     $nid = (int) $button_form_values['nid'];
-
     $fields = array();
-    $node = $this->callMethodArray('node.get', array($nid, $fields));
+
+    try {
+      $node = $this->callMethodArray('node.get', array($nid, $fields));
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('Could not retrieve a node from the remote site, got error message "@message".', array(
+        '@message' => $e->getMessage(),
+      )), 'warning');
+      //dsm($e);
+
+      return;
+    }
 
     if (is_array($node) && isset($node['nid'])) {
       drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
         '%title' => $node['title'],
         '@nid'  => $node['nid'],
         )));
-    }
-    else {
-      drupal_set_message(t('Could not retrieve a node from the remote site.'), 'warning');
     }
 
     return $node;
@@ -683,10 +719,8 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
       // Call the xmlrpc method with our array of arguments.
       $result = call_user_func_array('xmlrpc', $xmlrpc_args);
 
-      if ($result === FALSE) {
-        //dsm('error');
-        return xmlrpc_error();
-      }
+      // Throw an exception for errors from the remote call.
+      $this->handleXmlrpcError();
 
       return $result;
     }
@@ -705,10 +739,8 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
     // Call the xmlrpc method with our array of arguments.
     $result = call_user_func_array('xmlrpc', $xmlrpc_args);
 
-    if ($result === FALSE) {
-      //dsm('error');
-      return xmlrpc_error();
-    }
+    // Throw an exception for errors from the remote call.
+    $this->handleXmlrpcError();
 
     return $result;
 
@@ -734,7 +766,17 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
   function testConnectionNodeLoad(&$button_form_values) {
     $nid = $button_form_values['nid'];
 
-    $node = $this->callMethodArray('node.load', array($nid));
+    try {
+      $node = $this->callMethodArray('node.load', array($nid));
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('Could not retrieve a node from the remote site, got error message "@message".', array(
+        '@message' => $e->getMessage(),
+      )), 'warning');
+      //dsm($e);
+
+      return;
+    }
 
     if (is_array($node) && isset($node['nid'])) {
       drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(

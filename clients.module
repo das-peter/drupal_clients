@@ -22,6 +22,12 @@
  *  The name of the remote method to call.
  * @param ...
  *  All other parameters are passed to the remote method.
+ *
+ * @return
+ *  Whatever is returned from the remote site.
+ *
+ * @throws Exception if the connection is not found or there is an error
+ *  returned from the remote site.
  */
 function clients_connection_call($name, $method) {
   $connection = clients_connection_load($name);

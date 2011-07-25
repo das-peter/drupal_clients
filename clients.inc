@@ -123,6 +123,8 @@ abstract class clients_connection_base {
    *
    * @return
    *  Whatever is returned from the remote site.
+   *
+   * @throws Exception on error from the remote site.
    */
   function callMethod($method) {
     // Get all the arguments this function has been passed.
@@ -149,6 +151,10 @@ abstract class clients_connection_base {
    *
    * @return
    *  Whatever is returned from the remote site.
+   *
+   * @throws Exception on error from the remote site.
+   *  It's up to subclasses to implement this, as the test for an error and
+   *  the way to get information about it varies according to service type.
    */
   function callMethodArray($method, $method_params = array()) {
     // Up to subclasses to override this to do something.
