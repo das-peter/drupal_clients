@@ -99,8 +99,18 @@ class clients_connection_drupal_services extends clients_connection_base {
    * connection for display to the user.
    */
   function testConnectionConnect(&$button_form_values) {
-    // Call the connect method.
-    $connect = $this->callMethodArray('system.connect');
+    try {
+      // Call the connect method.
+      $connect = $this->callMethodArray('system.connect');
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('Could not connect to the remote site, got error message "@message".', array(
+        '@message' => $e->getMessage(),
+      )), 'warning');
+      //dsm($e);
+
+      return;
+    }
 
     if (is_array($connect) && isset($connect['user'])) {
       drupal_set_message(t('Sucessfully connected to the remote site.'));
@@ -116,9 +126,19 @@ class clients_connection_drupal_services extends clients_connection_base {
    * Connection test button handler: user login.
    */
   function testConnectionLogin(&$button_form_values) {
-    // Call the login method.
-    $login = $this->callMethodArray('user.login');
-    // Eep. we need user details!!!
+    try {
+      // Call the login method.
+      $login = $this->callMethodArray('user.login');
+      // Eep. we need user details!!!
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('Could not log in to the remote site, got error message "@message".', array(
+        '@message' => $e->getMessage(),
+      )), 'warning');
+      //dsm($e);
+
+      return;
+    }
 
     if (is_array($login) && isset($login['user'])) {
       drupal_set_message(t('Sucessfully logged in to the remote site; got back details for user %user (uid @uid).', array(
