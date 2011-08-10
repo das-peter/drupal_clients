@@ -283,10 +283,10 @@ function clients_connection_test_form(&$form_state, $connection) {
   );
 
   // Get the core buttons provided by the connection class.
-  $buttons = $connection->getTestOperations($form_state, $connection->cid);
+  $buttons = $connection->getTestOperations($form_state, $connection->name);
 
   // Allow applications that use this connection to add their own test buttons.
-  drupal_alter('client_connection_test_buttons', $buttons, $form_state, $connection->cid);
+  drupal_alter('client_connection_test_buttons', $buttons, $form_state, $connection->name);
 
   // Some processing of the buttons to simplify the method of specifying them.
   // see ClientsServicesDrupal_5::getTestOperations for an example of how this works.

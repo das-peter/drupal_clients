@@ -52,7 +52,7 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @param $form_state
    *  This is passed in so you can set defaults based on user input.
    */
-  function getTestOperations($form_state, $cid) {
+  function getTestOperations($form_state, $connection_name) {
     $buttons['connect'] = array(
       '#value' => t('Test connection'),
       '#type' => 'submit',
@@ -752,9 +752,9 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
    * @param $form_state
    *  This is passed in so you can set defaults based on user input.
    */
-  function getTestOperations($form_state, $cid) {
+  function getTestOperations($form_state, $connection_name) {
     // Just making the inheritance explicit for debugging... ;)
-    return parent::getTestOperations($form_state, $cid);
+    return parent::getTestOperations($form_state, $connection_name);
   }
 
   // ============================================ D5: Testing system.
