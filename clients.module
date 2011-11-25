@@ -95,7 +95,7 @@ function clients_menu() {
 
   $items['admin/build/clients'] = array(
     'title' => 'Clients',
-    'description' => 'Clients',
+    'description' => 'Administer connections to remote sites.',
     'page callback' => 'clients_connections_list',
     'file' => 'clients.connection.admin.inc',
     'access arguments' => array('administer clients connections'),
