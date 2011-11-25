@@ -288,6 +288,7 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
 
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
+      $this->handleXmlrpcError();
       return $connect;
     }
 
@@ -300,6 +301,7 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
 
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
+      $this->handleXmlrpcError();
       return $login;
     }
 
@@ -554,6 +556,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
 
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
+      $this->handleXmlrpcError();
       return $connect;
     }
 
@@ -563,6 +566,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
 
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
+      $this->handleXmlrpcError();
       return $login;
     }
 
@@ -696,6 +700,7 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
+      $this->handleXmlrpcError();
       return $connect;
     }
 
@@ -705,6 +710,7 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
+      $this->handleXmlrpcError();
       return $login;
     }
 
