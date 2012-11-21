@@ -102,7 +102,7 @@ abstract class clients_connection_base {
     }
 
     // Connections defined in code are already unserialized.
-    if (!is_array($object->configuration)) {
+    if (isset($object->configuration) && !is_array($object->configuration)) {
       $this->configuration = unserialize($object->configuration);
     }
 
