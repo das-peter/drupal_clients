@@ -52,6 +52,8 @@ abstract class clients_connection_base {
    *
    * This (so far) is common to all versions of Drupal Services.
    *
+   * @param $form
+   *  The main form array.
    * @param $form_state
    *  The form state from the main form, which you probably don't need anyway.
    *
@@ -63,7 +65,7 @@ abstract class clients_connection_base {
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    */
-  function connectionSettingsForm(&$form_state) {
+  function connectionSettingsForm($form, &$form_state) {
     $form = array();
     return $form;
   }

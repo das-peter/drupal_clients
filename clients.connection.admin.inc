@@ -142,7 +142,7 @@ function clients_connection_form($form, &$form_state, $connection) {
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;
 
-  $form += $connection->connectionSettingsForm($form_state);
+  $form += $connection->connectionSettingsForm($form, $form_state);
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
