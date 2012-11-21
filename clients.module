@@ -264,32 +264,6 @@ function clients_flush_caches() {
 }
 
 /**
- * Load a connection object by id, which can then be used to make method calls.
- *
- * This is mostly kept here for backwards compatibility with dependent modules
- * which I don't have time to fix right now; however it does mean that those
- * modules can't use connections stored in code (as they have no cid).
- *
- * Usage:
- *  $client = clients_get_connection($cid);
- *  $client->callMethod('node.load', array(1));
- *
- * @param $cid
- *  The id of a connection.
- */
-function clients_get_connection($cid) {
-  ctools_include('export');
-  $result = ctools_export_load_object('clients_connections', 'conditions', array('cid' => $cid));
-  if (count($result)) {
-    // This is sort of going round the houses to get the right object class but it's simple.
-    $connection = array_pop($result);
-    $connection = clients_connection_load($connection->name);
-  }
-
-  return $connection;
-}
-
-/**
  * Load a connection object which can then be used to make method calls.
  *
  * Used as a menu loader. CTools has static caching so it's okay that we come
