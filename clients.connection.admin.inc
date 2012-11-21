@@ -50,9 +50,15 @@ function clients_connections_list() {
   ));
 
   // Add a list of connection types that can be created.
-  foreach ($connection_types as $type => $type_data) {
-    //dsm($type_data);
-    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/structure/clients/connections/add/' . $type);
+  $items = array();
+  if ($connection_types) {
+    foreach ($connection_types as $type => $type_data) {
+      //dsm($type_data);
+      $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/structure/clients/connections/add/' . $type);
+    }
+  }
+  else {
+    $items[] = t('No connection types are available: you need to enable one or more modules that provide them.');
   }
   $output .= theme('item_list', array('items' => $items));
 
