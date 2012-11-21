@@ -49,7 +49,7 @@ function clients_connection_call($name, $method) {
 }
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help()
  *
  * @param $path
  *   Which path of the site we're displaying help.
@@ -64,12 +64,12 @@ function clients_help($path, $arg) {
     case "admin/help#clients":
       $output = '<p>' . t("Clients module provides a UI, storage, and an API for handling connections to remote webservices, including those provided by Services module on other Drupal sites.") . '</p>';
       break;
-    case 'admin/build/clients':
+    case 'admin/structure/clients':
       $output = '<p>' . t("The clients module allows you to define connections to remote sites that provide services. ")
         . t("Use the list below to configure and review the connections defined on your site.")
         . '</p>';
       break;
-    case 'admin/build/clients/connections/%/test':
+    case 'admin/structure/clients/connections/%/test':
       // (For some reason menu loaders don't work in hook_help() it seems.)
       $output  = '<p>' . t('Use this page to test your connection is set up correctly.') . '</p>';
       break;
@@ -78,22 +78,25 @@ function clients_help($path, $arg) {
 }
 
 /**
- * Implementation of hook_perm().
- *
+ * Implements hook_permission()
  * @return
  *   An array of valid permissions for the clients module.
  */
-function clients_perm() {
-  return array('administer clients connections');
+function clients_permission() {
+  return array(
+    'administer clients connections' => array(
+      'title' => t('Administer client connections'),
+    ),
+  );
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu()
  */
 function clients_menu() {
   $items = array();
 
-  $items['admin/build/clients'] = array(
+  $items['admin/structure/clients'] = array(
     'title' => 'Clients',
     'description' => 'Administer connections to remote sites.',
     'page callback' => 'clients_connections_list',
@@ -102,7 +105,7 @@ function clients_menu() {
     'type' => MENU_NORMAL_ITEM,
     );
 
-  $items['admin/build/clients/connections'] = array(
+  $items['admin/structure/clients/connections'] = array(
     'title' => 'Connections',
     'weight' => 1,
     'description' => 'List connections',
@@ -112,7 +115,7 @@ function clients_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
 
-  $items['admin/build/clients/connections/add/%'] = array(
+  $items['admin/structure/clients/connections/add/%'] = array(
     'title' => 'Add connection',
     'page callback' => 'clients_connection_add',
     'page arguments' => array(5),
@@ -120,7 +123,7 @@ function clients_menu() {
     'access arguments' => array('administer clients connections'),
   );
 
-  $items['admin/build/clients/connections/%clients_connection'] = array(
+  $items['admin/structure/clients/connections/%clients_connection'] = array(
     'title' => 'Connection',
     'description' => 'Show connection',
     'page callback' => 'clients_connection_view',
@@ -133,13 +136,13 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/build/clients/connections/%clients_connection/view'] = array(
+  $items['admin/structure/clients/connections/%clients_connection/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
 
-  $items['admin/build/clients/connections/%clients_connection/edit'] = array(
+  $items['admin/structure/clients/connections/%clients_connection/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_connection_form', 4),
@@ -149,7 +152,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/build/clients/connections/%clients_connection/test'] = array(
+  $items['admin/structure/clients/connections/%clients_connection/test'] = array(
     'title' => 'Test',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_connection_test_form', 4),
@@ -159,7 +162,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/build/clients/connections/%clients_connection/delete'] = array(
+  $items['admin/structure/clients/connections/%clients_connection/delete'] = array(
     'title' => 'Delete connection',
     'description' => 'Delete a connection',
     'page callback' => 'drupal_get_form',
@@ -168,7 +171,7 @@ function clients_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  $items['admin/build/clients/settings'] = array(
+  $items['admin/structure/clients/settings'] = array(
     'title' => 'Settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('clients_admin_cache'),
@@ -177,7 +180,7 @@ function clients_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/build/clients/settings/cache'] = array(
+  $items['admin/structure/clients/settings/cache'] = array(
     'title' => 'Cache',
     'weight' => -1,
     'description' => 'cccc connections',
@@ -217,7 +220,7 @@ function clients_admin_cache($form_state) {
 /**
  * Form builder for confirmation of deletion of a connection.
  */
-function client_delete_confirm(&$form_state, $type, $service) {
+function client_delete_confirm($form, &$form_state, $type, $service) {
   // Store values for the submit handler.
   $form['type'] = array('#type' => 'value', '#value' => $type);
   $form['cid'] = array('#type' => 'value', '#value' => $service->cid);
@@ -228,7 +231,7 @@ function client_delete_confirm(&$form_state, $type, $service) {
       '!type' => $type,
       '%title' => $service->name,
     )),
-    isset($_GET['destination']) ? $_GET['destination'] : "admin/build/clients/{$type}s/$service->cid",
+    isset($_GET['destination']) ? $_GET['destination'] : "admin/structure/clients/{$type}s/$service->cid",
     t('This action cannot be undone.'),
     t('Delete'),
     t('Cancel')
@@ -245,7 +248,7 @@ function client_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['type'] == 'connection') {
     if ($result = db_query("DELETE FROM {clients_connections} WHERE cid = %d", $cid)) {
       drupal_set_message(t('Connection @name deleted.', array('@name' => $form_state['values']['name'])));
-      $form_state['redirect'] = 'admin/build/clients/connections';
+      $form_state['redirect'] = 'admin/structure/clients/connections';
     }
     else {
       drupal_set_message(t('Problem deleting connection @name.', array('@name' => $form_state['values']['name'])), 'error');
@@ -254,7 +257,7 @@ function client_delete_confirm_submit($form, &$form_state) {
 }
 
 /**
- * Implementation of hook_flush_caches().
+ * Implements hook_flush_caches().
  */
 function clients_flush_caches() {
   return array('cache_clients');

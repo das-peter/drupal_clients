@@ -16,19 +16,19 @@ function clients_connections_list() {
   $rows = array();
   foreach ($connections as $name => $connection) {
     $delete_label = ($connection->export_type & EXPORT_IN_CODE) ? t('revert') : t('delete');
-    $delete_link  = ($connection->export_type & EXPORT_IN_DATABASE) ? l($delete_label, "admin/build/clients/connections/$name/delete") : '';
+    $delete_link  = ($connection->export_type & EXPORT_IN_DATABASE) ? l($delete_label, "admin/structure/clients/connections/$name/delete") : '';
     $type = $connection->type;
     if (isset($connection->broken_message)) {
       // Not sure where best to shove this, will take suggestions.
       $type .= ' ' . t('(broken)');
     }
     $rows[] = array(
-      'name' => l($connection->name, "admin/build/clients/connections/$name/view"),
+      'name' => l($connection->name, "admin/structure/clients/connections/$name/view"),
       'type' => $type,
       'endpoint' => $connection->formatEndpoint($connection->endpoint),
       'storage' => $connection->export_type_label,
-      'edit' => l(t('edit'), "admin/build/clients/connections/$name/edit"),
-      'test' => l(t('test'), "admin/build/clients/connections/$name/test"),
+      'edit' => l(t('edit'), "admin/structure/clients/connections/$name/edit"),
+      'test' => l(t('test'), "admin/structure/clients/connections/$name/test"),
       'delete' => $delete_link,
     );
   }
@@ -44,14 +44,17 @@ function clients_connections_list() {
   }
 
   $headers = array(t('Name'), t('Type'), t('Endpoint'), t('Storage'), array('data' => t('Operations'), 'colspan' => 3));
-  $output .= theme_table($headers, $rows);
+  $output .= theme('table', array(
+    'headers' => $headers,
+    'rows' => $rows,
+  ));
 
   // Add a list of connection types that can be created.
   foreach ($connection_types as $type => $type_data) {
     //dsm($type_data);
-    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/build/clients/connections/add/' . $type);
+    $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/structure/clients/connections/add/' . $type);
   }
-  $output .= theme('item_list', $items);
+  $output .= theme('item_list', array('items' => $items));
 
   return $output;
 }
@@ -95,7 +98,7 @@ function clients_connection_add($type) {
  * @see clients_connection_form_validate()
  * @see clients_connection_form_submit()
  */
-function clients_connection_form(&$form_state, $connection) {
+function clients_connection_form($form, &$form_state, $connection) {
   $form = array();
 
   $type = $connection->type;
@@ -228,7 +231,7 @@ function clients_connection_form_submit($form, &$form_state) {
   }
 
   drupal_set_message(t('Connection saved.'));
-  $form_state['redirect'] = 'admin/build/clients/connections/' . $connection['name'];
+  $form_state['redirect'] = 'admin/structure/clients/connections/' . $connection['name'];
 }
 
 /**
@@ -252,7 +255,9 @@ function clients_connection_view($connection) {
 
   }
 
-  return theme_table(array(), $rows);
+  return theme('table', array(
+    'rows' => $rows,
+  ));
 }
 
 
@@ -262,7 +267,7 @@ function clients_connection_view($connection) {
  * @param $connection
  *  A loaded connection.
  */
-function clients_connection_test_form(&$form_state, $connection) {
+function clients_connection_test_form($form, &$form_state, $connection) {
   $form['#connection'] = $connection;
 
   $form['connection'] = array(
@@ -273,7 +278,7 @@ function clients_connection_test_form(&$form_state, $connection) {
   $items[] = t('Name') . ': ' . check_plain($connection->name);
   $items[] = t('Endpoint') . ': ' . $connection->endpoint;
   $form['connection']['details'] = array(
-    '#value' => theme('item_list', $items),
+    '#value' => theme('item_list', array('items' => $items)),
   );
 
   // Buttons. These are themed into a vertical list with the description text alongside each one.
