@@ -107,6 +107,11 @@ function clients_connection_add($type) {
 function clients_connection_form($form, &$form_state, $connection) {
   $form = array();
 
+  // Save on repeated isset()s.
+  if (!isset($connection->new)) {
+    $connection->new = FALSE;
+  }
+
   $type = $connection->type;
   $class = 'clients_connection_' . $type;
 
