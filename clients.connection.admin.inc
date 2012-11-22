@@ -69,7 +69,7 @@ function clients_connections_list() {
 
   $headers = array(t('Name'), t('Type'), t('Endpoint'), t('Storage'), array('data' => t('Operations'), 'colspan' => 3));
   $output .= theme('table', array(
-    'headers' => $headers,
+    'header' => $headers,
     'rows' => $rows,
   ));
 
