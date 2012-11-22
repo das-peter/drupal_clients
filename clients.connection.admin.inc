@@ -4,6 +4,30 @@
  * Page callbacks relating to client connection admin.
  */
 
+interface ClientsConnectionAdminUIInterface {
+
+  /**
+   * Add configuration form elements specific to a connection's edit form.
+   *
+   * @param $form
+   *  The form built so far. This contains the elements for the name and
+   *  endpoint, but not the save button.
+   *
+   * @param $form_state
+   *  The form state from the main form, which you probably don't need anyway.
+   *
+   * @return
+   *  A FormAPI form array. This replaces the original form.
+   *
+   * @see clients_connection_form()
+   * @see clients_connection_form()
+   * @see clients_connection_form_submit()
+   */
+  function connectionSettingsForm($form, &$form_state);
+
+}
+
+
 /**
  * Page callback: list connections.
  */
@@ -144,10 +168,30 @@ function clients_connection_form($form, &$form_state, $connection) {
     $form['name']['#description'] .= '<br /><strong>' . t('Warning: Changing the name of an existing connection may affect any data you have stored based on that connection.') . '</strong>';
   }
 
+  $form['endpoint'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Connection endpoint'),
+    '#default_value' => $connection->new ? '' : $connection->endpoint,
+    '#size' => 100,
+    '#maxlength' => 100,
+    '#description' => t('Remote service URL e.g. http://mysite.com/services/endpoint'),
+    '#required' => TRUE,
+  );
+
+  // Container for all form elements whose values should be serialized to the
+  // configuration array.
+  // Not a fieldset by default, but connection classes may choose to do this.
+  $form['configuration'] = array(
+    '#tree' => TRUE,
+  );
+
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;
 
-  $form += $connection->connectionSettingsForm($form, $form_state);
+  // Allow the connection class to make additions to the form. We don't use
+  // the node_form() pattern because typically a connection class will want to
+  // change the 'endpoint' element to add custom help text.
+  $form = $connection->connectionSettingsForm($form, $form_state);
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
