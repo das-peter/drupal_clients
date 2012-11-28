@@ -315,6 +315,44 @@ function clients_connection_view($connection) {
   ));
 }
 
+/**
+ * Form builder for confirmation of deletion of a connection.
+ */
+function client_delete_confirm($form, &$form_state, $type, $service) {
+  // Store values for the submit handler.
+  $form['type'] = array('#type' => 'value', '#value' => $type);
+  $form['cid'] = array('#type' => 'value', '#value' => $service->cid);
+  $form['name'] = array('#type' => 'value', '#value' => $service->name);
+
+  return confirm_form($form,
+    t('Are you sure you want to delete !type %title?', array(
+      '!type' => $type,
+      '%title' => $service->name,
+    )),
+    isset($_GET['destination']) ? $_GET['destination'] : "admin/structure/clients/{$type}s/$service->cid",
+    t('This action cannot be undone.'),
+    t('Delete'),
+    t('Cancel')
+  );
+}
+
+/**
+ * Form submit handler for the deletion form.
+ *
+ * @todo: refactor?
+ */
+function client_delete_confirm_submit($form, &$form_state) {
+  $cid = (int) $form_state['values']['cid'];
+  if ($form_state['values']['type'] == 'connection') {
+    if ($result = db_query("DELETE FROM {clients_connections} WHERE cid = %d", $cid)) {
+      drupal_set_message(t('Connection @name deleted.', array('@name' => $form_state['values']['name'])));
+      $form_state['redirect'] = 'admin/structure/clients/connections';
+    }
+    else {
+      drupal_set_message(t('Problem deleting connection @name.', array('@name' => $form_state['values']['name'])), 'error');
+    }
+  }
+}
 
 /**
  * Page callback to test a connection.
