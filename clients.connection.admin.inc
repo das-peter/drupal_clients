@@ -344,12 +344,19 @@ function client_delete_confirm($form, &$form_state, $type, $service) {
 function client_delete_confirm_submit($form, &$form_state) {
   $cid = (int) $form_state['values']['cid'];
   if ($form_state['values']['type'] == 'connection') {
-    if ($result = db_query("DELETE FROM {clients_connections} WHERE cid = %d", $cid)) {
-      drupal_set_message(t('Connection @name deleted.', array('@name' => $form_state['values']['name'])));
+    $num_deleted = db_delete('clients_connections')
+      ->condition('cid', $cid)
+      ->execute();
+    if ($num_deleted) {
+      drupal_set_message(t('Connection @name deleted.', array(
+        '@name' => $form_state['values']['name'],
+      )));
       $form_state['redirect'] = 'admin/structure/clients/connections';
     }
     else {
-      drupal_set_message(t('Problem deleting connection @name.', array('@name' => $form_state['values']['name'])), 'error');
+      drupal_set_message(t('Problem deleting connection @name.', array(
+        '@name' => $form_state['values']['name'],
+      )), 'error');
     }
   }
 }
