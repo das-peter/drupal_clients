@@ -82,6 +82,8 @@ function clients_connection_uninstall_connection_delete($module) {
   // This works even when the module is about to be uninstalled.
   $connection_types = module_invoke($module, 'clients_connection_type_info');
   foreach ($connection_types as $type => $info) {
-    db_query("DELETE FROM {clients_connections} WHERE type = '%s'", $type);
+    $num_deleted = db_delete('clients_connections')
+      ->condition('type', $type)
+      ->execute();
   }
 }
