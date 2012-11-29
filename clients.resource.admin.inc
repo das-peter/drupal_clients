@@ -62,6 +62,18 @@ function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
     '#description' => t('The connection to use for this resource.'),
   );
 
+  // Container for all form elements whose values should be serialized to the
+  // configuration array.
+  // Not a fieldset by default, but connection classes may choose to do this.
+  $form['configuration'] = array(
+    '#tree' => TRUE,
+  );
+
+  // Allow the connection class to make additions to the form. We don't use
+  // the node_form() pattern because typically a connection class will want to
+  // change the 'endpoint' element to add custom help text.
+  $form = $resource->connectionSettingsForm($form, $form_state);
+
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save resource'),
