@@ -48,6 +48,8 @@ function clients_connection_call($name, $method) {
   return $return;
 }
 
+// ========================================== Core hook implementations
+
 /**
  * Implements hook_help()
  *
@@ -78,14 +80,96 @@ function clients_help($path, $arg) {
 }
 
 /**
+ * Implements hook_entity_info().
+ */
+function clients_entity_info() {
+  $return = array(
+    'clients_connection' => array(
+      'label' => t('Clients Connection'),
+      'controller class' => 'ClientsHandlerEntityController',
+      'base table' => 'clients_connection',
+      'uri callback' => 'clients_connection_uri',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'cid',
+        'name' => 'name',
+        'label' => 'label',
+      ),
+      // Entity API
+      'module' => 'clients',
+      'exportable' => TRUE,
+      'admin ui' => array(
+        'path' => 'admin/structure/clients/connections',
+        'file' => 'clients.connection.admin.inc',
+        'controller class' => 'ClientsConnectionEntityUIController',
+        // Extras for our controller class.
+        // The user_access() permission for the whole of the UI.
+        'access permission' => 'administer client connections',
+        // A callback whose keys will be the type names.
+        'types callback' => 'clients_get_connection_types',
+      ),
+      // argh. we are in entity_ui_get_form. this does nada.
+      'form callback' => 'clients_connection_form',
+      'export' => array(
+        'default hook' => 'clients_default_connections',
+      ),
+      // Entity API callbacks for the admin UI.
+      // Our handler controller's stuff.
+      'factory' => array(
+        'class prefix' => 'clients_connection_',
+        'broken class' => 'clients_connection_broken',
+      ),
+    ),
+    'clients_resource' => array(
+      'label' => t('Clients Resource'),
+      'controller class' => 'ClientsHandlerEntityController',
+      'base table' => 'clients_resource',
+      'uri callback' => 'clients_resource_uri',
+      'fieldable' => FALSE,
+      'entity keys' => array(
+        'id' => 'rid',
+        'name' => 'name',
+        'label' => 'label',
+      ),
+      // Entity API
+      'module' => 'clients',
+      'exportable' => TRUE,
+      'admin ui' => array(
+        'path' => 'admin/structure/clients/resources',
+        'file' => 'clients.resource.admin.inc',
+        'controller class' => 'ClientsResourceEntityUIController',
+        // Extras for our controller class.
+        'access permission' => 'administer client resources',
+        // A callback whose keys will be the type names.
+        'types callback' => 'clients_get_resource_types',
+      ),
+      // argh. we are in entity_ui_get_form. this does nada.
+      'form callback' => 'clients_resource_form',
+      'export' => array(
+        'default hook' => 'clients_default_resources',
+      ),
+      // Entity API callbacks for the admin UI.
+      // Our handler controller's stuff.
+      'factory' => array(
+        'class prefix' => 'clients_resource_',
+        'broken class' => 'clients_resource_broken',
+      ),
+    ),
+  );
+
+  return $return;
+}
+
+/**
  * Implements hook_permission()
- * @return
- *   An array of valid permissions for the clients module.
  */
 function clients_permission() {
   return array(
     'administer clients connections' => array(
       'title' => t('Administer client connections'),
+    ),
+    'administer clients resources' => array(
+      'title' => t('Administer client resources'),
     ),
   );
 }
@@ -96,81 +180,8 @@ function clients_permission() {
 function clients_menu() {
   $items = array();
 
-  $items['admin/structure/clients'] = array(
-    'title' => 'Clients',
-    'description' => 'Administer connections to remote sites.',
-    'page callback' => 'clients_connections_list',
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-    'type' => MENU_NORMAL_ITEM,
-    );
-
-  $items['admin/structure/clients/connections'] = array(
-    'title' => 'Connections',
-    'weight' => 1,
-    'description' => 'List connections',
-    'page callback' => 'clients_connections_list',
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-  );
-
-  $items['admin/structure/clients/connections/add/%'] = array(
-    'title' => 'Add connection',
-    'page callback' => 'clients_connection_add',
-    'page arguments' => array(5),
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-  );
-
-  $items['admin/structure/clients/connections/%clients_connection'] = array(
-    'title' => 'Connection',
-    'description' => 'Show connection',
-    'page callback' => 'clients_connection_view',
-    'page arguments' => array(4),
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-    'weight' => 0,
-    // This prevents the tabs showing under the connection list admin where
-    // they have no meaning. Cribbed from taxonomy_menu().
-    'type' => MENU_CALLBACK,
-  );
-
-  $items['admin/structure/clients/connections/%clients_connection/view'] = array(
-    'title' => 'View',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );
-
-  $items['admin/structure/clients/connections/%clients_connection/edit'] = array(
-    'title' => 'Edit',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('clients_connection_form', 4),
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-    'weight' => 1,
-    'type' => MENU_LOCAL_TASK,
-  );
-
-  $items['admin/structure/clients/connections/%clients_connection/test'] = array(
-    'title' => 'Test',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('clients_connection_test_form', 4),
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-    'weight' => 2,
-    'type' => MENU_LOCAL_TASK,
-  );
-
-  $items['admin/structure/clients/connections/%clients_connection/delete'] = array(
-    'title' => 'Delete connection',
-    'description' => 'Delete a connection',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('client_delete_confirm', 'connection', 4),
-    'file' => 'clients.connection.admin.inc',
-    'access arguments' => array('administer clients connections'),
-    'type' => MENU_CALLBACK,
-  );
+  // Note most of the admin UI is done via EntityAPI UI controllers.
+  // @see ClientsHandlerEntityUIController.
 
   $items['admin/structure/clients/settings'] = array(
     'title' => 'Settings',
@@ -228,105 +239,34 @@ function clients_flush_caches() {
 /**
  * Load a connection object which can then be used to make method calls.
  *
- * Used as a menu loader. CTools has static caching so it's okay that we come
- * here tons of times on a single page load in our admin section.
- *
  * @param $name
  *  A connection machine name.
+ *
  * @return
  *  A fully loaded connection handler object. If there is a problem, such as
  *  the machine name or connection type not existing, a connection of class
  *  'clients_connection_broken' is returned.
  */
 function clients_connection_load($name) {
-  ctools_include('export');
-  $result = ctools_export_load_object('clients_connections', 'names', array($name));
-  if (isset($result[$name])) {
-    $connection = $result[$name]; // new $class($result[$name]);
-    
-    return $connection;
-  }
-  else {
-    $connection = array(
-      'name' => $name,
-      'broken_message' => t('Client connection %name not found.', array(
-        '%name' => $name,
-      )),
-    );
-    return new clients_connection_broken($connection);
-  }
+  return entity_load_single('clients_connection', $name);
 }
 
 /**
  * Load all connections.
  *
- * This is a convenience wrapper around the CTools API.
- *
- * @param $types
+ * TODO! @param $types
  *  (optional) Specify a single type or a list of types to include.
  *  If omitted, all are returned.
  * @return
  *  An array of connection objects, keyed by name.
  */
 function clients_connection_load_all($types = array()) {
-  if (!is_array($types)) {
-    $types = array($types);
-  }
+  $connections = entity_load_multiple_by_name('clients_connection', FALSE);
 
-  ctools_include('export');
-  /*
-  // Once http://drupal.org/node/1161244 is fixed, we can pass a condition to
-  // CTools, as below:
-  if (count($types)) {
-    foreach ($types) {
-      $conditions['type']
-    }
-    dsm($types);
-    $connections = ctools_export_load_object('clients_connections', 'conditions');
-    //$placeholders = implode(',', array_fill(0, count($types), "'%s'"));
-    //$where = "WHERE type IN ($placeholders)";
-  }
-  else {
-    $connections = ctools_export_load_object('clients_connections', 'all');
-  }
-  */
-  // ...but in the meantime we'll have to filter the list ourselves.
-  $connections = ctools_export_load_object('clients_connections', 'all');
-  if (count($types)) {
-    foreach ($connections as $connection_name => $connection) {
-      if (!in_array($connection->type, $types)) {
-        unset($connections[$connection_name]);
-      }
-    }
-  }
   // We generally want connections ordered by machine name.
   ksort($connections);
 
   return $connections;
-}
-
-/**
- * CTools object factory: unpacks the data from CTools into the right class.
- *
- * @param $schema
- *   The schema from drupal_get_schema().
- * @param $data
- *   The data as loaded by db_fetch_object().
- */
-function clients_connection_unpack_object($schema, $data) {
-  $type = $data->type;
-  $class = 'clients_connection_' . $type;
-
-  // Handle missing classes. Note that class_exists() works with autoloading!
-  if (!class_exists($class)) {
-    $class = 'clients_connection_broken';
-    $data->broken_message = t('The class for this connection is missing. Perhaps the module providing this is not available?');
-  }
-
-  // The connection's __construct() takes over from here.
-  $object = new $class($data);
-
-  return $object;
 }
 
 /**
@@ -340,6 +280,82 @@ function clients_get_connection_types() {
   }
   return $connection_types;
 }
+
+// ================================================ Resource API
+
+/**
+ * Get the client that provides a given resource.
+ *
+ * This allows resources to be pluggable on 'both sides' as it were: a resource
+ * may point to the client it uses for its connection, and (in some cases) may
+ * also point to the Drupal component it supplies.
+ * For example, a remote entity type indicates both the client and the remote
+ * entity it uses.
+ */
+function clients_resource_get_client($resource_type, $resource_name) {
+  // TODO!
+  // NOPE!?!?!
+
+}
+
+/**
+ * Load a resource object.
+ *
+ * @param $name
+ *  A connection machine name.
+ * @return
+ *  A fully loaded connection handler object. If there is a problem, such as
+ *  the machine name or connection type not existing, a connection of class
+ *  'clients_connection_broken' is returned.
+ */
+function clients_resource_load($name) {
+  return entity_load_single('clients_resource', $name);
+}
+
+/**
+ * Load all resources.
+ *
+ * // TODO? Obsolete? @param $types
+ *  (optional) Specify a single type or a list of types to include.
+ *  If omitted, all are returned.
+ *
+ * @return
+ *  An array of connection objects, keyed by name.
+ */
+function clients_resource_load_all() {
+  $resources = entity_load_multiple_by_name('clients_resource', FALSE);
+  // We generally want resources ordered by machine name.
+  ksort($resources);
+
+  return $resources;
+}
+
+/**
+ * Get a list of all resource types.
+ */
+function clients_get_resource_types() {
+  static $resource_types;
+  if (!isset($resource_types)) {
+    // Invoke hook_clients_resource_type_info().
+    $resource_types = module_invoke_all('clients_resource_type_info');
+  }
+  return $resource_types;
+}
+
+// Entity API callbacks.
+
+/**
+ * Entity URI callback
+ *
+ * TODO: is this ever used?
+ */
+function clients_resource_uri($resource) {
+  return array(
+    'path' => 'admin/structure/clients/resources/manage/' . $resource->name,
+  );
+}
+
+// ================================================ Misc helpers
 
 /**
  * FormAPI helper to get a list of clients for a select form element.
@@ -386,91 +402,55 @@ function clients_connections_checkbox_options($types = array()) {
 }
 
 /**
- * Export an object into code.
+ * Page callback for choosing the type of hander to add.
  *
- * This is our alternative to ctools_export_object().
- * We need to follow the same pattern in code as in loading from the database
- * and from CTools: load the data into a plain object, then pass that to the
- * constructor of the desired class. This is because classes' constructors
- * may do different things and need the data first to do them with.
- *
- * In the interests of sanity, places where this function deviates from the
- * model are marked.
+ * @param $entity_type
+ *  The entity type for the handlers.
  */
-function clients_export_object($object, $indent = '', $connection_identifier = NULL, $additions = array(), $additions2 = array()) {
-  // Change: We need to specify this ourselves.
-  $table = 'clients_connections';
+function clients_handler_add_page($entity_type) {
+  $info = entity_get_info($entity_type);
+  $handler_types_callback = $info['admin ui']['types callback'];
+  $handler_types = $handler_types_callback();
 
-  // Change: In the interest of not deviating too much, we just repurpose
-  // $identifier to 'object' and hence change the name of the variable for the
-  // actual export, since we only use it once.
-  $schema = ctools_export_get_schema($table);
-  if (!isset($connection_identifier)) {
-    $connection_identifier = $schema['export']['identifier'];
+  // Because the menu item is a local action, we have to set the page title here.
+  drupal_set_title(t('Add @type', array(
+    '@type' => $info['label'],
+  )));
+
+  if (empty($handler_types)) {
+    return t('No types are available: you need to enable one or more modules that provide them.');
   }
 
-  // Change: Just create a stdClass object for now.
-  $identifier = 'object';
-  $output = $indent . '$' . $identifier . " = new stdClass;\n";
-
-  if ($schema['export']['can disable']) {
-    $output .= $indent . '$' . $identifier . '->disabled = FALSE; /* Edit this to true to make a default ' . $identifier . ' disabled initially */' . "\n";
-  }
-  if (!empty($schema['export']['api']['current_version'])) {
-    $output .= $indent . '$' . $identifier . '->api_version = ' . $schema['export']['api']['current_version'] . ";\n";
-  }
-
-  // Put top additions here:
-  foreach ($additions as $field => $value) {
-    $output .= $indent . '$' . $identifier . '->' . $field . ' = ' . ctools_var_export($value, $indent) . ";\n";
-  }
-
-  $fields = $schema['fields'];
-  if (!empty($schema['join'])) {
-    foreach ($schema['join'] as $join) {
-      if (!empty($join['load'])) {
-        foreach ($join['load'] as $join_field) {
-          $fields[$join_field] = $join['fields'][$join_field];
-        }
-      }
+  $output = '<dl class="handler-type-list">';
+  foreach ($handler_types as $type => $handler_info) {
+    $output .= '<dt>'
+      . l($handler_info['label'], $info['admin ui']['path'] . '/add/' . $type)
+      . '</dt>';
+    if (isset($handler_info['description'])) {
+      $output .= '<dd>'
+        . $handler_info['description']
+        . '</dd>';
     }
   }
-
-  // Go through our schema and joined tables and build correlations.
-  foreach ($fields as $field => $info) {
-    if (!empty($info['no export'])) {
-      continue;
-    }
-    if (!isset($object->$field)) {
-      if (isset($info['default'])) {
-        $object->$field = $info['default'];
-      }
-      else {
-        $object->$field = '';
-      }
-    }
-
-    // Note: This is the *field* export callback, not the table one!
-    if (!empty($info['export callback']) && function_exists($info['export callback'])) {
-      $output .= $indent . '$' . $identifier . '->' . $field . ' = ' . $info['export callback']($object, $field, $object->$field, $indent) . ";\n";
-    }
-    else {
-      $value = $object->$field;
-      if ($info['type'] == 'int') {
-        $value = (isset($info['size']) && $info['size'] == 'tiny') ? (bool) $value : (int) $value;
-      }
-
-      $output .= $indent . '$' . $identifier . '->' . $field . ' = ' . ctools_var_export($value, $indent) . ";\n";
-    }
-  }
-
-  // And bottom additions here
-  foreach ($additions2 as $field => $value) {
-    $output .= $indent . '$' . $identifier . '->' . $field . ' = ' . ctools_var_export($value, $indent) . ";\n";
-  }
-
-  // Change: Add the actual connection object.
-  $output .= $indent . '$' . $connection_identifier . ' = new ' . get_class($object) . '($' . $identifier . ')' . ";\n";
+  $output .= '</dl>';
 
   return $output;
+}
+
+/**
+ * Page callback to add a handler entity of a specific bundle.
+ *
+ * @param $entity_type
+ *   The type of the entity.
+ * @param $handler_type
+ *   The handler type machine name.
+ */
+function clients_handler_get_add_form($entity_type, $handler_type) {
+  // Make a stub entity of the right bundle to pass to entity_ui_get_form().
+  $values = array(
+    'type' => $handler_type,
+  );
+  $entity = entity_create($entity_type, $values);
+
+  return entity_ui_get_form($entity_type, $entity, 'add');
 }

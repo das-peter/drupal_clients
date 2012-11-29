@@ -47,7 +47,7 @@ function clients_drupal_clients_connection_type_info() {
 function clients_drupal_menu() {
   $items = array();
   // Client provider modules may add settings beneath the Settings tab.
-  $items['admin/build/clients/settings/drupal'] = array(
+  $items['admin/structure/clients/settings/drupal'] = array(
      'title' => 'Configure Drupal',
      'page callback' => 'drupal_get_form',
      'page arguments' => array('clients_drupal_admin'),
@@ -61,7 +61,7 @@ function clients_drupal_menu() {
 /**
  * Form builder for the Drupal clients admin settings.
  */
-function clients_drupal_admin($form_states) {
+function clients_drupal_admin($form, &$form_state) {
   $form = array();
   $options = clients_drupal_encryption_methods();
   $form['clients_drupal_encryption_method'] = array(

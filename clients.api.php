@@ -11,6 +11,29 @@
  */
 
 /**
+ * Additions to hook_entity_info().
+ *
+ * These support the various controllers that provide functionality for
+ * entities that are used as handlers.
+ *
+ * - 'admin ui': This is defined by EntityAPI, but we add the following keys:
+ *    - 'access permission': A permission to use for access to all of this
+ *      entity's admin UI. Using this means that the entity does not need an
+ *      access callback.
+ *    - 'types callback': The name of a callback function that gives a list of
+ *      types of handlers. The keys of the list should be the machine names; the
+ *      values are ignored.
+ * - 'factory': An array of information on how to build handler objects.
+ *    - 'class prefix': The prefix to apply to the handler type to make the name
+ *      of the class to use.
+ *    - 'broken class': The class to use when the class for a handler cannot be
+ *      found, for example, if a module has been disabled.
+ */
+function clients_hook_entity_info() {
+
+}
+
+/**
  * Inform Clients about connection types.
  *
  * @return array
@@ -18,6 +41,7 @@
  *   keyed by the machine-readable name for the type.
  *   Each type is itself an array, with following keys:
  *     'label': the human-readable label.
+ *     'description': (optional) A more detailed description of the type.
  */
 function hook_clients_connection_type_info() {
   return array(
@@ -25,6 +49,43 @@ function hook_clients_connection_type_info() {
       'label'  => t('My Client Type'),
     ),
   );
+}
+
+/**
+ * Inform Clients about resource types.
+ *
+ * @return array
+ *   An array of information on the resource types implemented by a module,
+ *   keyed by the machine-readable name for the type.
+ *   Each type is itself an array, with following keys:
+ *     'label': the human-readable label.
+ *     'description': (optional) A more detailed description of the type.
+ */
+function hook_clients_resource_type_info() {
+  return array(
+    'my_resource' => array(
+      'label'  => t('My resource type'),
+    ),
+  );
+}
+
+
+/**
+ * Define default client connections.
+ *
+ * Used via EntityAPI exportables.
+ */
+function hook_clients_default_connections() {
+
+}
+
+/**
+ * Define default client resources.
+ *
+ * Used via EntityAPI exportables.
+ */
+function hook_clients_default_resources() {
+
 }
 
 /**
@@ -40,23 +101,23 @@ function hook_clients_connection_type_info() {
  *    Use fieldset if you need to provide extra fields. Your fieldset must then
  *    contain a submit button, with id 'button'.
  *  In addition to normal FormAPI properties, the following may also be used:
- *    '#description': This is added as description text to the fieldset. Set 
+ *    '#description': This is added as description text to the fieldset. Set
  *    this on the button element in all cases.
- *    '#action_type': (optional) One of 'function' or 'method', to indicate whether the 
- *    submit and validate callbacks are methods on the current connection 
+ *    '#action_type': (optional) One of 'function' or 'method', to indicate whether the
+ *    submit and validate callbacks are methods on the current connection
  *    object or just regular functions. Default is 'function'.
- *    '#action_submit': submit handler for the button. This can be either the 
- *    name of a method on the connection object, or a function name, depending 
+ *    '#action_submit': submit handler for the button. This can be either the
+ *    name of a method on the connection object, or a function name, depending
  *    on the value of '#action_type'.
  *    This should have the signature my_test_submit(&$button_form_values), where
- *    $button_form_values is the data from the form values tree specific to the 
+ *    $button_form_values is the data from the form values tree specific to the
  *    button or fieldset.
  *    Your submit handler should simply return its results, and the connection
  *    testing form will take care of displaying them beneath the button after
  *    submission.
  *    '#action_validate' (optional): validate handler for the button. Works the
  *    same as '#action_submit'.
- * 
+ *
  * @param $form_state
  *  The $form_state parameter from the connection test form. You can use this
  *  to populate default values.

@@ -6,8 +6,9 @@
 
 /**
  * Base class for client connections.
+ TODO!!! rename this?!
  */
-abstract class clients_connection_base {
+abstract class clients_connection_base extends ClientsHandlerEntity {
   /**
    * The machine name of the connection.
    */
@@ -64,9 +65,12 @@ abstract class clients_connection_base {
    * @see clients_connection_form()
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
+   *
+   * TODO: define an interface for the admin UI
    */
   function connectionSettingsForm($form, &$form_state) {
     $form = array();
+
     return $form;
   }
 
@@ -83,33 +87,12 @@ abstract class clients_connection_base {
   /**
    * Provide buttons for the connection testing page.
    */
-  function getTestOperations() {
+  function getTestOperations($form_state, $connection_name) {
     return array();
   }
 
-  // ============================================ Constructor.
-
-  /**
-   * Constructor method.
-   *
-   * @param $object
-   *  An object of class stdClass returned from CTools.
-   */
-  function __construct($object) {
-    // Lump all data unto the object...
-    foreach ((array) $object as $field => $value) {
-      $this->$field = $value;
-    }
-
-    // Connections defined in code are already unserialized.
-    if (isset($object->configuration) && !is_array($object->configuration)) {
-      $this->configuration = unserialize($object->configuration);
-    }
-
-    return $this;
-  }
-
   // ============================================ Connection API.
+  // TODO: move these to an XMLRPC client interface.
 
   /**
    * Call a remote method.
@@ -170,11 +153,10 @@ class clients_connection_broken extends clients_connection_base {
   /**
    * Constructor method for broken connections.
    *
+   * TODO! this itself is probably broken! ;)
+   *
    * This expects the originator to have set a readable message in
    * $object->broken_message.
-   *
-   * @param $object
-   *  An object of class stdClass returned from CTools.
    */
   function __construct($object) {
     // Call the base class to set the connection properties.

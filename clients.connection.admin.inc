@@ -4,6 +4,9 @@
  * Page callbacks relating to client connection admin.
  */
 
+/**
+ * (Tentative) Interface for clients connection admin UI.
+ */
 interface ClientsConnectionAdminUIInterface {
 
   /**
@@ -27,94 +30,6 @@ interface ClientsConnectionAdminUIInterface {
 
 }
 
-
-/**
- * Page callback: list connections.
- */
-function clients_connections_list() {
-  $output = '';
-
-  $connection_types = clients_get_connection_types();
-  $connections = clients_connection_load_all();
-
-  $rows = array();
-  foreach ($connections as $name => $connection) {
-    $delete_label = ($connection->export_type & EXPORT_IN_CODE) ? t('revert') : t('delete');
-    $delete_link  = ($connection->export_type & EXPORT_IN_DATABASE) ? l($delete_label, "admin/structure/clients/connections/$name/delete") : '';
-    $type = $connection->type;
-    if (isset($connection->broken_message)) {
-      // Not sure where best to shove this, will take suggestions.
-      $type .= ' ' . t('(broken)');
-    }
-    $rows[] = array(
-      'name' => l($connection->name, "admin/structure/clients/connections/$name/view"),
-      'type' => $type,
-      'endpoint' => $connection->formatEndpoint($connection->endpoint),
-      'storage' => $connection->export_type_label,
-      'edit' => l(t('edit'), "admin/structure/clients/connections/$name/edit"),
-      'test' => l(t('test'), "admin/structure/clients/connections/$name/test"),
-      'delete' => $delete_link,
-    );
-  }
-
-  // Ensure the table has a row if there are no connections at all.
-  if (!count($rows)) {
-    $rows[] = array(
-      array(
-        'data' => t('No connections defined yet.'),
-        'colspan' => '5',
-      ),
-    );
-  }
-
-  $headers = array(t('Name'), t('Type'), t('Endpoint'), t('Storage'), array('data' => t('Operations'), 'colspan' => 3));
-  $output .= theme('table', array(
-    'header' => $headers,
-    'rows' => $rows,
-  ));
-
-  // Add a list of connection types that can be created.
-  $items = array();
-  if ($connection_types) {
-    foreach ($connection_types as $type => $type_data) {
-      //dsm($type_data);
-      $items[] = l(t('Add @type connection', array('@type' => $type_data['label'])), 'admin/structure/clients/connections/add/' . $type);
-    }
-  }
-  else {
-    $items[] = t('No connection types are available: you need to enable one or more modules that provide them.');
-  }
-  $output .= theme('item_list', array('items' => $items));
-
-  return $output;
-}
-
-/**
- * Menu callback for adding a new connection.
- *
- * @param $type
- *  The name of a connection type.
- */
-function clients_connection_add($type) {
-  // Check the type exists.
-  $connection_types = clients_get_connection_types();
-  if (!isset($connection_types[$type])) {
-    return drupal_not_found();
-  }
-
-  drupal_set_title(t('Add @name connection', array('@name' => $type)));
-  // Make a basic default connection object to pass to the form builder.
-  $data = new stdClass();
-  $data->type = $type;
-  $data->name = '';
-  $data->new = TRUE;
-  // This is a bit convoluted but it's simpler to just follow the same pattern
-  // that using CTools imposes on us rather than have two ways of doing it.
-  $class = 'clients_connection_' . $type;
-  $connection = new $class($data);
-  return drupal_get_form('clients_connection_form', $connection);
-}
-
 /**
  * Form builder for editing a connection.
  *
@@ -125,28 +40,24 @@ function clients_connection_add($type) {
  * @param $connection
  *  A connection object.
  *
- * @see clients_connection_form_validate()
  * @see clients_connection_form_submit()
  */
-function clients_connection_form($form, &$form_state, $connection) {
+function clients_connection_form($form, &$form_state, $connection, $op = 'edit') {
   $form = array();
 
-  // Save on repeated isset()s.
-  if (!isset($connection->new)) {
-    $connection->new = FALSE;
-  }
-
+  // OBSOLETE??? TODO
   $type = $connection->type;
   $class = 'clients_connection_' . $type;
 
+
+  /*
   $form['old_connection'] = array(
     '#type' => 'value',
     '#value' => $connection,
   );
+  */
 
-  //dsm($connection);
-
-  $form['type'] = array(
+  $form['fake_type'] = array(
     '#type' => 'textfield',
     '#title' => t('Connection type'),
     '#description' => t('The type of this connection. May not be changed.'),
@@ -155,23 +66,38 @@ function clients_connection_form($form, &$form_state, $connection) {
     '#disabled' => TRUE,
   );
 
-  $form['name'] = array(
+  $form['label'] = array(
     '#type' => 'textfield',
-    '#title' => t('Connection machine name'),
-    '#default_value' => $connection->name,
+    '#title' => t('Connection label'),
+    '#default_value' => isset($connection->label) ? $connection->label : '',
     '#size' => 50,
     '#maxlength' => 100,
-    '#description' => t('The connection name must contain only lowercase letters, numbers, and underscores. It must be unique.'),
+    '#description' => t('The human-readable name for the connection.'),
     '#required' => TRUE,
   );
+  
+  // Machine-readable type name.
+  $form['name'] = array(
+    '#type' => 'machine_name',
+    '#default_value' => isset($connection->name) ? $connection->name : '',
+    '#maxlength' => 32,
+    '#disabled' => ($op == 'clone'),
+    '#machine_name' => array(
+      'exists' => 'clients_connection_load',
+      'source' => array('label'),
+    ),
+    '#description' => t('A unique machine-readable name for this connection. It must only contain lowercase letters, numbers, and underscores.'),
+  );
+  /*
   if ($connection->name) {
     $form['name']['#description'] .= '<br /><strong>' . t('Warning: Changing the name of an existing connection may affect any data you have stored based on that connection.') . '</strong>';
   }
+  */
 
   $form['endpoint'] = array(
     '#type' => 'textfield',
     '#title' => t('Connection endpoint'),
-    '#default_value' => $connection->new ? '' : $connection->endpoint,
+    '#default_value' => isset($connection->is_new) ? '' : $connection->endpoint,
     '#size' => 100,
     '#maxlength' => 100,
     '#description' => t('Remote service URL e.g. http://mysite.com/services/endpoint'),
@@ -202,49 +128,6 @@ function clients_connection_form($form, &$form_state, $connection) {
 }
 
 /**
- * Form validator handler for the connection form.
- *
- * @see clients_connection_form()
- * @see clients_connection_form_submit()
- */
-function clients_connection_form_validate($form, &$form_state) {
-  // Validate machine name.
-  if (!preg_match('!^[a-z0-9_]+$!', $form_state['values']['name'])) {
-    form_set_error('name', t('The machine-readable name must contain only lowercase letters, numbers, and underscores.'));
-  }
-
-  // Machine names must be unique.
-  // Work out what the machine name was before the user submitted this form.
-  $old_connection = $form_state['values']['old_connection'];
-  // Get all connections.
-  $connections = clients_connection_load_all();
-  if (isset($connections[$form_state['values']['name']]) && $form_state['values']['name'] != $old_connection->name) {
-    form_set_error('name', t('This connection name is already taken.'));
-  }
-
-  // TODO: consider cleaning up the following code to test on form submit:
-  /*
-  $connection = new stdClass;
-  $connection->name = $form['name']['#value'];
-  $connection->endpoint = $form['endpoint']['#value'];
-  $connection->domain = $form['configuration']['domain']['#value'];
-  $connection->servicekey = $form['configuration']['servicekey']['#value'];
-  $connection->username = $form['configuration']['username']['#value'];
-  $connection->password = $form['configuration']['password']['#value'];
-
-  $testconnect = ClientsServicesDrupal::connect($connection);
-  if(!is_array($testconnect) || !isset($testconnect['sessid'])) {
-      form_set_error('endpoint', "Couldn't connect");
-  } else {
-      $testuser = ClientsServicesDrupal::getUser($connection);
-      if(!is_array($testuser) || !isset($testuser['sessid'])) {
-          form_set_error('username', isset($testuser->message) ? $testuser->message : "Couldn't log in");
-      }
-  }
-  */
-}
-
-/**
  * Form submit handler for the connection form.
  *
  * Gets the class of the connection from the data in the form and calls the
@@ -253,44 +136,22 @@ function clients_connection_form_validate($form, &$form_state) {
  * saving is handled here.
  *
  * @see clients_connection_form()
- * @see clients_connection_form_validate()
  */
 function clients_connection_form_submit($form, &$form_state) {
-  //dsm($form);
-  //dsm($form_state);
-  $class = $form['#connection_class'];
-
-  $old_connection = $form_state['values']['old_connection'];
-
-  // Use call_user_func_array() so form state can be passed by reference.
-  call_user_func_array(array($class, 'connectionSettingsForm_submit'), array($form, &$form_state));
-
-  // Common actions for all forms.
-
-  $connection = $form_state['values'];
-  // Connections with no configuration nonetheless need the array.
-  if (!isset($connection['configuration'])) {
-    $connection['configuration'] = array();
-  }
-  // Add in the cid, if there was one originally.
-  // Check whether we're editing or adding a new connection.
-  // We could use $old_connection->new to determine whether this is an insert
-  // or an update, but that's probably not going to work come CTools, as a
-  // connection may not be 'new' but may not have a cid if it's from code.
-  if (isset($old_connection->cid)) {
-    $connection['cid'] = $old_connection->cid;
-    drupal_write_record('clients_connections', $connection, 'cid');
-  }
-  else {
-    drupal_write_record('clients_connections', $connection);
-  }
+  $connection = entity_ui_form_submit_build_entity($form, $form_state);
+  
+  // Save and go back.
+  $connection->save();
 
   drupal_set_message(t('Connection saved.'));
-  $form_state['redirect'] = 'admin/structure/clients/connections/' . $connection['name'];
+
+  $form_state['redirect'] = 'admin/structure/clients/connections';
 }
 
 /**
  * Page callback to view a single connection.
+ *
+ * TODO: reimplement??
  *
  * @param $connection
  *  A loaded connection.
@@ -313,52 +174,6 @@ function clients_connection_view($connection) {
   return theme('table', array(
     'rows' => $rows,
   ));
-}
-
-/**
- * Form builder for confirmation of deletion of a connection.
- */
-function client_delete_confirm($form, &$form_state, $type, $service) {
-  // Store values for the submit handler.
-  $form['type'] = array('#type' => 'value', '#value' => $type);
-  $form['cid'] = array('#type' => 'value', '#value' => $service->cid);
-  $form['name'] = array('#type' => 'value', '#value' => $service->name);
-
-  return confirm_form($form,
-    t('Are you sure you want to delete !type %title?', array(
-      '!type' => $type,
-      '%title' => $service->name,
-    )),
-    isset($_GET['destination']) ? $_GET['destination'] : "admin/structure/clients/{$type}s/$service->cid",
-    t('This action cannot be undone.'),
-    t('Delete'),
-    t('Cancel')
-  );
-}
-
-/**
- * Form submit handler for the deletion form.
- *
- * @todo: refactor?
- */
-function client_delete_confirm_submit($form, &$form_state) {
-  $cid = (int) $form_state['values']['cid'];
-  if ($form_state['values']['type'] == 'connection') {
-    $num_deleted = db_delete('clients_connections')
-      ->condition('cid', $cid)
-      ->execute();
-    if ($num_deleted) {
-      drupal_set_message(t('Connection @name deleted.', array(
-        '@name' => $form_state['values']['name'],
-      )));
-      $form_state['redirect'] = 'admin/structure/clients/connections';
-    }
-    else {
-      drupal_set_message(t('Problem deleting connection @name.', array(
-        '@name' => $form_state['values']['name'],
-      )), 'error');
-    }
-  }
 }
 
 /**
