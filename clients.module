@@ -6,6 +6,76 @@
  * Drupal sites.
  */
 
+// ========================================== Resource API
+
+/**
+ * Get the resource for a given component.
+ *
+ * Eg, load the resource for the remote block with delta $delta.
+ *
+ * @param $resource_type
+ *  The resource type.
+ * @param $component_name
+ *  The name of the component the resource is needed for.
+ *
+ * @return
+ *  A resource handler entity.
+ */
+function clients_resource_get_for_component($resource_type, $component_name) {
+  $result = db_query("SELECT name FROM {clients_resource} WHERE type = :type AND component = :component", array(
+    ':type' => $resource_type,
+    ':component' => $component_name,
+  ));
+  $name = $result->fetchField();
+  return clients_resource_load($name);
+}
+
+/**
+ * Load a resource object.
+ *
+ * @param $name
+ *  A connection machine name.
+ * @return
+ *  A fully loaded connection handler object. If there is a problem, such as
+ *  the machine name or connection type not existing, a connection of class
+ *  'clients_connection_broken' is returned.
+ */
+function clients_resource_load($name) {
+  return entity_load_single('clients_resource', $name);
+}
+
+/**
+ * Load all resources.
+ *
+ * // TODO? Obsolete? @param $types
+ *  (optional) Specify a single type or a list of types to include.
+ *  If omitted, all are returned.
+ *
+ * @return
+ *  An array of connection objects, keyed by name.
+ */
+function clients_resource_load_all() {
+  $resources = entity_load_multiple_by_name('clients_resource', FALSE);
+  // We generally want resources ordered by machine name.
+  ksort($resources);
+
+  return $resources;
+}
+
+/**
+ * Get a list of all resource types.
+ */
+function clients_get_resource_types() {
+  static $resource_types;
+  if (!isset($resource_types)) {
+    // Invoke hook_clients_resource_type_info().
+    $resource_types = module_invoke_all('clients_resource_type_info');
+  }
+  return $resource_types;
+}
+
+// ========================================== Connection API
+
 /**
  * Call a remote method on a client.
  *
@@ -279,67 +349,6 @@ function clients_get_connection_types() {
     $connection_types = module_invoke_all('clients_connection_type_info');
   }
   return $connection_types;
-}
-
-// ================================================ Resource API
-
-/**
- * Get the client that provides a given resource.
- *
- * This allows resources to be pluggable on 'both sides' as it were: a resource
- * may point to the client it uses for its connection, and (in some cases) may
- * also point to the Drupal component it supplies.
- * For example, a remote entity type indicates both the client and the remote
- * entity it uses.
- */
-function clients_resource_get_client($resource_type, $resource_name) {
-  // TODO!
-  // NOPE!?!?!
-
-}
-
-/**
- * Load a resource object.
- *
- * @param $name
- *  A connection machine name.
- * @return
- *  A fully loaded connection handler object. If there is a problem, such as
- *  the machine name or connection type not existing, a connection of class
- *  'clients_connection_broken' is returned.
- */
-function clients_resource_load($name) {
-  return entity_load_single('clients_resource', $name);
-}
-
-/**
- * Load all resources.
- *
- * // TODO? Obsolete? @param $types
- *  (optional) Specify a single type or a list of types to include.
- *  If omitted, all are returned.
- *
- * @return
- *  An array of connection objects, keyed by name.
- */
-function clients_resource_load_all() {
-  $resources = entity_load_multiple_by_name('clients_resource', FALSE);
-  // We generally want resources ordered by machine name.
-  ksort($resources);
-
-  return $resources;
-}
-
-/**
- * Get a list of all resource types.
- */
-function clients_get_resource_types() {
-  static $resource_types;
-  if (!isset($resource_types)) {
-    // Invoke hook_clients_resource_type_info().
-    $resource_types = module_invoke_all('clients_resource_type_info');
-  }
-  return $resource_types;
 }
 
 // Entity API callbacks.
