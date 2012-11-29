@@ -143,7 +143,7 @@ class ClientsResourceEntityUIController extends ClientsHandlerEntityUIController
    */
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
     $additional_cols['type'] = $entity->type;
-    $additional_cols['connection'] = $entity->connection;
+    $additional_cols['connection'] = l($entity->connection, 'admin/structure/clients/connections/manage/' . $entity->connection);
 
     return parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
   }
