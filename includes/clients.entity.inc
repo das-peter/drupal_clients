@@ -39,6 +39,65 @@ class ClientsHandlerEntity extends Entity {
 }
 
 /**
+ * Base class for resource handlers.
+ */
+abstract class clients_resource_base extends ClientsHandlerEntity {
+
+  /**
+   * The name of the component the resource provides, eg block delta.
+   */
+  public $component;
+
+  /**
+   * The name of the connection the resource uses.
+   */
+  public $connection;
+
+  /**
+   * The connection handler the resource uses, lazy-loaded.
+   */
+  private $connection_handler;
+
+  /**
+   * Extra form elements specific to a class's edit form.
+   *
+   * This is the same pattern as node_form() -- just ignore the object behind
+   * the curtain ;)
+   *
+   * This (so far) is common to all versions of Drupal Services.
+   *
+   * @param $form
+   *  The main form array.
+   * @param $form_state
+   *  The form state from the main form, which you probably don't need anyway.
+   *
+   * @return
+   *  A FormAPI form array. This will be merged in with basic data and the
+   *  submit button added.
+   *
+   * @see clients_connection_form()
+   * @see clients_connection_form()
+   * @see clients_connection_form_submit()
+   *
+   * TODO: define an interface for the admin UI
+   */
+  function connectionSettingsForm($form, &$form_state) {
+    return $form;
+  }
+
+  /**
+   * Get this resource's connection
+   */
+  function getConnection() {
+    if (!isset($this->connection_handler)) {
+      $this->connection_handler = entity_load_single('clients_connection', $this->connection);
+    }
+    return $this->connection_handler;
+  }
+
+}
+
+/**
  * Common class for broken handlers.
  */
 class ClientsHandlerEntityBroken extends ClientsHandlerEntity {
