@@ -117,7 +117,7 @@ function clients_entity_info() {
       // Our handler controller's stuff.
       'factory' => array(
         'class prefix' => 'clients_connection_',
-        'broken class' => 'clients_connection_broken',
+        'broken class' => 'ClientsHandlerEntityBroken',
       ),
     ),
     'clients_resource' => array(
@@ -152,7 +152,7 @@ function clients_entity_info() {
       // Our handler controller's stuff.
       'factory' => array(
         'class prefix' => 'clients_resource_',
-        'broken class' => 'clients_resource_broken',
+        'broken class' => 'ClientsHandlerEntityBroken',
       ),
     ),
   );

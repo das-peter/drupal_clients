@@ -39,10 +39,14 @@ class ClientsHandlerEntity extends Entity {
 }
 
 /**
- * Class for broken handlers.
+ * Common class for broken handlers.
  */
-class clients_resource_broken extends ClientsHandlerEntity {
-  // TODOL clients_resource_broken
-  // $data->broken_message = t('The class for this connection is missing. Perhaps the module providing this is not available?');
+class ClientsHandlerEntityBroken extends ClientsHandlerEntity {
+
+  function connectionSettingsForm($form, &$form_state) {
+    drupal_set_message(t('This handler is broken.'), 'warning');
+
+    return $form;
+  }
 
 }
