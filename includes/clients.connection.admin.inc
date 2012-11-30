@@ -15,18 +15,13 @@ interface ClientsConnectionAdminUIInterface {
    * @param $form
    *  The form built so far. This contains the elements for the name and
    *  endpoint, but not the save button.
-   *
    * @param $form_state
    *  The form state from the main form, which you probably don't need anyway.
    *
-   * @return
-   *  A FormAPI form array. This replaces the original form.
-   *
-   * @see clients_connection_form()
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    */
-  function connectionSettingsForm($form, &$form_state);
+  function connectionSettingsFormAlter(&$form, &$form_state);
 
 }
 
@@ -34,7 +29,7 @@ interface ClientsConnectionAdminUIInterface {
  * Form builder for editing a connection.
  *
  * Gets the class of the connection from the data in the form and calls the
- * connectionSettingsForm() method on the class to build the form.
+ * connectionSettingsFormAlter() method on the class to build the form.
  * This allows different elements for different connection types.
  *
  * @param $connection
@@ -114,10 +109,8 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;
 
-  // Allow the connection class to make additions to the form. We don't use
-  // the node_form() pattern because typically a connection class will want to
-  // change the 'endpoint' element to add custom help text.
-  $form = $connection->connectionSettingsForm($form, $form_state);
+  // Allow the connection class to make additions to the form.
+  $connection->connectionSettingsFormAlter($form, $form_state);
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',

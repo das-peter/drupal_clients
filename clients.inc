@@ -46,32 +46,21 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
   }
 
   /**
-   * Extra form elements specific to a class's edit form.
+   * Alter the connection settings form.
    *
-   * This is the same pattern as node_form() -- just ignore the object behind
-   * the curtain ;)
-   *
-   * This (so far) is common to all versions of Drupal Services.
+   * Subclasses should add extra configuration form elements here.
    *
    * @param $form
    *  The main form array.
    * @param $form_state
    *  The form state from the main form, which you probably don't need anyway.
    *
-   * @return
-   *  A FormAPI form array. This will be merged in with basic data and the
-   *  submit button added.
-   *
-   * @see clients_connection_form()
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    *
    * TODO: define an interface for the admin UI
    */
-  function connectionSettingsForm($form, &$form_state) {
-    $form = array();
-
-    return $form;
+  function connectionSettingsFormAlter(&$form, &$form_state) {
   }
 
   /**

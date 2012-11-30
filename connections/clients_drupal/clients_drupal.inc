@@ -178,21 +178,13 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
   /**
    * Extra form elements specific to a class's edit form.
    *
-   * This is the same pattern as node_form() -- just ignore the object behind
-   * the curtain ;)
-   *
    * @param $form_state
    *  The form state from the main form, which you probably don't need anyway.
    *
-   * @return
-   *  A FormAPI form array. This will be merged in with basic data and the
-   *  submit button added.
-   *
-   * @see clients_connection_form()
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    */
-  function connectionSettingsForm($form, &$form_state) {
+  function connectionSettingsFormAlter(&$form, &$form_state) {
     $form['endpoint']['#description'] = t('Remote service URL e.g. http://mysite.com/path/to/xmlrpc');
 
     $form['configuration'] += array(
@@ -225,8 +217,6 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
       '#description' => $password_desc,
       '#required' => $this->is_new,
     );
-
-    return $form;
   }
 
   /**
@@ -360,18 +350,10 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
    *
    * This is common to versions 6-2 and 5 of Drupal Services.
    *
-   * @param $form_state
-   *  The form state from the main form, which you probably don't need anyway.
-   *
-   * @return
-   *  A FormAPI form array. This will be merged in with basic data and the
-   *  submit button added.
-   *
-   * @see clients_connection_form()
    * @see clients_connection_form()
    * @see clients_connection_form_submit()
    */
-  function connectionSettingsForm($form, &$form_state) {
+  function connectionSettingsFormAlter(&$form, &$form_state) {
     $form['endpoint']['#description'] = t('Remote service URL e.g. http://mysite.com/path/to/xmlrpc');
 
     $form['configuration'] += array(

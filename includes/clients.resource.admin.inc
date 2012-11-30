@@ -69,10 +69,8 @@ function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
     '#tree' => TRUE,
   );
 
-  // Allow the connection class to make additions to the form. We don't use
-  // the node_form() pattern because typically a connection class will want to
-  // change the 'endpoint' element to add custom help text.
-  $form = $resource->connectionSettingsForm($form, $form_state);
+  // Allow the connection class to make additions and alterations to the form.
+  $resource->resourceSettingsFormAlter($form, $form_state);
 
   $form['buttons']['submit'] = array(
     '#type' => 'submit',

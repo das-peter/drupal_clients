@@ -81,8 +81,7 @@ abstract class clients_resource_base extends ClientsHandlerEntity {
    *
    * TODO: define an interface for the admin UI
    */
-  function connectionSettingsForm($form, &$form_state) {
-    return $form;
+  function connectionSettingsFormAlter(&$form, &$form_state) {
   }
 
   /**
@@ -102,10 +101,8 @@ abstract class clients_resource_base extends ClientsHandlerEntity {
  */
 class ClientsHandlerEntityBroken extends ClientsHandlerEntity {
 
-  function connectionSettingsForm($form, &$form_state) {
+  function connectionSettingsFormAlter(&$form, &$form_state) {
     drupal_set_message(t('This handler is broken.'), 'warning');
-
-    return $form;
   }
 
 }
