@@ -8,10 +8,6 @@
  * Resource form.
  */
 function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
-  $form = array();
-
-  dsm($resource);
-
   $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Resource label'),
@@ -47,14 +43,6 @@ function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
   );
   */
 
-  $form['component'] = array(
-    '#type' => 'textfield',
-    '#default_value' => isset($resource->component) ? $resource->component : '',
-    '#maxlength' => 32,
-    '#description' => t('The component to provide.'),
-  );
-  // TODO: subclasses to do work here!
-
   $options = clients_connections_select_options();
   $form['connection'] = array(
     '#type' => 'select',
@@ -62,6 +50,16 @@ function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
     '#options' => $options,
     '#default_value' => isset($resource->connection) ? $resource->connection : '',
     '#description' => t('The connection to use for this resource.'),
+  );
+
+  // Most resource types should alter this form element to be more specific
+  // to what they do.
+  $form['component'] = array(
+    '#title' => t('Component name'),
+    '#type' => 'textfield',
+    '#default_value' => isset($resource->component) ? $resource->component : '',
+    '#maxlength' => 32,
+    '#description' => t('The component to provide.'),
   );
 
   // Container for all form elements whose values should be serialized to the
