@@ -21,10 +21,6 @@ class ClientsHandlerEntityUIController extends EntityDefaultUIController {
     $items[$this->path . '/add']['title'] = 'Add TODO';
     $items[$this->path . '/add']['page callback'] = 'clients_handler_add_page';
     $items[$this->path . '/add']['page arguments'] = array($this->entityType);
-    //$items[$this->path . '/add']['file'] = 'fragment.admin.inc'; // TODO
-    // Need to specify file path as this gets used in entity_menu().
-    //$items[$this->path . '/add']['file path'] = drupal_get_path('module', $this->entityInfo['module']);
-    // Extra fix; not in the patch yet.
 
     // Add links. Follow same pattern as node.
     $handler_types_callback = $this->entityInfo['admin ui']['types callback'];
