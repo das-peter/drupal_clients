@@ -10,6 +10,8 @@
 function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
   $form = array();
 
+  dsm($resource);
+
   $form['label'] = array(
     '#type' => 'textfield',
     '#title' => t('Resource label'),

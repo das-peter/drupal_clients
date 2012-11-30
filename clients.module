@@ -170,7 +170,7 @@ function clients_entity_info() {
       'exportable' => TRUE,
       'admin ui' => array(
         'path' => 'admin/structure/clients/connections',
-        'file' => 'clients.connection.admin.inc',
+        'file' => 'includes/clients.connection.admin.inc',
         'controller class' => 'ClientsConnectionEntityUIController',
         // Extras for our controller class.
         // The user_access() permission for the whole of the UI.
@@ -206,7 +206,7 @@ function clients_entity_info() {
       'exportable' => TRUE,
       'admin ui' => array(
         'path' => 'admin/structure/clients/resources',
-        'file' => 'clients.resource.admin.inc',
+        'file' => 'includes/clients.resource.admin.inc',
         'controller class' => 'ClientsResourceEntityUIController',
         // Extras for our controller class.
         'access permission' => 'administer client resources',
