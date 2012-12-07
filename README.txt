@@ -2,9 +2,19 @@ Connections
 ===========
 
 Clients module provides a simple UI for creating, editing, and testing
-connections to remote sites.
+connections to remote sites. [Note! Connection testing not yet upgraded to D7!]
 
-Connections are exportable via the EntiyAPI and thus can be added to Features.
+There are two ways to use a connection:
+
+- Connections can be called directly to make calls/requests to remote services.
+- Resources can be defined on top of clients. These take care of handling the
+  remote connection in a way that is transparent to the rest of Drupal. For
+  example, a remote block resource would take care of declaring the various
+  block hooks, and caching retrieved results. The remote block provided would
+  function exactly like a normal, local block.
+
+Connections and resources are exportable via the EntityAPI and thus can be added
+to Features.
 
 Requirements
 ============
@@ -13,8 +23,8 @@ Clients requires the following modules:
 
 - Entity API
 
-Using the Clients API
-=====================
+Using the Clients Connection API
+================================
 
 The Clients connection object lets you call methods on remote sites very
 simply, without having to deal with tokens, keys, and all that sort of
