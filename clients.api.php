@@ -52,6 +52,19 @@ function hook_clients_connection_type_info() {
 }
 
 /**
+ * Alter Clients connection types definitions.
+ *
+ * @param $connection_types
+ *   An array of information on the connection types implemented by a module,
+ *   keyed by the machine-readable name for the type.
+ *   Each type is itself an array, with following keys:
+ *     'label': the human-readable label.
+ *     'description': (optional) A more detailed description of the type.
+ */
+function hook_clients_connection_type_info_alter($connection_types) {
+}
+
+/**
  * Inform Clients about resource types.
  *
  * @return array
