@@ -343,11 +343,20 @@ function clients_connection_load_all($types = array()) {
  * Get a list of all connection types.
  */
 function clients_get_connection_types() {
-  static $connection_types;
+  $connection_types = &drupal_static(__FUNCTION__);
   if (!isset($connection_types)) {
-    // Invoke hook_clients_connection_type_info().
-    $connection_types = module_invoke_all('clients_connection_type_info');
+    if ($cache = cache_get('clients_connection_type_info')) {
+      $connection_types = $cache->data;
+    }
+    else {
+      // Invoke hook_clients_connection_type_info().
+      $connection_types = module_invoke_all('clients_connection_type_info');
+      drupal_alter('clients_connection_type_info', $connection_types);
+
+      cache_set('clients_connection_type_info', $connection_types);
+    }
   }
+
   return $connection_types;
 }
 
