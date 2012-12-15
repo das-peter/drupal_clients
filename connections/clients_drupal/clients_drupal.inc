@@ -261,7 +261,9 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
    */
   function callMethodArray($method, $method_params = array()) {
     // Connect to the remote system service to get an initial session id to log in with.
-    $connect = xmlrpc($this->endpoint, 'system.connect');
+    $connect = xmlrpc($this->endpoint, array(
+      'system.connect' => array(),
+    ));
     $session_id = $connect['sessid'];
 
     // We may want to call only system.connect for testing purposes.
@@ -274,7 +276,12 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     $username = $this->configuration['username'];
     $password = $this->configuration['password'];
 
-    $login = xmlrpc($this->endpoint, 'user.login', $username, $password);
+    $login = xmlrpc($this->endpoint, array(
+      'user.login' => array(
+        $username,
+        $password,
+      ),
+    ));
     $login_session_id = $login['sessid'];
 
     // If the requested method is user.login, we're done.
@@ -468,16 +475,16 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     // Build the array of connection arguments we need to log in.
     $username = $this->configuration['username'];
     $password = $this->configuration['password'];
-    $login_args = array_merge(
-      array($this->endpoint, 'user.login'), // endpoint, method
-      $key_args,                            // hash, domain_name, domain_time_stamp, nonce
-      array($session_id),                   // sessid
-      array($username, $password)           // username, password
-    );
 
     // Call the xmlrpc method with our array of arguments. This accounts for
     // whether we use a key or not, and the extra parameters to pass to the method.
-    $login = call_user_func_array('xmlrpc', $login_args);
+    $login_args = $key_args;
+    $login_args[] = $session_id;
+    $login_args[] = $username;
+    $login_args[] = $password;
+    $login = xmlrpc($this->endpoint, array(
+      'user.login' => $login_args,
+    ));
 
     return $login;
   }
@@ -511,7 +518,9 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     $this->method = $method;
 
     // Connect to the remote system service to get an initial session id to log in with.
-    $connect = xmlrpc($this->endpoint, 'system.connect');
+    $connect = xmlrpc($this->endpoint, array(
+      'system.connect' => array(),
+    ));
     $session_id = $connect['sessid'];
 
     // We may want to call only system.connect for testing purposes.
@@ -533,16 +542,14 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     // Get the API key-related arguments.
     $key_args = $this->xmlrpc_key_args($method);
 
-    // Build the array of connection arguments for the method we want to call.
-    $xmlrpc_args = array_merge(
-      array($this->endpoint, $method),
+    $method_args = array_merge(
       $key_args,
       array($login_session_id),
       $method_params
     );
-
-    // Call the xmlrpc method with our array of arguments.
-    $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+    $result = xmlrpc($this->endpoint, array(
+      $method => $method_args,
+    ));
 
     // Throw an exception for errors from the remote call.
     $this->handleXmlrpcError();
@@ -655,7 +662,9 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
     $config = $this->configuration;
 
-    $connect = xmlrpc($this->endpoint, 'system.connect');
+    $connect = xmlrpc($this->endpoint, array(
+      'system.connect' => array(),
+    ));
     $session_id = $connect['sessid'];
 
     // We may want to call only system.connect for testing purposes.
