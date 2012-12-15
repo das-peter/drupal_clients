@@ -186,7 +186,7 @@ function clients_connection_test_form($form, &$form_state, $connection) {
   $items[] = t('Name') . ': ' . check_plain($connection->name);
   $items[] = t('Endpoint') . ': ' . $connection->endpoint;
   $form['connection']['details'] = array(
-    '#value' => theme('item_list', array('items' => $items)),
+    '#markup' => theme('item_list', array('items' => $items)),
   );
 
   // Buttons. These are themed into a vertical list with the description text alongside each one.
