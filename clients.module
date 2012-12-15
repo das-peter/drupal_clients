@@ -341,8 +341,17 @@ function clients_connection_load_all($types = array()) {
 
 /**
  * Get a list of all connection types.
+ *
+ * @param $type
+ *  (Optional) The name of a single type to return a definition for. If omitted,
+ *  all definitions are returned.
+ *
+ * @return
+ *  An array of connection type definitions, keyed by machine name.
+ *
+ * @see hook_clients_connection_type_info()
  */
-function clients_get_connection_types() {
+function clients_get_connection_types($type = NULL) {
   $connection_types = &drupal_static(__FUNCTION__);
   if (!isset($connection_types)) {
     if ($cache = cache_get('clients_connection_type_info')) {
@@ -357,7 +366,14 @@ function clients_get_connection_types() {
     }
   }
 
-  return $connection_types;
+  if (isset($type)) {
+    if (isset($connection_types[$type])) {
+      return $connection_types[$type];
+    }
+  }
+  else {
+    return $connection_types;
+  }
 }
 
 // Entity API callbacks.
