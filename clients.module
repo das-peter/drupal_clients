@@ -79,7 +79,9 @@ function clients_get_resource_types() {
 /**
  * Call a remote method on a client.
  *
- * This the main API for Client connections and should be considered stable.
+ * This the main API for Client connections that support remote methods, such
+ * as XMLRPC.
+ *
  * Used thus:
  *  clients_connection_call('connection_machine_name', 'method_name', $params...);
  * For example:

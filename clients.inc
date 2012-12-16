@@ -111,6 +111,9 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
    * If you need to call a method on given connection object, use callMethod
    * which has a nicer form.
    *
+   * Subclasses do not necessarily have to override this method if their
+   * connection type does not make sense with this.
+   *
    * @param $method
    *  The name of the remote method to call.
    * @param $method_params

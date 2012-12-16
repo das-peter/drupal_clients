@@ -7,9 +7,9 @@ on Drupal (http://drupal.org/project/services).
 
 The module allows for a client type for each version of Services, though
 not all are done yet:
-  Services 7.x-3.x on Drupal 7: TODO
+  Services 7.x-3.x on Drupal 7: not extensively tested
   Services 6.x-3.x on Drupal 6: TODO
-  Services 6.x-2.x on Drupal 6: TODO
+  Services 6.x-2.x on Drupal 6: working
   Services 5.x-0.92 on Drupal 5: working
 
 Each different type is simply a subclass of the main Drupal Client class.
