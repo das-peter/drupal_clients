@@ -28,10 +28,18 @@ function clients_drupal_help($path, $arg) {
  */
 function clients_drupal_clients_connection_type_info() {
   return array(
-    // Key by machine name. Used as the base for hooks.
+    // Key by machine name. Used to determine class names.
     'drupal_services_5' => array(
-      'label'  => t('Drupal Services 5'), // Human-readable label.
+       // Human-readable label.
+      'label'  => t('Drupal Services 5'),
+      // Description for UI.
       'description' => t('Connects to Drupal sites using Services 5.x-0.92.'),
+      // Test handler classes.
+      'tests' => array(
+        'connect' => 'ClientsConnectionDrupalTestConnect',
+        'login' => 'ClientsConnectionDrupalTestLogin',
+        'node_load' => 'ClientsConnectionDrupalTestNodeLoad5',
+      ),
     ),
     'drupal_services_6_2' => array(
       'label'  => t('Drupal Services 6.x-2.x'),
@@ -45,6 +53,11 @@ function clients_drupal_clients_connection_type_info() {
     'drupal_services_7_3' => array(
       'label'  => t('Drupal Services 7.x-3.x'),
       'description' => t('Connects to Drupal sites using Services 7.x-3.x.'),
+      'tests' => array(
+        'connect' => 'ClientsConnectionDrupalTestConnect',
+        'login' => 'ClientsConnectionDrupalTestLogin',
+        'node_load' => 'ClientsConnectionDrupalTestNodeLoad7_3',
+      ),
     ),
   );
 }
