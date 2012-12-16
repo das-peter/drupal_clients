@@ -81,7 +81,7 @@ abstract class clients_resource_base extends ClientsHandlerEntity {
    *
    * TODO: define an interface for the admin UI
    */
-  function connectionSettingsFormAlter(&$form, &$form_state) {
+  function resourceSettingsFormAlter(&$form, &$form_state) {
   }
 
   /**
