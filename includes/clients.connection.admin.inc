@@ -356,3 +356,12 @@ function clients_connection_test_js($form, &$form_state) {
   // Place the data returned from the connection in the form for display.
   return $form['buttons'][$test_name]['results'];
 }
+
+/**
+ * Devel tab for Clients connections.
+ */
+function clients_connection_page_devel($connection) {
+  $output = kprint_r($connection, TRUE);
+
+  return $output;
+}

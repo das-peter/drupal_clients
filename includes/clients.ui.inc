@@ -87,6 +87,22 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
       'type' => MENU_LOCAL_TASK,
     );
 
+    if (module_exists('devel')) {
+      // Devel tab.
+      $items[$this->path . '/manage/' . $wildcard . '/devel'] = array(
+        'title' => 'Devel',
+        'page callback' => 'clients_connection_page_devel',
+        'page arguments' => array($id_count + 1),
+        'load arguments' => array($this->entityType),
+        'access arguments' => array('administer clients connections'),
+        'file' =>  $this->entityInfo['admin ui']['file'],
+        // Need to specify file path as this gets used in entity_menu().
+        'file path' => drupal_get_path('module', $this->entityInfo['module']),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 10,
+      );
+    }
+
     return $items;
   }
 
