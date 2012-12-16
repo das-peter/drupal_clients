@@ -60,6 +60,7 @@ function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
     '#default_value' => isset($resource->component) ? $resource->component : '',
     '#maxlength' => 32,
     '#description' => t('The component to provide.'),
+    '#required' => TRUE,
   );
 
   // Container for all form elements whose values should be serialized to the
