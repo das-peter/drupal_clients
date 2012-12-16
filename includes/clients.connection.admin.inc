@@ -86,6 +86,11 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
   $type = $connection->type;
   $class = 'clients_connection_' . $type;
 
+  if ($op == 'clone') {
+    $connection->label .= ' (cloned)';
+    $connection->name = '';
+  }
+
   $form['#connection'] = clone($connection);
 
   $form['fake_type'] = array(
@@ -112,7 +117,7 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
     '#type' => 'machine_name',
     '#default_value' => isset($connection->name) ? $connection->name : '',
     '#maxlength' => 32,
-    '#disabled' => ($op == 'clone'),
+    '#disabled' => ($op != 'clone'),
     '#machine_name' => array(
       'exists' => 'clients_connection_load',
       'source' => array('label'),
