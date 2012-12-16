@@ -207,6 +207,23 @@ abstract class ClientsConnectionDrupalTestNodeLoadBase implements ClientsConnect
 }
 
 /**
+ * Test retrieving a node from a Drupal Services 7.x-3.x connection.
+ */
+class ClientsConnectionDrupalTestNodeLoad7_3
+  extends ClientsConnectionDrupalTestNodeLoadBase {
+
+  /**
+   * Call the remote method.
+   */
+  function callNodeLoadMethod($connection, $nid) {
+    $fields = array();
+    $node = $connection->callMethodArray('node.retrieve', array($nid));
+    return $node;
+  }
+
+}
+
+/**
  * Test retrieving a node from a Drupal Services 6.x-2.x connection.
  */
 class ClientsConnectionDrupalTestNodeLoad6_2
@@ -223,4 +240,19 @@ class ClientsConnectionDrupalTestNodeLoad6_2
 
 }
 
-// TODO: classes for D5 and D7
+/**
+ * Test retrieving a node from a Drupal Services 5.x-0.92 connection.
+ */
+class ClientsConnectionDrupalTestNodeLoad5
+  extends ClientsConnectionDrupalTestNodeLoadBase {
+
+  /**
+   * Call the remote method.
+   */
+  function callNodeLoadMethod($connection, $nid) {
+    $fields = array();
+    $node = $connection->callMethodArray('node.load', array($nid));
+    return $node;
+  }
+
+}

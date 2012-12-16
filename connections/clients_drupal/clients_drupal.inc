@@ -183,38 +183,6 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     return $result;
   }
 
-  // ============================================ D7-3: Testing system.
-  /**
-   * Connection test button handler: loading a node: Services 7.x-3.x.
-   */
-  function testConnectionNodeLoad(&$button_form_values) {
-    // Must be cast to integer for faffiness of XMLRPC and Services.
-    $nid = (int) $button_form_values['nid'];
-
-    try {
-      $node = $this->callMethodArray('node.retrieve', array($nid));
-    }
-    catch (Exception $e) {
-      drupal_set_message(t('Could not retrieve a node from the remote site, got error message "@message".', array(
-        '@message' => $e->getMessage(),
-      )), 'warning');
-      //dsm($e);
-
-      return;
-    }
-
-    if (is_array($node) && isset($node['nid'])) {
-      drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
-        '%title' => $node['title'],
-        '@nid'  => $node['nid'],
-        )));
-    }
-    else {
-      drupal_set_message(t('Could not retrieve a node from the remote site.'), 'warning');
-    }
-
-    return $node;
-  }
 }
 
 /**
@@ -565,40 +533,6 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
     return $result;
 
-  }
-
-  // ============================================ D5: Testing system.
-  /**
-   * Connection test button handler: loading a node.
-   *
-   * This uses a different method on Services 5.x-0.92.
-   */
-  function testConnectionNodeLoad(&$button_form_values) {
-    $nid = $button_form_values['nid'];
-
-    try {
-      $node = $this->callMethodArray('node.load', array($nid));
-    }
-    catch (Exception $e) {
-      drupal_set_message(t('Could not retrieve a node from the remote site, got error message "@message".', array(
-        '@message' => $e->getMessage(),
-      )), 'warning');
-      //dsm($e);
-
-      return;
-    }
-
-    if (is_array($node) && isset($node['nid'])) {
-      drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
-        '%title' => $node['title'],
-        '@nid'  => $node['nid'],
-        )));
-    }
-    else {
-      drupal_set_message(t('Could not retrieve a node from the remote site.'), 'warning');
-    }
-
-    return $node;
   }
 
 }
