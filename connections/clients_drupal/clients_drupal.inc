@@ -105,7 +105,8 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
       '#required' => TRUE,
     );
 
-    $password_desc = isset($this->is_new)
+    $password_exists = isset($this->configuration['password']);
+    $password_desc = $password_exists
       ? t('This should be same as the password on the server you are connecting to.')
       : t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.');
     $form['configuration']['password'] = array(
@@ -115,7 +116,7 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
       '#description' => $password_desc,
-      '#required' => isset($this->is_new),
+      '#required' => !$password_exists,
     );
   }
 
