@@ -21,6 +21,31 @@ class clients_connection_drupal_services extends clients_connection_base {
     $this->configuration['password'] = clients_drupal_decrypt($this->configuration['password']);
   }
 
+  // ============================================ Base: Admin UI.
+  /**
+   * Submit handler for saving/updating connections of this class.
+   *
+   * @see clients_connection_form_submit()
+   */
+  function connectionSettingsForm_submit($form, &$form_state) {
+    $old_connection = $form['#connection'];
+
+    // Check whether we're editing or adding a new connection.
+    if (isset($old_connection->is_new)) {
+      // Encryption disabled for now. TODO
+      //$form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
+    }
+    else {
+      // Prepare password for serialized storage
+      if (empty($form_state['values']['configuration']['password'])) {
+        // Set password to original if blank.
+        $this->configuration['password'] = $old_connection->configuration['password'];
+      }
+      // Encryption disabled for now. TODO
+      //$form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
+    }
+  }
+
   // ============================================ Base: Method calling.
   /**
    * Common helper for reacting to an error from an XMLRPC call.
@@ -92,28 +117,6 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
       '#description' => $password_desc,
       '#required' => isset($this->is_new),
     );
-  }
-
-  /**
-   * Submit handler for saving/updating connections of this class.
-   *
-   * @see clients_connection_form_submit()
-   */
-  static function connectionSettingsForm_submit($form, &$form_state) {
-    $old_connection = $form_state['values']['old_connection'];
-
-    // Check whether we're editing or adding a new connection.
-    if ($old_connection->is_new) {
-      $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
-    }
-    else {
-      // Prepare password for serialized storage
-      if (empty($form_state['values']['configuration']['password'])) {
-        // Set password to original if blank.
-        $form_state['values']['configuration']['password'] = $old_connection->configuration['password'];
-      }
-      $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
-    }
   }
 
   function formatEndpoint($url) {
@@ -289,28 +292,6 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     );
 
     return $form;
-  }
-
-  /**
-   * Submit handler for saving/updating connections of this class.
-   *
-   * @see clients_connection_form_submit()
-   */
-  static function connectionSettingsForm_submit($form, &$form_state) {
-    $old_connection = $form_state['values']['old_connection'];
-
-    // Check whether we're editing or adding a new connection.
-    if ($old_connection->is_new) {
-      $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
-    }
-    else {
-      // Prepare password for serialized storage
-      if (empty($form_state['values']['configuration']['password'])) {
-        // Set password to original if blank.
-        $form_state['values']['configuration']['password'] = $old_connection->configuration['password'];
-      }
-      $form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
-    }
   }
 
   /**

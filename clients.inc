@@ -68,7 +68,7 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
    *
    * @see clients_connection_form_submit().
    */
-  static function connectionSettingsForm_submit($form, &$form_state) {
+  function connectionSettingsForm_submit($form, &$form_state) {
     // Base class does nothing; saving of the connection is handled by the
     // 'real' FormAPI submit handler.
   }

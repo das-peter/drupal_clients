@@ -78,17 +78,10 @@ interface ClientsConnectionTestingInterface {
 function clients_connection_form($form, &$form_state, $connection, $op = 'edit') {
   $form = array();
 
-  // OBSOLETE??? TODO
   $type = $connection->type;
   $class = 'clients_connection_' . $type;
 
-
-  /*
-  $form['old_connection'] = array(
-    '#type' => 'value',
-    '#value' => $connection,
-  );
-  */
+  $form['#connection'] = clone($connection);
 
   $form['fake_type'] = array(
     '#type' => 'textfield',
@@ -167,16 +160,21 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
  * saving is handled here.
  *
  * @see clients_connection_form()
+ * @see clients_connection_base::connectionSettingsForm_submit()
  */
 function clients_connection_form_submit($form, &$form_state) {
   $connection = entity_ui_form_submit_build_entity($form, $form_state);
-  
+
+  // Call connectionSettingsForm_submit() on the connection handler.
+  // This allows treatment of form values particular to the connection type.
+  $connection->connectionSettingsForm_submit($form, $form_state);
+
   // Save and go back.
   $connection->save();
 
   drupal_set_message(t('Connection saved.'));
 
-  $form_state['redirect'] = 'admin/structure/clients/connections';
+  //$form_state['redirect'] = 'admin/structure/clients/connections';
 }
 
 /**
