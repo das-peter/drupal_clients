@@ -119,10 +119,6 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     );
   }
 
-  function formatEndpoint($url) {
-    return $url;
-  }
-
   // ============================================ D7-3: Connection API.
   /**
    * Call a remote method.
