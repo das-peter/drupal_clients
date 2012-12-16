@@ -98,10 +98,16 @@ abstract class clients_resource_base extends ClientsHandlerEntity {
 
 /**
  * Common class for broken handlers.
+ *
+ * This does double duty for both connections and resources.
  */
 class ClientsHandlerEntityBroken extends ClientsHandlerEntity {
 
   function connectionSettingsFormAlter(&$form, &$form_state) {
+    drupal_set_message(t('This handler is broken.'), 'warning');
+  }
+
+  function resourceSettingsFormAlter(&$form, &$form_state) {
     drupal_set_message(t('This handler is broken.'), 'warning');
   }
 

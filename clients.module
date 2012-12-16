@@ -37,8 +37,8 @@ function clients_resource_get_for_component($resource_type, $component_name) {
  *  A connection machine name.
  * @return
  *  A fully loaded connection handler object. If there is a problem, such as
- *  the machine name or connection type not existing, a connection of class
- *  'clients_connection_broken' is returned.
+ *  the machine name or connection type not existing, a connection of the class
+ *  defined for broken handlers in hook_entity_info() is returned.
  */
 function clients_resource_load($name) {
   return entity_load_single('clients_resource', $name);
@@ -316,8 +316,8 @@ function clients_flush_caches() {
  *
  * @return
  *  A fully loaded connection handler object. If there is a problem, such as
- *  the machine name or connection type not existing, a connection of class
- *  'clients_connection_broken' is returned.
+ *  the machine name or connection type not existing, a connection of the class
+ *  defined for broken handlers in hook_entity_info() is returned.
  */
 function clients_connection_load($name) {
   return entity_load_single('clients_connection', $name);
