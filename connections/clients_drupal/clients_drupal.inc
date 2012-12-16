@@ -464,7 +464,7 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
  * between these versions when it comes to making calls.
  */
 class clients_connection_drupal_services_5 extends clients_connection_drupal_services_6_2 {
-  // ============================================ D5: Connection methods.  
+  // ============================================ D5: Connection methods.
   /**
    * Call a remote method with an array of parameters.
    *

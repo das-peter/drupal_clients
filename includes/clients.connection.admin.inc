@@ -106,7 +106,7 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
     '#description' => t('The human-readable name for the connection.'),
     '#required' => TRUE,
   );
-  
+
   // Machine-readable type name.
   $form['name'] = array(
     '#type' => 'machine_name',
