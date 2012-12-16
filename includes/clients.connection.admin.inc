@@ -76,6 +76,11 @@ interface ClientsConnectionTestingInterface {
  * @see clients_connection_form_submit()
  */
 function clients_connection_form($form, &$form_state, $connection, $op = 'edit') {
+  // Fix breadcrumb which is broken here for who knows what reason.
+  $breadcrumb = drupal_get_breadcrumb();
+  $breadcrumb[] = l(t('Clients'), 'admin/structure/clients');
+  drupal_set_breadcrumb($breadcrumb);
+
   $form = array();
 
   $type = $connection->type;
@@ -212,6 +217,12 @@ function clients_connection_view($connection) {
  *  A loaded connection.
  */
 function clients_connection_test_form($form, &$form_state, $connection) {
+  // Fix breadcrumb which is broken here for who knows what reason.
+  $breadcrumb = drupal_get_breadcrumb();
+  array_pop($breadcrumb);
+  $breadcrumb[] = l(t('Clients'), 'admin/structure/clients');
+  drupal_set_breadcrumb($breadcrumb);
+
   $type_definition = clients_get_connection_types($connection->type);
 
   $form['#connection'] = $connection;
