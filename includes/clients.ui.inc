@@ -111,7 +111,15 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
     $additional_cols['type'] = $entity->type;
     $additional_cols['endpoint'] = $entity->formatEndpoint($entity->endpoint);
 
-    return parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
+    $row = parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
+
+    // We have to hack these in.
+    $additional_ops = array(
+      l(t('test'), $this->path . '/manage/' . $id . '/test'),
+    );
+    array_splice($row, 5, 0, $additional_ops);
+
+    return $row;
   }
 
 }
