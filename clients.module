@@ -47,19 +47,31 @@ function clients_resource_load($name) {
 /**
  * Load all resources.
  *
- * // TODO? Obsolete? @param $types
- *  (optional) Specify a single type or a list of types to include.
- *  If omitted, all are returned.
+ * @param $type
+ *  (optional) Specify a single type to include. If omitted, all are returned.
  *
  * @return
  *  An array of connection objects, keyed by name.
  */
-function clients_resource_load_all() {
+function clients_resource_load_all($type = NULL) {
   $resources = entity_load_multiple_by_name('clients_resource', FALSE);
-  // We generally want resources ordered by machine name.
-  ksort($resources);
 
-  return $resources;
+  if (isset($type)) {
+    $return = array();
+    foreach ($resources as $name => $resource) {
+      if ($resource->type == $type) {
+        $return[$name] = $resource;
+      }
+    }
+  }
+  else {
+    $return = $resources;
+  }
+
+  // We generally want resources ordered by machine name.
+  ksort($return);
+
+  return $return;
 }
 
 /**
