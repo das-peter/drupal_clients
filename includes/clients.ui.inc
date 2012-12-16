@@ -61,6 +61,9 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
     // Tweak what our base class does..
     $items = parent::hook_menu();
 
+    $id_count = count(explode('/', $this->path));
+    $wildcard = isset($this->entityInfo['admin ui']['menu wildcard']) ? $this->entityInfo['admin ui']['menu wildcard'] : '%entity_object';
+
     // Create the base item for the Clients admin tabs...
     $base_item = $items[$this->path];
     $base_item['title'] = t('Clients');
@@ -71,7 +74,18 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
     $items[$this->path]['title'] = t('Connections');
     $items[$this->path]['type'] = MENU_DEFAULT_LOCAL_TASK;
 
-    // TODO: testing system!!!
+    // Testing system.
+    $items[$this->path . '/manage/' . $wildcard . '/test'] = array(
+      'title' => 'Test',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('clients_connection_test_form', $id_count + 1),
+      'load arguments' => array($this->entityType),
+      'access arguments' => array('administer clients connections'),
+      'file' =>  $this->entityInfo['admin ui']['file'],
+      // Need to specify file path as this gets used in entity_menu().
+      'file path' => drupal_get_path('module', $this->entityInfo['module']),
+      'type' => MENU_LOCAL_TASK,
+    );
 
     return $items;
   }

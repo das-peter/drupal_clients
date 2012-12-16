@@ -43,131 +43,6 @@ class clients_connection_drupal_services extends clients_connection_base {
     }
   }
 
-  // ============================================ Base: Testing system.
-  /**
-   * Provide buttons for the connection testing page.
-   *
-   * @param $form_state
-   *  This is passed in so you can set defaults based on user input.
-   */
-  function getTestOperations($form_state, $connection_name) {
-    $buttons['connect'] = array(
-      '#value' => t('Test connection'),
-      '#type' => 'submit',
-      //'#name' => 'connect', // wtf does this do?
-      '#action_type' => 'method',
-      '#action_submit' => 'testConnectionConnect',
-      '#description' => t('Test the connection settings by calling system.connect on the remote server.'),
-    );
-    $buttons['login'] = array(
-      '#value' => t('Test user login'),
-      '#type' => 'submit',
-      //'#name' => 'login',
-      '#action_type' => 'method',
-      '#action_submit' => 'testConnectionLogin',
-      '#description' => t('Test the remote user settings and by calling user.login on the remote server.'),
-    );
-    $buttons['node_load'] = array(
-      '#type' => 'fieldset',
-    );
-    $buttons['node_load']['nid'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Node ID'),
-      '#size' => 6,
-      '#default_value' => isset($form_state['values']['buttons']['node_load']['nid']) ? $form_state['values']['buttons']['node_load']['nid'] : NULL,
-    );
-    $buttons['node_load']['button'] = array(
-      '#value' => t('Test node retrieval'),
-      '#type' => 'submit',
-      //'#name' => 'login',
-      // TODO: tidy up these method names!
-      '#action_type' => 'method',
-      '#action_submit' => 'testConnectionNodeLoad',
-      '#action_validate' => 'testConnectionNodeLoadValidate',
-      '#description' => t('Attempt to load a remote node.'),
-
-    );
-    return $buttons;
-  }
-
-  /**
-   * Connection test button handler: basic connection.
-   *
-   * Connection test handlers should return the raw data they got back from the
-   * connection for display to the user.
-   */
-  function testConnectionConnect(&$button_form_values) {
-    try {
-      // Call the connect method.
-      $connect = $this->callMethodArray('system.connect');
-    }
-    catch (Exception $e) {
-      drupal_set_message(t('Could not connect to the remote site, got error message "@message".', array(
-        '@message' => $e->getMessage(),
-      )), 'warning');
-      //dsm($e);
-
-      return;
-    }
-
-    if (is_array($connect) && isset($connect['user'])) {
-      drupal_set_message(t('Sucessfully connected to the remote site.'));
-    }
-    else {
-      drupal_set_message(t('Could not connect to the remote site.'), 'warning');
-    }
-
-    return $connect;
-  }
-
-  /**
-   * Connection test button handler: user login.
-   */
-  function testConnectionLogin(&$button_form_values) {
-    try {
-      // Call the login method.
-      $login = $this->callMethodArray('user.login');
-      // Eep. we need user details!!!
-    }
-    catch (Exception $e) {
-      drupal_set_message(t('Could not log in to the remote site, got error message "@message".', array(
-        '@message' => $e->getMessage(),
-      )), 'warning');
-      //dsm($e);
-
-      return;
-    }
-
-    if (is_array($login) && isset($login['user'])) {
-      drupal_set_message(t('Sucessfully logged in to the remote site; got back details for user %user (uid @uid).', array(
-        '%user' => $login['user']['name'],
-        '@uid'  => $login['user']['uid'],
-        )));
-    }
-    else {
-      drupal_set_message(t('Could not log in to the remote site.'), 'warning');
-    }
-
-    return $login;
-  }
-
-  /**
-   * Connection test button validate handler: loading a node.
-   */
-  function testConnectionNodeLoadValidate(&$button_form_values) {
-    if (empty($button_form_values['nid'])) {
-      form_set_error('buttons][node_load][nid', t('Node id is required for the node retrieval test.'));
-    }
-  }
-
-  /**
-   * Connection test button handler: loading a node.
-   *
-   * Each version has to do its own thing; this is just here to avoid a WTF.
-   */
-  function testConnectionNodeLoad(&$button_form_values) {
-  }
-
 }
 
 /**
@@ -597,37 +472,6 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     return $key_args;
   }
 
-  // ============================================ D6-2: Testing system.
-  /**
-   * Connection test button handler: loading a node on D6.
-   */
-  function testConnectionNodeLoad(&$button_form_values) {
-    // Must be cast to integer for faffiness of XMLRPC and Services.
-    $nid = (int) $button_form_values['nid'];
-    $fields = array();
-
-    try {
-      $node = $this->callMethodArray('node.get', array($nid, $fields));
-    }
-    catch (Exception $e) {
-      drupal_set_message(t('Could not retrieve a node from the remote site, got error message "@message".', array(
-        '@message' => $e->getMessage(),
-      )), 'warning');
-      //dsm($e);
-
-      return;
-    }
-
-    if (is_array($node) && isset($node['nid'])) {
-      drupal_set_message(t('Sucessfully retrieved node %title (nid @nid).', array(
-        '%title' => $node['title'],
-        '@nid'  => $node['nid'],
-        )));
-    }
-
-    return $node;
-  }
-
 }
 
 /**
@@ -741,17 +585,6 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
   }
 
-  /**
-   * Provide buttons for the connection testing page.
-   *
-   * @param $form_state
-   *  This is passed in so you can set defaults based on user input.
-   */
-  function getTestOperations($form_state, $connection_name) {
-    // Just making the inheritance explicit for debugging... ;)
-    return parent::getTestOperations($form_state, $connection_name);
-  }
-
   // ============================================ D5: Testing system.
   /**
    * Connection test button handler: loading a node.
@@ -787,4 +620,3 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
   }
 
 }
-

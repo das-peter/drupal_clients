@@ -63,6 +63,19 @@ If you need to make several calls, you can use the connection object yourself:
     drupal_set_message("Error calling method.name.");
   }
 
+Extending the testing system
+===========================
+
+You can extend the connection testing system to provide tests that are specific
+to your particular system.
+
+- define connection test classes. See ClientsConnectionDrupalTestConnect for
+  an example.
+- to make your test class available, either:
+  - implement hook_clients_connection_type_info_alter() to add your test class
+    to all connections of a given type.
+  - implement hook_client_connection_tests_alter() to add your test to a single
+    connection.
 
 Defining Connection types
 =========================

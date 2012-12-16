@@ -73,13 +73,6 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
     // 'real' FormAPI submit handler.
   }
 
-  /**
-   * Provide buttons for the connection testing page.
-   */
-  function getTestOperations($form_state, $connection_name) {
-    return array();
-  }
-
   // ============================================ Connection API.
   // TODO: move these to an XMLRPC client interface.
 

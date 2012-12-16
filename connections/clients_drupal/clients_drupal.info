@@ -4,3 +4,4 @@ core = 7.x
 dependencies[] = clients
 package = Clients
 files[] = clients_drupal.inc
+files[] = clients_drupal.testing.inc
