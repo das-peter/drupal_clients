@@ -3,7 +3,6 @@ description = Basic service management and API for Web Services clients
 core = 7.x
 package = Clients
 dependencies[] = entity
-files[] = clients.inc
 files[] = includes/clients.connection.admin.inc
 files[] = includes/clients.entity.inc
 files[] = includes/clients.controller.inc
