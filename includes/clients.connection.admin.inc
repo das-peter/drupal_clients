@@ -231,7 +231,6 @@ function clients_connection_test_form($form, &$form_state, $connection) {
   $type_definition = clients_get_connection_types($connection->type);
 
   $form['#connection'] = $connection;
-  $form['#connection_type'] = $type_definition;
 
   $form['connection'] = array(
     '#type' => 'fieldset',
@@ -255,6 +254,10 @@ function clients_connection_test_form($form, &$form_state, $connection) {
     $type_definition['tests'] = array();
   }
   drupal_alter('client_connection_tests', $type_definition['tests'], $connection);
+
+  // Store the type definition with the altered tests in the form for the
+  // validate and submit handlers.
+  $form['#connection_type'] = $type_definition;
 
   if (!empty($type_definition['tests'])) {
     foreach ($type_definition['tests'] as $test_name => $test_class) {
