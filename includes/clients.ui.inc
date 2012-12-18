@@ -7,6 +7,10 @@
 
 /**
  * Default controller for providing handler UI.
+ *
+ * Expects:
+ *  - 'type' key on the entity to be the handler type.
+ *  - various entity info property documented in clients_hook_entity_info().
  */
 class ClientsHandlerEntityUIController extends EntityDefaultUIController {
 
@@ -47,6 +51,44 @@ class ClientsHandlerEntityUIController extends EntityDefaultUIController {
     return $items;
   }
 
+  /**
+   * Generates the table headers for the overview table.
+   */
+  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    // Our subclasses have almost certainly added additional columns.
+    // Put the handler type at the front so it comes just after the name.
+    array_unshift($additional_header, t('Type'));
+
+    return parent::overviewTableHeaders($conditions, $rows, $additional_header);
+  }
+
+  /**
+   * Generates the row for the passed entity and may be overridden in order to
+   * customize the rows.
+   *
+   * @param $additional_cols
+   *   Additional columns to be added after the entity label column.
+   */
+  protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
+    $handler_types_callback = $this->entityInfo['admin ui']['types callback'];
+    $handler_types = $handler_types_callback();
+
+    if (isset($handler_types[$entity->type])) {
+      $handler_type = $handler_types[$entity->type];
+      $type_label = $handler_type['label'];
+    }
+    else {
+      $type_label = $entity->type;
+    }
+
+    // Our subclasses have almost certainly added additional columns.
+    // Put the handler type at the front so it comes just after the name.
+    array_unshift($additional_cols, $type_label);
+
+    $row = parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
+
+    return $row;
+  }
 }
 
 /**
@@ -110,7 +152,6 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
    * Generates the table headers for the overview table.
    */
   protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
-    $additional_header['type'] = t('Type');
     $additional_header['endpoint'] = t('Endpoint');
 
     return parent::overviewTableHeaders($conditions, $rows, $additional_header);
@@ -124,7 +165,7 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
    *   Additional columns to be added after the entity label column.
    */
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
-    $additional_cols['type'] = $entity->type;
+    // Add the endpoint to the columns. Our parent class does the handler type.
     $additional_cols['endpoint'] = $entity->formatEndpoint($entity->endpoint);
 
     $row = parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
@@ -162,7 +203,6 @@ class ClientsResourceEntityUIController extends ClientsHandlerEntityUIController
    * Generates the table headers for the overview table.
    */
   protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
-    $additional_header['type'] = t('Type');
     $additional_header['connection'] = t('Connection');
 
     return parent::overviewTableHeaders($conditions, $rows, $additional_header);
@@ -176,7 +216,7 @@ class ClientsResourceEntityUIController extends ClientsHandlerEntityUIController
    *   Additional columns to be added after the entity label column.
    */
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
-    $additional_cols['type'] = $entity->type;
+    // Add the connection to the columns. Our parent class does the handler type.
     $additional_cols['connection'] = l($entity->connection, 'admin/structure/clients/connections/manage/' . $entity->connection);
 
     return parent::overviewTableRow($conditions, $id, $entity, $additional_cols);
