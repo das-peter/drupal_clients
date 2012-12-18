@@ -45,6 +45,32 @@ function clients_resource_load($name) {
 }
 
 /**
+ * Load all resources for a given connection.
+ *
+ * @param $connection_name
+ *  The machine name of a connection.
+ *
+ * @return
+ *  An array of resource objects, keyed by name, or an empty array if none
+ *  found.
+ */
+function clients_resource_load_for_connection($connection_name) {
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'clients_resource')
+    ->propertyCondition('connection', $connection_name);
+
+  $result = $query->execute();
+
+  if (isset($result['clients_resource'])) {
+    $ids = array_keys($result['clients_resource']);
+    $resources = entity_load_multiple_by_name('clients_resource', $ids);
+
+    return $resources;
+  }
+  return array();
+}
+
+/**
  * Load all resources.
  *
  * @param $type

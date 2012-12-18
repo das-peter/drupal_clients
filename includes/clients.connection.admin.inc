@@ -239,6 +239,13 @@ function clients_connection_test_form($form, &$form_state, $connection) {
   $items[] = t('Type') . ': ' . $type_definition['label'];
   $items[] = t('Name') . ': ' . check_plain($connection->name);
   $items[] = t('Endpoint') . ': ' . $connection->endpoint;
+  $resources = clients_resource_load_for_connection($connection->name);
+  $resource_labels = array();
+  foreach ($resources as $resource) {
+    $uri = $resource->uri();
+    $resource_labels[] = l($resource->label, $uri['path']);
+  }
+  $items[] = t('Resources') . ': ' . implode(', ', $resource_labels);
   $form['connection']['details'] = array(
     '#markup' => theme('item_list', array('items' => $items)),
   );
