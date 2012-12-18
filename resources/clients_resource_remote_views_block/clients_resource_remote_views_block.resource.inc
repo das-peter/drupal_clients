@@ -56,8 +56,8 @@ class clients_resource_remote_view_block extends clients_resource_base {
   function hook_block_info() {
     $blocks[$this->component] = array(
       'info' => $this->configuration['block_title'],
-      // TODO: caching?
-      'cache' => DRUPAL_NO_CACHE,
+      // TODO: Our own caching for resources or connections?
+      'cache' => DRUPAL_CACHE_GLOBAL,
     );
     return $blocks;
   }
