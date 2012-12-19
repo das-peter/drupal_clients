@@ -22,12 +22,16 @@
  *      access callback.
  *    - 'types callback': The name of a callback function that gives a list of
  *      types of handlers. The keys of the list should be the machine names; the
- *      values are ignored.
+ *      values should be arrays of data with at least a 'label' key for the
+ *      human-readable name of the handler type.
  * - 'factory': An array of information on how to build handler objects.
  *    - 'class prefix': The prefix to apply to the handler type to make the name
  *      of the class to use.
  *    - 'broken class': The class to use when the class for a handler cannot be
  *      found, for example, if a module has been disabled.
+ *
+ * @see ClientsHandlerEntityController
+ * @see ClientsHandlerEntityUIController
  */
 function clients_hook_entity_info() {
 
