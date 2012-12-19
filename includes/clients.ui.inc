@@ -73,12 +73,14 @@ class ClientsHandlerEntityUIController extends EntityDefaultUIController {
     $handler_types_callback = $this->entityInfo['admin ui']['types callback'];
     $handler_types = $handler_types_callback();
 
-    if (isset($handler_types[$entity->type])) {
-      $handler_type = $handler_types[$entity->type];
-      $type_label = $handler_type['label'];
+    $broken_class = $this->entityInfo['factory']['broken class'];
+    if (get_class($entity) == $broken_class) {
+      // If the handler is broken, there will be no type data for it.
+      $type_label = $entity->type;
     }
     else {
-      $type_label = $entity->type;
+      $handler_type = $handler_types[$entity->type];
+      $type_label = $handler_type['label'];
     }
 
     // Our subclasses have almost certainly added additional columns.
