@@ -117,7 +117,7 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
     '#type' => 'machine_name',
     '#default_value' => isset($connection->name) ? $connection->name : '',
     '#maxlength' => 32,
-    '#disabled' => ($op != 'clone'),
+    '#disabled' => ($op == 'clone'),
     '#machine_name' => array(
       'exists' => 'clients_connection_load',
       'source' => array('label'),
