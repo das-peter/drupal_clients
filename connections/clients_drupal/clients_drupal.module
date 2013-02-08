@@ -2,7 +2,7 @@
 /**
  * @file
  * Provides connection types for Clients module that connect to remote Drupal
- * sites running Services module.
+ * sites running Services module with the XMLRPC server.
  */
 
 /**
@@ -32,9 +32,9 @@ function clients_drupal_clients_connection_type_info() {
     // Key by machine name. Used to determine class names.
     'drupal_services_5' => array(
        // Human-readable label.
-      'label'  => t('Drupal Services 5'),
+      'label'  => t('Drupal XMLRPC Services 5'),
       // Description for UI.
-      'description' => t('Connects to Drupal sites using Services 5.x-0.92.'),
+      'description' => t('Connects to Drupal sites using Services 5.x-0.92 with XMLRPC endpoints.'),
       // Test handler classes.
       'tests' => array(
         'connect' => 'ClientsConnectionDrupalTestConnect',
@@ -43,8 +43,8 @@ function clients_drupal_clients_connection_type_info() {
       ),
     ),
     'drupal_services_6_2' => array(
-      'label'  => t('Drupal Services 6.x-2.x'),
-      'description' => t('Connects to Drupal sites using Services 6.x-2.x.'),
+      'label'  => t('Drupal XMLRPC Services 6.x-2.x'),
+      'description' => t('Connects to Drupal sites using Services 6.x-2.x with XMLRPC endpoints.'),
       'tests' => array(
         'connect' => 'ClientsConnectionDrupalTestConnect',
         'login' => 'ClientsConnectionDrupalTestLogin',
@@ -52,8 +52,8 @@ function clients_drupal_clients_connection_type_info() {
       ),
     ),
     'drupal_services_7_3' => array(
-      'label'  => t('Drupal Services 7.x-3.x'),
-      'description' => t('Connects to Drupal sites using Services 7.x-3.x.'),
+      'label'  => t('Drupal XMLRPC Services 7.x-3.x'),
+      'description' => t('Connects to Drupal sites using Services 7.x-3.x with XMLRPC endpoints.'),
       'tests' => array(
         'connect' => 'ClientsConnectionDrupalTestConnect',
         'login' => 'ClientsConnectionDrupalTestLogin',

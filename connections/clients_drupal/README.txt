@@ -1,9 +1,10 @@
 
-Clients for Drupal Services
-===========================
+Clients for Drupal Services XMLRPC Servers
+==========================================
 
 This module contains client connection types for connecting to Services module
-on Drupal (http://drupal.org/project/services).
+on Drupal (http://drupal.org/project/services), for endpoints using the XMLRPC
+server.
 
 The module allows for a client type for each version of Services, though
 not all are done yet:

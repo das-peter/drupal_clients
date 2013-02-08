@@ -1,5 +1,5 @@
-name = Drupal clients
-description = Provides connections to remote Drupal sites running Services module.
+name = Drupal clients XMLRPC
+description = Provides connections to remote Drupal sites running Services module with XMLRPC endpoints.
 core = 7.x
 dependencies[] = clients
 package = Clients
