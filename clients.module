@@ -126,7 +126,7 @@ function clients_get_resource_types() {
  *  clients_connection_call('my_connection', 'node.load', 1);
  * will return node 1 loaded from the remote site.
  *
- * @param $name
+ * @param $connection_name
  *  The connection machine name.
  * @param $method
  *  The name of the remote method to call.
@@ -139,12 +139,12 @@ function clients_get_resource_types() {
  * @throws Exception if the connection is not found or there is an error
  *  returned from the remote site.
  */
-function clients_connection_call($name, $method) {
-  $connection = clients_connection_load($name);
+function clients_connection_call($connection_name, $method) {
+  $connection = clients_connection_load($connection_name);
 
   if (!$connection) {
     throw new Exception(t('Client connection %connection not found.', array(
-      '%connection' => $name,
+      '%connection' => $connection_name,
     )));
   }
 
