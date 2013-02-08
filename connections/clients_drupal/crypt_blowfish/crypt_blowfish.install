@@ -6,13 +6,13 @@
  */
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function crypt_blowfish_install() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function crypt_blowfish_uninstall() {
   // clean up any variables created by module
@@ -25,7 +25,7 @@ function crypt_blowfish_uninstall() {
 }
 
 /**
- * Implementation of hook_requirements
+ * Implements hook_requirements
  */
 
 function crypt_blowfish_requirements($phase) {

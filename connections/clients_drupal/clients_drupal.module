@@ -6,7 +6,8 @@
  */
 
 /**
- * Implementation of hook_help()
+ * Implements hook_help()
+ *
  * @param path which path of the site we're displaying help
  * @param arg array that holds the current path as would be returned from arg() function
  * @return help text for the path
@@ -22,7 +23,7 @@ function clients_drupal_help($path, $arg) {
 }
 
 /**
- * Implementation of hook_clients_connection_type_info().
+ * Implements hook_clients_connection_type_info().
  *
  * Define the connection types we provide.
  */
@@ -63,7 +64,7 @@ function clients_drupal_clients_connection_type_info() {
 }
 
 /**
- * Implementation of hook_menu()
+ * Implements hook_menu()
  */
 function clients_drupal_menu() {
   $items = array();

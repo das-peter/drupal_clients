@@ -10,7 +10,7 @@
 require_once('crypt_blowfish.inc'); 
 
 /**
- * Implementation of hook_help()
+ * Implements hook_help()
  * @param path which path of the site we're displaying help
  * @param arg array that holds the current path as would be returned from arg() function
  * @return help text for the path
@@ -26,7 +26,7 @@ function crypt_blowfish_help($path, $arg) {
 } 
 
 /**
- * Implementation of hook_perm()
+ * Implements hook_perm()
  * @TODO 
  * @return array An array of valid permissions for the crypt_blowfish module
  */
@@ -35,7 +35,7 @@ function crypt_blowfish_perm() {
 } 
 
 /**
- * Implementation of hook_menu()
+ * Implements hook_menu()
  */
 function crypt_blowfish_menu() {
   $items = array();
@@ -80,20 +80,20 @@ function crypt_blowfish_admin() {
 } 
 
 /**
- * Implementation of hook_clients_drupal_encrypt()
+ * Implements hook_clients_drupal_encrypt()
  */
 function crypt_blowfish_clients_drupal_encrypt($val) {
   return base64_encode(Drupal_Crypt_Blowfish::encrypt($val));
 }
 /**
- * Implementation of hook_clients_drupal_decrypt()
+ * Implements hook_clients_drupal_decrypt()
  */
 function crypt_blowfish_clients_drupal_decrypt($val) {
   return trim(Drupal_Crypt_Blowfish::decrypt(base64_decode($val)));
 }
 
 /**
- * Implementation of hook_clients_drupal_encryption_methods()
+ * Implements hook_clients_drupal_encryption_methods()
  */
 function crypt_blowfish_clients_drupal_encryption_methods() {
   return array('crypt_blowfish' => 'Blowfish');
