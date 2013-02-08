@@ -55,6 +55,7 @@ function hook_clients_connection_type_info() {
   return array(
     'my_client' => array(
       'label'  => t('My Client Type'),
+      'description' => t('Connects to a remote service.'),
       'tests' => array(
         'connect' => 'MyClientTypeTestConnection',
       ),
