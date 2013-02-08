@@ -107,8 +107,8 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
 
     $password_exists = isset($this->configuration['password']);
     $password_desc = $password_exists
-      ? t('This should be same as the password on the server you are connecting to.')
-      : t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.');
+      ? t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.')
+      : t('This should be same as the password on the server you are connecting to.');
     $form['configuration']['password'] = array(
       '#type' => 'password',
       '#title' => t('Service password'),
@@ -245,8 +245,8 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
 
     $password_exists = isset($this->configuration['password']);
     $password_desc = $password_exists
-      ? t('This should be same as the password on the server you are connecting to.')
-      : t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.');
+      ? t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.')
+      : t('This should be same as the password on the server you are connecting to.');
     $form['configuration']['password'] = array(
       '#type' => 'password',
       '#title' => t('Service password'),
