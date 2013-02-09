@@ -21,8 +21,6 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
    * @see clients_connection_form_submit()
    */
   function connectionSettingsFormAlter(&$form, &$form_state) {
-    dsm($this);
-    $this->userLogin();
     $form['endpoint']['#description'] = t('Remote service URL e.g. http://mysite.com/service-endpoint');
 
     $form['configuration'] += array(
