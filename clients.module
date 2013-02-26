@@ -214,7 +214,7 @@ function clients_entity_info() {
         'controller class' => 'ClientsConnectionEntityUIController',
         // Extras for our controller class.
         // The user_access() permission for the whole of the UI.
-        'access permission' => 'administer client connections',
+        'access permission' => 'administer clients connections',
         // A callback whose keys will be the type names.
         'types callback' => 'clients_get_connection_types',
       ),
@@ -249,7 +249,7 @@ function clients_entity_info() {
         'file' => 'includes/clients.resource.admin.inc',
         'controller class' => 'ClientsResourceEntityUIController',
         // Extras for our controller class.
-        'access permission' => 'administer client resources',
+        'access permission' => 'administer clients resources',
         // A callback whose keys will be the type names.
         'types callback' => 'clients_get_resource_types',
       ),
