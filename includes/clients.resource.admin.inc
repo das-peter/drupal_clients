@@ -23,7 +23,6 @@ function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
     '#type' => 'machine_name',
     '#default_value' => isset($resource->name) ? $resource->name : '',
     '#maxlength' => 32,
-    '#disabled' => ($op == 'clone'),
     '#machine_name' => array(
       'exists' => 'clients_resource_load',
       'source' => array('label'),
