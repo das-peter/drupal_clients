@@ -152,6 +152,14 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
   // Allow the connection class to make additions to the form.
   $connection->connectionSettingsFormAlter($form, $form_state);
 
+  // Fill in the default values from the connection configuration; save the
+  // handler class all the legwork.
+  foreach (element_children($form['configuration']) as $configuration_key) {
+    if (isset($connection->configuration[$configuration_key])) {
+      $form['configuration'][$configuration_key]['#default_value'] = $connection->configuration[$configuration_key];
+    }
+  }
+
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save connection'),

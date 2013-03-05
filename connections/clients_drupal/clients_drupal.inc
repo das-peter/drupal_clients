@@ -97,7 +97,6 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     $form['configuration']['username'] = array(
       '#type' => 'textfield',
       '#title' => t('Service username'),
-      '#default_value' => isset($this->configuration['username']) ? $this->configuration['username'] : '',
       '#size' => 30,
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
@@ -216,7 +215,6 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     $form['configuration']['domain'] = array(
       '#type' => 'textfield',
       '#title' => t('Domain'),
-      '#default_value' => isset($this->configuration['domain']) ? $this->configuration['domain'] : '',
       '#size' => 50,
       '#maxlength' => 100,
       '#description' => t('This should be same as the \'Domain\' field used by the Services authentication key on the server you are connecting to.'),
@@ -225,7 +223,6 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     $form['configuration']['servicekey'] = array(
       '#type' => 'textfield',
       '#title' => t('Service key'),
-      '#default_value' => isset($this->configuration['servicekey']) ? $this->configuration['servicekey'] : '',
       '#size' => 50,
       '#maxlength' => 40,
       '#attributes' => array('autocomplete' => 'off'),
@@ -235,7 +232,6 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     $form['configuration']['username'] = array(
       '#type' => 'textfield',
       '#title' => t('Service username'),
-      '#default_value' => isset($this->configuration['username']) ? $this->configuration['username'] : '',
       '#size' => 30,
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),

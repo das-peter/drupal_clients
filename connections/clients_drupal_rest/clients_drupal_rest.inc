@@ -33,7 +33,6 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
     $form['configuration']['username'] = array(
       '#type' => 'textfield',
       '#title' => t('Service username'),
-      '#default_value' => isset($this->configuration['username']) ? $this->configuration['username'] : '',
       '#size' => 30,
       '#maxlength' => 60,
       '#attributes' => array('autocomplete' => 'off'),
