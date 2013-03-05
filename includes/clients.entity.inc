@@ -217,7 +217,7 @@ abstract class clients_resource_base extends ClientsHandlerEntity {
    */
   function getConnection() {
     if (!isset($this->connection_handler)) {
-      $this->connection_handler = entity_load_single('clients_connection', $this->connection);
+      $this->connection_handler = clients_connection_load($this->connection);
     }
     return $this->connection_handler;
   }
