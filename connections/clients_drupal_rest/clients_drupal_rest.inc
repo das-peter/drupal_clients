@@ -103,7 +103,9 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
         '@message'  => $response->status_message,
       ));
 
-      throw new Exception($response->status_message, $response->code);
+      throw new Exception(t("Clients connection error, got message '@message'.", array(
+        '@message' => $response->status_message,
+      )), $response->code);
     }
   }
 
