@@ -100,10 +100,33 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
   /**
    * Submit handler for saving/updating connections of this class.
    *
+   * This base class method handles preserving the password when the connection
+   * form is submitted on edit. Connection classes with a password configuration
+   * option may make use of it.
+   *
    * @see clients_connection_form_submit().
    */
   function connectionSettingsForm_submit($form, &$form_state) {
-    // Base class does nothing; saving of the connection is handled by the
+    // Check there is a password form element.
+    if (isset($form['configuration']['password'])) {
+      $old_connection = $form['#connection'];
+
+      // Check whether we're editing or adding a new connection.
+      if (isset($old_connection->is_new)) {
+        // Encryption disabled for now. TODO.
+        //$form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
+      }
+      else {
+        // Set password to original if blank.
+        if (empty($form_state['values']['configuration']['password'])) {
+          $this->configuration['password'] = $old_connection->configuration['password'];
+        }
+        // Encryption disabled for now. TODO
+        //$form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
+      }
+    }
+
+    // Base class doesn't save: saving of the connection is handled by the
     // 'real' FormAPI submit handler.
   }
 

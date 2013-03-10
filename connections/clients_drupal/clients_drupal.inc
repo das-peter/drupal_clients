@@ -28,22 +28,8 @@ class clients_connection_drupal_services extends clients_connection_base {
    * @see clients_connection_form_submit()
    */
   function connectionSettingsForm_submit($form, &$form_state) {
-    $old_connection = $form['#connection'];
-
-    // Check whether we're editing or adding a new connection.
-    if (isset($old_connection->is_new)) {
-      // Encryption disabled for now. TODO
-      //$form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
-    }
-    else {
-      // Prepare password for serialized storage
-      if (empty($form_state['values']['configuration']['password'])) {
-        // Set password to original if blank.
-        $this->configuration['password'] = $old_connection->configuration['password'];
-      }
-      // Encryption disabled for now. TODO
-      //$form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
-    }
+    // This is here to show an example of how this method works.
+    parent::connectionSettingsForm_submit($form, $form_state);
   }
 
   // ============================================ Base: Method calling.
