@@ -72,15 +72,28 @@ function clients_resource_form($form, &$form_state, $resource, $op = 'edit') {
   // Allow the connection class to make additions and alterations to the form.
   $resource->resourceSettingsFormAlter($form, $form_state);
 
-  $form['buttons']['submit'] = array(
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save resource'),
+  );
+  $form['actions']['delete'] = array(
+    '#name' => 'delete',
+    '#type' => 'submit',
+    '#value' => t('Delete resource'),
   );
 
   return $form;
 }
 
 function clients_resource_form_submit($form, &$form_state) {
+  // If the delete button was clicked, redirect to the delete form and quit.
+  if ($form_state['triggering_element']['#name'] == 'delete') {
+    // The resource is in the build info.
+    $resource_name = $form_state['build_info']['args'][0]->name;
+    $form_state['redirect'] = 'admin/structure/clients/resources/manage/' . $resource_name . '/delete';
+    return;
+  }
+
   $resource = entity_ui_form_submit_build_entity($form, $form_state);
 
   // Save and go back.

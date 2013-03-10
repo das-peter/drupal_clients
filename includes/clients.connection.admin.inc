@@ -160,9 +160,14 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
     }
   }
 
-  $form['buttons']['submit'] = array(
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save connection'),
+  );
+  $form['actions']['delete'] = array(
+    '#name' => 'delete',
+    '#type' => 'submit',
+    '#value' => t('Delete connection'),
   );
 
   return $form;
@@ -180,6 +185,12 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
  * @see clients_connection_base::connectionSettingsForm_submit()
  */
 function clients_connection_form_submit($form, &$form_state) {
+  // If the delete button was clicked, redirect to the delete form and quit.
+  if ($form_state['triggering_element']['#name'] == 'delete') {
+    $form_state['redirect'] = 'admin/structure/clients/connections/manage/' . $form['#connection']->name . '/delete';
+    return;
+  }
+
   $connection = entity_ui_form_submit_build_entity($form, $form_state);
 
   // Call connectionSettingsForm_submit() on the connection handler.
