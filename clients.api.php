@@ -76,6 +76,8 @@ function hook_clients_connection_type_info_alter($connection_types) {
 /**
  * Add or alter connection tests.
  *
+ * This allows site-specific tests to be added to the UI.
+ *
  * @param $tests
  *  The array of tests as returned by hook_clients_connection_type_info(). May
  *  be empty.
@@ -84,8 +86,13 @@ function hook_clients_connection_type_info_alter($connection_types) {
  *  for example, by comparing it to the connection your module is set up to use.
  */
 function hook_client_connection_tests_alter(&$tests, $connection) {
+  // Add a test to all connections of a specific type.
   if ($connection->type == 'foobar') {
     $tests['my_test'] = 'MyTestClass';
+  }
+  // Add a test to a single connection.
+  if ($connection->name == 'bizbax') {
+    $tests['my_other_test'] = 'MyOtherTestClass';
   }
 }
 
