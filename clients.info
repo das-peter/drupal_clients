@@ -7,3 +7,4 @@ files[] = includes/clients.connection.admin.inc
 files[] = includes/clients.entity.inc
 files[] = includes/clients.controller.inc
 files[] = includes/clients.ui.inc
+files[] = includes/clients.features.inc

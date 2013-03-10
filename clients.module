@@ -208,6 +208,7 @@ function clients_entity_info() {
       // Entity API
       'module' => 'clients',
       'exportable' => TRUE,
+      'features controller class' => 'ClientsHandlerEntityFeaturesController',
       'admin ui' => array(
         'path' => 'admin/structure/clients/connections',
         'file' => 'includes/clients.connection.admin.inc',
@@ -244,6 +245,7 @@ function clients_entity_info() {
       // Entity API
       'module' => 'clients',
       'exportable' => TRUE,
+      'features controller class' => 'ClientsHandlerEntityFeaturesController',
       'admin ui' => array(
         'path' => 'admin/structure/clients/resources',
         'file' => 'includes/clients.resource.admin.inc',
