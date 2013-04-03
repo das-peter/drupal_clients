@@ -157,3 +157,106 @@ class ClientsConnectionDrupalRESTTestNodeRetrieve implements ClientsConnectionTe
   }
 
 }
+
+/**
+ * Test entity creation on a Drupal Services connection.
+ */
+class ClientsConnectionDrupalRESTTestEntityCreate implements ClientsConnectionTestingInterface {
+
+  /**
+   * The labels for the test.
+   *
+   * (This is because it would seem you can't define class variables using
+   * expressions.)
+   */
+  function testLabels() {
+    return array(
+      'label' => t('Create an entity'),
+      'description' => t('Create an entity on the remote site from an array of data.'),
+      'button' => t('Create'),
+    );
+  }
+
+  /**
+   * Creates the form element for the test.
+   *
+   * This gets a form element with the basics in place. If your test needs input
+   * parameters, add form elements here.
+   *
+   * @param $element
+   *  A form element for the test's settings and button.
+   *
+   * @return
+   *  The form element with the test's additions.
+   */
+  function testForm($element) {
+    $element['params']['entity_type'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Entity type'),
+      '#description' => t("The entity type to create. (Note if using Services Entity this needs a prefix of 'entity')."),
+      '#required' => TRUE,
+    );
+
+    $element['params']['data'] = array(
+      '#type' => 'textarea',
+      '#rows' => 10,
+      '#title' => t('Data'),
+      '#description' => t('The POST data to pass for the entity, as either a JSON or PHP array.'),
+    );
+    $element['params']['data_type'] = array(
+      '#type' => 'radios',
+      '#title' => t('Data type'),
+      '#description' => t('The type of the POST data.'),
+      '#options' => array(
+        'json'  => 'JSON',
+        'php'   => 'PHP array',
+      ),
+    );
+
+    return $element;
+  }
+
+  /**
+   * Execute the test.
+   *
+   * Connection test handlers should return the raw data they got back from the
+   * connection for display to the user.
+   *
+   * @param $connection
+   *  The connection handler.
+   * @param $button_form_values
+   *  The form values for the test form element. The values for elements added
+   *  to the form are in $button_form_values['params'].
+   *
+   * @return
+   *  Data from the remote connection. This is output to the form as raw data.
+   */
+  function test($connection, &$button_form_values) {
+    $entity_type = $button_form_values['params']['entity_type'];
+
+    $path = $entity_type;
+
+    if ($button_form_values['params']['data_type'] == 'json') {
+      $data = drupal_json_decode($button_form_values['params']['data']);
+    }
+    else {
+      eval('$data = ' . $button_form_values['params']['data'] . ';');
+    }
+
+    try {
+      $result = $connection->makeRequest($path, 'POST', $data);
+    }
+    catch (Exception $e) {
+      drupal_set_message(t('Could not access the remote site, got error message "@message".', array(
+        '@message' => $e->getMessage(),
+      )), 'warning');
+      //dsm($e);
+
+      return;
+    }
+
+    return $result;
+  }
+
+}
+
