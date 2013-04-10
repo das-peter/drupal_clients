@@ -197,11 +197,19 @@ class ClientsConnectionDrupalRESTTestEntityCreate implements ClientsConnectionTe
       '#required' => TRUE,
     );
 
+    $sample_data = '{
+  "type":"article",
+  "title":"TITLE HERE",
+  "field_myfield":{"und":{"0":{"value":"VALUE"}}
+}
+';
     $element['params']['data'] = array(
       '#type' => 'textarea',
       '#rows' => 10,
       '#title' => t('Data'),
-      '#description' => t('The POST data to pass for the entity, as either a JSON or PHP array.'),
+      '#description' => t('The POST data to pass for the entity, as either a JSON or PHP array.') . '<br>'
+        . t('Sample data:') . '<br>'
+        . "<pre>$sample_data</pre>",
     );
     $element['params']['data_type'] = array(
       '#type' => 'radios',
