@@ -251,6 +251,10 @@ class ClientsConnectionDrupalRESTTestEntityCreate implements ClientsConnectionTe
       eval('$data = ' . $button_form_values['params']['data'] . ';');
     }
 
+    if (module_exists('devel')) {
+      dpm($data);
+    }
+
     try {
       $result = $connection->makeRequest($path, 'POST', $data);
     }
