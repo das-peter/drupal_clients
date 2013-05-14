@@ -347,13 +347,15 @@ function clients_connection_test_form_validate($form, &$form_state) {
   $connection = $form['#connection'];
   $type_definition = $form['#connection_type'];
   $test_name = $form_state['clicked_button']['#name'];
-  $test_class = $type_definition['tests'][$test_name];
-  $test_handler = new $test_class();
+  if (isset($form_state['clicked_button']['#name'])) {
+    $test_class = $type_definition['tests'][$test_name];
+    $test_handler = new $test_class();
 
-  // Call formValidate() on the test handler. This allows handlers to validate
-  // their test form element.
-  if (method_exists($test_handler, 'formValidate')) {
-    $test_handler->formValidate($form_state['values']['buttons'][$test_name]);
+    // Call formValidate() on the test handler. This allows handlers to validate
+    // their test form element.
+    if (method_exists($test_handler, 'formValidate')) {
+      $test_handler->formValidate($form_state['values']['buttons'][$test_name]);
+    }
   }
 }
 
