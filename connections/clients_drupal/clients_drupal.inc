@@ -150,14 +150,9 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
       return $login;
     }
 
-    // Build the array of connection arguments for the method we want to call.
-    $xmlrpc_args = array_merge(
-      array($this->endpoint, $method),
-      $method_params
-    );
-
-    // Call the xmlrpc method with our array of arguments.
-    $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+    $result = xmlrpc($this->endpoint, array(
+      $method => $method_params,
+    ));
 
     // Throw an exception for errors from the remote call.
     $this->handleXmlrpcError();
