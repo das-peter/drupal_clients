@@ -120,6 +120,8 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
    *  Whatever is returned from the remote site.
    */
   function callMethodArray($method, $method_params = array()) {
+    $this->method = $method;
+
     // Connect to the remote system service to get an initial session id to log in with.
     $connect = xmlrpc($this->endpoint, array(
       'system.connect' => array(),
