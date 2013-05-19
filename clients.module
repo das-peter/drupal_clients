@@ -158,6 +158,76 @@ function clients_connection_call($connection_name, $method) {
   return $return;
 }
 
+/**
+ * Load a connection object which can then be used to make method calls.
+ *
+ * @param $name
+ *  A connection machine name.
+ *
+ * @return
+ *  A fully loaded connection handler object. If there is a problem, such as
+ *  the machine name or connection type not existing, a connection of the class
+ *  defined for broken handlers in hook_entity_info() is returned.
+ */
+function clients_connection_load($name) {
+  return entity_load_single('clients_connection', $name);
+}
+
+/**
+ * Load all connections.
+ *
+ * TODO! @param $types
+ *  (optional) Specify a single type or a list of types to include.
+ *  If omitted, all are returned.
+ * @return
+ *  An array of connection objects, keyed by name.
+ */
+function clients_connection_load_all($types = array()) {
+  $connections = entity_load_multiple_by_name('clients_connection', FALSE);
+
+  // We generally want connections ordered by machine name.
+  ksort($connections);
+
+  return $connections;
+}
+
+/**
+ * Get a list of all connection types.
+ *
+ * @param $type
+ *  (Optional) The name of a single type to return a definition for. If omitted,
+ *  all definitions are returned.
+ *
+ * @return
+ *  An array of connection type definitions, keyed by machine name.
+ *
+ * @see hook_clients_connection_type_info()
+ */
+function clients_get_connection_types($type = NULL) {
+  $connection_types = &drupal_static(__FUNCTION__);
+  if (!isset($connection_types)) {
+    if ($cache = cache_get('clients_connection_type_info')) {
+      $connection_types = $cache->data;
+    }
+    else {
+      // Invoke hook_clients_connection_type_info().
+      $connection_types = module_invoke_all('clients_connection_type_info');
+      drupal_alter('clients_connection_type_info', $connection_types);
+
+      cache_set('clients_connection_type_info', $connection_types);
+    }
+  }
+
+  if (isset($type)) {
+    if (isset($connection_types[$type])) {
+      return $connection_types[$type];
+    }
+  }
+  else {
+    return $connection_types;
+  }
+}
+
 // ========================================== Core hook implementations
 
 /**
@@ -346,76 +416,6 @@ function clients_admin_cache($form_state) {
  */
 function clients_flush_caches() {
   return array('cache_clients');
-}
-
-/**
- * Load a connection object which can then be used to make method calls.
- *
- * @param $name
- *  A connection machine name.
- *
- * @return
- *  A fully loaded connection handler object. If there is a problem, such as
- *  the machine name or connection type not existing, a connection of the class
- *  defined for broken handlers in hook_entity_info() is returned.
- */
-function clients_connection_load($name) {
-  return entity_load_single('clients_connection', $name);
-}
-
-/**
- * Load all connections.
- *
- * TODO! @param $types
- *  (optional) Specify a single type or a list of types to include.
- *  If omitted, all are returned.
- * @return
- *  An array of connection objects, keyed by name.
- */
-function clients_connection_load_all($types = array()) {
-  $connections = entity_load_multiple_by_name('clients_connection', FALSE);
-
-  // We generally want connections ordered by machine name.
-  ksort($connections);
-
-  return $connections;
-}
-
-/**
- * Get a list of all connection types.
- *
- * @param $type
- *  (Optional) The name of a single type to return a definition for. If omitted,
- *  all definitions are returned.
- *
- * @return
- *  An array of connection type definitions, keyed by machine name.
- *
- * @see hook_clients_connection_type_info()
- */
-function clients_get_connection_types($type = NULL) {
-  $connection_types = &drupal_static(__FUNCTION__);
-  if (!isset($connection_types)) {
-    if ($cache = cache_get('clients_connection_type_info')) {
-      $connection_types = $cache->data;
-    }
-    else {
-      // Invoke hook_clients_connection_type_info().
-      $connection_types = module_invoke_all('clients_connection_type_info');
-      drupal_alter('clients_connection_type_info', $connection_types);
-
-      cache_set('clients_connection_type_info', $connection_types);
-    }
-  }
-
-  if (isset($type)) {
-    if (isset($connection_types[$type])) {
-      return $connection_types[$type];
-    }
-  }
-  else {
-    return $connection_types;
-  }
 }
 
 // Entity API callbacks.
