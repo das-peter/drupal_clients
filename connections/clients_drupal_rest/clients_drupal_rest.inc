@@ -12,6 +12,19 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
   // ============================================ Connection form methods.
 
   /**
+   * Declare an array of properties which should be treated as credentials.
+   *
+   * This lets the credentials storage plugin know which configuration
+   * properties to take care of.
+   *
+   * @return
+   *  A flat array of property names.
+   */
+  function credentialsProperties() {
+    return array('username', 'password');
+  }
+
+  /**
    * Extra form elements specific to a class's edit form.
    *
    * @param $form_state
@@ -23,14 +36,8 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
   function connectionSettingsFormAlter(&$form, &$form_state) {
     $form['endpoint']['#description'] = t('Remote service URL e.g. http://mysite.com/service-endpoint');
 
-    $form['configuration'] += array(
-      '#type' => 'fieldset',
-      '#title' => t('Configuration'),
-      '#collapsible' => FALSE,
-      '#tree' => TRUE,
-    );
-
-    $form['configuration']['username'] = array(
+    // There is no configuration other than the credentials.
+    $form['credentials']['username'] = array(
       '#type' => 'textfield',
       '#title' => t('Service username'),
       '#size' => 30,
@@ -40,11 +47,11 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
       '#required' => TRUE,
     );
 
-    $password_exists = isset($this->configuration['password']);
+    $password_exists = isset($this->credentials['password']);
     $password_description = $password_exists
       ? t('This should be same as the password on the server you are connecting to. Leave blank unless you need to change this.')
       : t('This should be same as the password on the server you are connecting to.');
-    $form['configuration']['password'] = array(
+    $form['credentials']['password'] = array(
       '#type' => 'password',
       '#title' => t('Service password'),
       '#size' => 30,
@@ -107,9 +114,10 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
    */
   function userLogin() {
     // Based on example code at http://drupal.org/node/910598.
+    $this->credentialsLoad();
     $data = array(
-      'username' => $this->configuration['username'],
-      'password' => $this->configuration['password'],
+      'username' => $this->credentials['username'],
+      'password' => $this->credentials['password'],
     );
     $data = http_build_query($data, '', '&');
     $headers = array();

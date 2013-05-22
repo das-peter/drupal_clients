@@ -266,7 +266,7 @@ function clients_entity_info() {
   $return = array(
     'clients_connection' => array(
       'label' => t('Clients Connection'),
-      'controller class' => 'ClientsHandlerEntityController',
+      'controller class' => 'ClientsConnectionHandlerEntityController',
       'base table' => 'clients_connection',
       'uri callback' => 'clients_connection_uri',
       'fieldable' => FALSE,
@@ -429,6 +429,27 @@ function clients_resource_uri($resource) {
   return array(
     'path' => 'admin/structure/clients/resources/manage/' . $resource->name,
   );
+}
+
+// ================================================ CTools plugins
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function clients_ctools_plugin_type() {
+  $plugins['clients_credentials_storage'] = array(
+  );
+
+  return $plugins;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function clients_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'clients') {
+    return "plugins/$plugin_type";
+  }
 }
 
 // ================================================ Misc helpers

@@ -146,6 +146,39 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
     '#tree' => TRUE,
   );
 
+  // Container for credentials form elements.
+  $form['credentials'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Credentials'),
+    '#tree' => TRUE,
+  );
+
+  $form['#connection_credentials_storage'] = isset($connection->configuration['credentials_storage'])
+    ? $connection->configuration['credentials_storage']
+    : NULL;
+
+  $form['credentials']['credentials_storage'] = array(
+    '#type' => 'radios',
+    '#title' => t('Credentials storage'),
+    '#required' => TRUE,
+    '#default_value' => $form['#connection_credentials_storage'],
+  );
+
+  // Get an array of the available label plugins.
+  ctools_include('plugins');
+  $credentials_plugins = ctools_get_plugins('clients', 'clients_credentials_storage');
+  $options = array();
+  foreach ($credentials_plugins as $credentials_plugin => $credentials_plugin_info) {
+    $options[$credentials_plugin] = $credentials_plugin_info['label'];
+    $form['credentials']['credentials_storage'][$credentials_plugin]['#description'] = $credentials_plugin_info['description'];
+  }
+  $form['credentials']['credentials_storage']['#options'] = $options;
+
+  // Get the current (or default) storage plugin, and get the credentials from
+  // it.
+  $credentials_storage_plugin = $connection->get_credentials_storage_plugin();
+  $credentials_storage_plugin->credentialsLoad($connection);
+
   $form['#connection_type'] = $type;
   $form['#connection_class'] = $class;
 
@@ -157,6 +190,13 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
   foreach (element_children($form['configuration']) as $configuration_key) {
     if (isset($connection->configuration[$configuration_key])) {
       $form['configuration'][$configuration_key]['#default_value'] = $connection->configuration[$configuration_key];
+    }
+  }
+  // Fill in the default values for the credentials.
+  $credentials_properties = $connection->credentialsProperties();
+  foreach ($credentials_properties as $property_name) {
+    if (isset($connection->credentials[$property_name])) {
+      $form['credentials'][$property_name]['#default_value'] = $connection->credentials[$property_name];
     }
   }
 
@@ -191,11 +231,37 @@ function clients_connection_form_submit($form, &$form_state) {
     return;
   }
 
+  // Build the entity from the form values.
+  // Note that this will place a 'credentials' propery on it, from the form
+  // fieldset, which will not be saved because there is no schema for it.
   $connection = entity_ui_form_submit_build_entity($form, $form_state);
+
+  ctools_include('plugins');
+
+  // Set the credentials storage plugin id on the connection.
+  $connection->configuration['credentials_storage'] = $form_state['values']['credentials']['credentials_storage'];
 
   // Call connectionSettingsForm_submit() on the connection handler.
   // This allows treatment of form values particular to the connection type.
+  // The base class also handles restoring the password from credentials storage
+  // to the connection if the form element was left blank.
   $connection->connectionSettingsForm_submit($form, $form_state);
+
+  // Call the credentials storage plugin to handle saving the credentials.
+  $credentials_storage_plugin = $connection->get_credentials_storage_plugin();
+  $credentials_storage_plugin->credentialsSave($connection);
+
+  // If the credentials storage method has changed, delete the old storage.
+  // We do this last, as the copying of the password relies on the old
+  // credentials still existing.
+  if (isset($form['#connection_credentials_storage'])
+      && $form['#connection_credentials_storage'] != $form_state['values']['credentials']['credentials_storage']) {
+    // Delete the credentials from the old storage.
+    // Get the old plugin for $form['#connection_credentials_storage'].
+    $old_credentials_storage_plugin = $connection->get_credentials_storage_plugin($form['#connection_credentials_storage']);
+    // Let the old plugin delete its storage.
+    $old_credentials_storage_plugin->credentialsDelete($connection);
+  }
 
   // Save and go back.
   $connection->save();

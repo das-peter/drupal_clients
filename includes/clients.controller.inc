@@ -101,3 +101,30 @@ class ClientsHandlerEntityController extends EntityAPIControllerExportable {
   }
 
 }
+
+/**
+ * Controller class for Connections.
+ */
+class ClientsConnectionHandlerEntityController extends ClientsHandlerEntityController {
+
+  /**
+   * Implements EntityAPIControllerInterface.
+   *
+   * Takes care of deleting stored credentials when connections are deleted.
+   *
+   * @param $transaction
+   *   Optionally a DatabaseTransaction object to use. Allows overrides to pass
+   *   in their transaction object.
+   */
+  public function delete($ids, DatabaseTransaction $transaction = NULL) {
+    $connections = entity_load('clients_connection', $ids);
+
+    foreach ($connections as $connection) {
+      $credentials_storage_plugin = $connection->get_credentials_storage_plugin();
+      $credentials_storage_plugin->credentialsDelete($connection);
+    }
+
+    parent::delete($ids, $transaction);
+  }
+
+}

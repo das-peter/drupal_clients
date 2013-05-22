@@ -63,7 +63,50 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
    */
   public $configuration;
 
+  /**
+   * Declare an array of properties which should be treated as credentials.
+   *
+   * This lets the credentials storage plugin know which configuration
+   * properties to take care of.
+   *
+   * @return
+   *  A flat array of property names.
+   */
+  function credentialsProperties() {
+    return array();
+  }
+
   // ============================================ Connection UI
+
+  /**
+   * Get the credentials storage plugin for this connection.
+   *
+   * @param $plugin_id
+   *  (Optional) The id of the plugin to retrieve. Specifying this allows the
+   *  loading of the old plugin during connection form save.
+   *
+   * @return
+   *  The instantiated plugin handler.
+   */
+  function get_credentials_storage_plugin($plugin_id = NULL) {
+    if (!isset($plugin_id)) {
+      if (isset($this->configuration['credentials_storage'])) {
+        $plugin_id = $this->configuration['credentials_storage'];
+      }
+      else {
+        // Fallback to the connection configuration plugin by default. This also
+        // ensures backward compatibility.
+        $plugin_id = 'connection_configuration';
+      }
+    }
+
+    // Get the credentials storage plugin.
+    ctools_include('plugins');
+    $storage_plugin = ctools_get_plugins('clients', 'clients_credentials_storage', $plugin_id);
+    $class = ctools_plugin_get_class($storage_plugin, 'handler');
+
+    return new $class();
+  }
 
   /**
    * Format the connection's endpoint as a link.
@@ -108,7 +151,7 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
    */
   function connectionSettingsForm_submit($form, &$form_state) {
     // Check there is a password form element.
-    if (isset($form['configuration']['password'])) {
+    if (isset($form['credentials']['password'])) {
       $old_connection = $form['#connection'];
 
       // Check whether we're editing or adding a new connection.
@@ -118,8 +161,11 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
       }
       else {
         // Set password to original if blank.
-        if (empty($form_state['values']['configuration']['password'])) {
-          $this->configuration['password'] = $old_connection->configuration['password'];
+        if (empty($form_state['values']['credentials']['password'])) {
+          // Load the old credentials into the old connection, then copy the
+          // password into the new one.
+          $old_connection->credentialsLoad();
+          $this->credentials['password'] = $old_connection->credentials['password'];
         }
         // Encryption disabled for now. TODO
         //$form_state['values']['configuration']['password'] = clients_drupal_encrypt($form_state['values']['configuration']['password']);
@@ -131,6 +177,20 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
   }
 
   // ============================================ Connection API.
+
+  /**
+   * Load the credentials into the connection.
+   *
+   * The credentials are loaded to a $connection->credentials array.
+   *
+   * Note that we don't call this in __construct() because then they would be
+   * exported, which defeats the purpose.
+   */
+  function credentialsLoad() {
+    $credentials_storage_plugin = $this->get_credentials_storage_plugin();
+    $credentials_storage_plugin->credentialsLoad($this);
+  }
+
   // TODO: move these to an XMLRPC client interface.
 
   /**
