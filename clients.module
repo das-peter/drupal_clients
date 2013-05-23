@@ -161,7 +161,7 @@ function clients_connection_call($connection_name, $method) {
 /**
  * Load a connection object which can then be used to make method calls.
  *
- * @param $name
+ * @param $connection_name
  *  A connection machine name.
  *
  * @return
@@ -169,8 +169,8 @@ function clients_connection_call($connection_name, $method) {
  *  the machine name or connection type not existing, a connection of the class
  *  defined for broken handlers in hook_entity_info() is returned.
  */
-function clients_connection_load($name) {
-  return entity_load_single('clients_connection', $name);
+function clients_connection_load($connection_name) {
+  return entity_load_single('clients_connection', $connection_name);
 }
 
 /**
