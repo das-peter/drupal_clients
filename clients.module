@@ -19,7 +19,7 @@
  *  The name of the component the resource is needed for.
  *
  * @return
- *  A resource handler entity.
+ *  A resource handler entity, or NULL if nothing is found.
  */
 function clients_resource_get_for_component($resource_type, $component_name) {
   $result = db_query("SELECT name FROM {clients_resource} WHERE type = :type AND component = :component", array(
@@ -27,7 +27,12 @@ function clients_resource_get_for_component($resource_type, $component_name) {
     ':component' => $component_name,
   ));
   $name = $result->fetchField();
-  return clients_resource_load($name);
+
+  // During _entity_defaults_rebuild() it's possible for the resource to not
+  // yet exist.
+  if (!empty($name)) {
+    return clients_resource_load($name);
+  }
 }
 
 /**
