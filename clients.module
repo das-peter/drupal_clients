@@ -199,6 +199,30 @@ function clients_connection_load($connection_name) {
 }
 
 /**
+ * Get the name of the connection that is being substituted for.
+ *
+ * @param $connection_name
+ *  The name of a connection in use.
+ *
+ * @return
+ *  If the given connection is being used as an environment substitute for
+ *  another, then the name of the inactive connection which is being replaced.
+ *  For example, given 'connection_dev' in the 'dev' environment, this returns
+ *  'connection'. If no connection substitution is occurring, the given name
+ *  is returned unchanged.
+ */
+function clients_connection_get_substituted_name($connection_name) {
+  $environment_name = variable_get('environment_name', NULL);
+  if (substr($connection_name, -1 * strlen($environment_name)) == $environment_name) {
+    $original_connection_name = substr($connection_name, 0, -1 * (strlen($environment_name) + 1));
+    if ($original_connection = entity_load_single('clients_connection', $original_connection_name)) {
+      return $original_connection->name;
+    }
+  }
+  return $connection_name;
+}
+
+/**
  * Load all connections.
  *
  * TODO! @param $types
