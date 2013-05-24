@@ -166,6 +166,14 @@ function clients_connection_call($connection_name, $method) {
 /**
  * Load a connection object which can then be used to make method calls.
  *
+ * If the 'environment_name' variable is set, this will try to load a connection
+ * with the environment name appended to the connection name. This allows the
+ * the use of connections to development services on a development site.
+ *
+ * Because of the extra overhead in first trying to load the connection with the
+ * suffix, it is advisable to not set the 'environment_name' variable on a
+ * production site.
+ *
  * @param $connection_name
  *  A connection machine name.
  *
@@ -175,6 +183,18 @@ function clients_connection_call($connection_name, $method) {
  *  defined for broken handlers in hook_entity_info() is returned.
  */
 function clients_connection_load($connection_name) {
+  // If the the local environment is set and not 'production', we look for an
+  // environment-specific connection.
+  $environment_name = variable_get('environment_name', NULL);
+  if (isset($environment_name) && $environment_name != 'production') {
+    // Append the environment name to the connection name, and try to load
+    // that connection instead.
+    $connection_name_environment = $connection_name . '_' . $environment_name;
+    if ($connection = entity_load_single('clients_connection', $connection_name_environment)) {
+      return $connection;
+    }
+  }
+
   return entity_load_single('clients_connection', $connection_name);
 }
 

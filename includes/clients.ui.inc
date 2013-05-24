@@ -61,6 +61,26 @@ class ClientsHandlerEntityUIController extends EntityDefaultUIController {
    *   A renderable array.
    */
   public function overviewTable($conditions = array()) {
+    $entities = $this->getOverviewEntities($conditions);
+
+    $rows = array();
+    foreach ($entities as $entity) {
+      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity);
+    }
+
+    $render = array(
+      '#theme' => 'table',
+      '#header' => $this->overviewTableHeaders($conditions, $rows),
+      '#rows' => $rows,
+      '#empty' => t('None.'),
+    );
+    return $render;
+  }
+
+  /**
+   * Retrieves the entities for the admin overview.
+   */
+  function getOverviewEntities($conditions) {
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $this->entityType);
 
@@ -81,20 +101,9 @@ class ClientsHandlerEntityUIController extends EntityDefaultUIController {
     $results = $query->execute();
 
     $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
-    $entities = $ids ? entity_load($this->entityType, $ids) : array();
+    $entities = $ids ? entity_load_multiple_by_name($this->entityType, $ids) : array();
 
-    $rows = array();
-    foreach ($entities as $entity) {
-      $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity);
-    }
-
-    $render = array(
-      '#theme' => 'table',
-      '#header' => $this->overviewTableHeaders($conditions, $rows),
-      '#rows' => $rows,
-      '#empty' => t('None.'),
-    );
-    return $render;
+    return $entities;
   }
 
   /**
@@ -197,9 +206,36 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
   }
 
   /**
+   * Retrieves the entities for the admin overview.
+   *
+   * Overridden to add environment substitution information to the connections.
+   */
+  function getOverviewEntities($conditions) {
+    $connections = parent::getOverviewEntities($conditions);
+
+    // Determine whether any connections will substitute for others.
+    $environment_name = variable_get('environment_name', NULL);
+    if (isset($environment_name)) {
+      foreach ($connections as $name => $connection) {
+        // We only need to check substitution in one direction, since we are
+        // working over all connections. So we choose the easy one: appending
+        // the environment rather than removing it.
+        $substitute_name = $name . '_' . $environment_name;
+        if (isset($connections[$substitute_name])) {
+          $connection->environment_substituted_by = $substitute_name;
+          $connections[$substitute_name]->environment_substitute_for = $name;
+        }
+      }
+    }
+
+    return $connections;
+  }
+
+  /**
    * Generates the table headers for the overview table.
    */
   protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    $additional_header['substitution'] = t('Substitution');
     $additional_header['endpoint'] = t('Endpoint');
 
     return parent::overviewTableHeaders($conditions, $rows, $additional_header);
@@ -213,7 +249,23 @@ class ClientsConnectionEntityUIController extends ClientsHandlerEntityUIControll
    *   Additional columns to be added after the entity label column.
    */
   protected function overviewTableRow($conditions, $id, $entity, $additional_cols = array()) {
+    if (isset($entity->environment_substituted_by)) {
+      // Machine names don't need sanitizing.
+      $substitution = t('Substituted by !connection.', array(
+        '!connection' => $entity->environment_substituted_by,
+      ));
+    }
+    elseif (isset($entity->environment_substitute_for)) {
+      $substitution = t('Substitute for !connection.', array(
+        '!connection' => $entity->environment_substitute_for,
+      ));
+    }
+    else {
+      $substitution = '';
+    }
+
     // Add the endpoint to the columns. Our parent class does the handler type.
+    $additional_cols['substitution'] = $substitution;
     $additional_cols['endpoint'] = $entity->formatEndpoint($entity->endpoint);
 
     $row = parent::overviewTableRow($conditions, $id, $entity, $additional_cols);

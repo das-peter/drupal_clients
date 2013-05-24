@@ -29,6 +29,28 @@ There are two ways to use a connection:
   block hooks, and caching retrieved results. The remote block provided would
   function exactly like a normal, local block.
 
+Connection substitution
+=======================
+
+It's possible to have the same connection machine name load different
+connections depending on the site's environment. This is based on the value of
+the 'environment_name' site variable. When loading a connection, the environment
+name as defined by this variable is appended to the requested connection name,
+and if this results in the name of another connection, that is loaded instead.
+
+This allows a development site to connect to a development version of a service
+without any changes in code.
+
+For example:
+
+// Just loads the foobar connection.
+$connection = clients_connection_load('foobar');
+
+variable_set('environment_name', 'dev');
+// Loads the foobar_dev instead, if it exists. Otherwise, loads foobar.
+$connection = clients_connection_load('foobar');
+
+
 Using connections directly
 ==========================
 

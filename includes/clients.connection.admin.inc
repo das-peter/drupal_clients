@@ -81,6 +81,36 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
   $breadcrumb[] = l(t('Clients'), 'admin/structure/clients');
   drupal_set_breadcrumb($breadcrumb);
 
+  // Notify the user if this connection is either going to be substituted with
+  // an environment-specific one, or is one that substitutes for another.
+  $environment_name = variable_get('environment_name', NULL);
+  if (isset($environment_name)) {
+    // Create a replacement name by appending the environment name.
+    $replacement_connection_name = $connection->name . '_' . $environment_name;
+    // Use entity_load_single() so we bypass connection replacement.
+    if ($replacement_connection = entity_load_single('clients_connection', $replacement_connection_name)) {
+      // Is this going to get overlooked for another connection?
+      // ie. is NAME + ENV = another connection?
+      $message = t("This connection is inactive due to the site's environment setting. The <a href=\"!url\">%connection connection</a> will be substituted for it.", array(
+        '!url' => url('admin/structure/clients/connections/manage/' . $replacement_connection_name),
+        '%connection' => $replacement_connection->label,
+      ));
+    }
+    elseif (substr($connection->name, -1 * strlen($environment_name)) == $environment_name) {
+      $original_connection_name = substr($connection->name, 0, -1 * (strlen($environment_name) + 1));
+      if ($original_connection = entity_load_single('clients_connection', $original_connection_name)) {
+        $message = t("Due to the site's environment setting, this connection will substitute for the <a href=\"!url\">%connection connection</a>.", array(
+          '!url' => url('admin/structure/clients/connections/manage/' . $original_connection_name),
+          '%connection' => $original_connection->label,
+        ));
+      }
+    }
+
+    if (isset($message)) {
+      drupal_set_message($message);
+    }
+  }
+
   $form = array();
 
   $type = $connection->type;
