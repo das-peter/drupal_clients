@@ -150,7 +150,7 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
    * @param $method
    *  The path of the remote resource to retrieve.
    * @param $method_params
-   *  An array of further parameters for the request. This should contain:
+   *  A flat array of further parameters for the request. This should contain:
    *  - The HTTP method.
    *  - (optional) An array of data for the request, such as POST data.
    *
