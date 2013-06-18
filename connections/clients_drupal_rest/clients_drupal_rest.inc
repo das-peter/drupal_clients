@@ -115,18 +115,21 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
   function userLogin() {
     // Based on example code at http://drupal.org/node/910598.
     $this->credentialsLoad();
+
     $data = array(
       'username' => $this->credentials['username'],
       'password' => $this->credentials['password'],
     );
     $data = http_build_query($data, '', '&');
-    $headers = array();
+
+    $headers = array(
+      'Accept' => 'application/json',
+    );
+
     $options = array(
-      'headers' => array(
-        'Accept' => 'application/json',
-      ),
-      'method' => 'POST',
-      'data' => $data,
+      'headers' => $headers,
+      'method'  => 'POST',
+      'data'    => $data,
     );
 
     $response = drupal_http_request($this->endpoint . '/user/login', $options);
@@ -198,11 +201,20 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
       $this->userLogin();
     }
 
-    $options = array();
-    // Pass in the login cookie we received previously.
-    $options['headers']['Cookie'] = $this->cookie;
-    $options['data'] = http_build_query($data, '', '&');
-    $options['method'] = $http_method;
+    $data = http_build_query($data, '', '&');
+
+    $headers = array(
+      'Accept' => 'application/json',
+      // Pass in the login cookie we received previously.
+      'Cookie' => $this->cookie,
+    );
+
+    $options = array(
+      'headers' => $headers,
+      'method'  => $http_method,
+      'data'    => $data,
+    );
+
     $response = drupal_http_request($this->endpoint . '/' . $resource_path, $options);
 
     $this->handleRestError($response);
