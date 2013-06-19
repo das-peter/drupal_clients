@@ -252,7 +252,7 @@ class ClientsConnectionDrupalRESTTestEntityCreate implements ClientsConnectionTe
     }
 
     if (module_exists('devel')) {
-      dpm($data);
+      dpm($data, 'POST data');
     }
 
     try {
