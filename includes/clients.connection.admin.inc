@@ -176,6 +176,13 @@ function clients_connection_form($form, &$form_state, $connection, $op = 'edit')
     '#tree' => TRUE,
   );
 
+  $form['configuration']['debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Debugging mode'),
+    '#description' => t('Outputs debug data for this connection. (Not all connection types support this.)'),
+    '#weight' => 100,
+  );
+
   // Container for credentials form elements.
   $form['credentials'] = array(
     '#type' => 'fieldset',

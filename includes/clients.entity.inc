@@ -247,6 +247,63 @@ abstract class clients_connection_base extends ClientsHandlerEntity {
     // Up to subclasses to override this to do something.
   }
 
+  /**
+   * Output debugging data.
+   *
+   * This outputs debugging data if the connection is set to debug mode.
+   *
+   * The following channels are available:
+   *  - watchdog: The usual Drupal core watchdog. This may not be suitable for
+   *      large data.
+   *  - dd: Devel module's dd() function.
+   *  - dpm: Devel module's dpm() function.
+   *  - ddl: Devel Debug Log module's ddl() function.
+   *
+   * The channels used can be overridden by defining an array of the above names
+   * as keys in the site variable 'clients_debug_channels'.
+   *
+   * @param $data
+   *  The data to output, such as the request data.
+   * @param $variables = array()
+   *  An array of variables for passing to watchdog(), if that output channel is
+   *  used.
+   */
+  function debug($data, $variables = array()) {
+    // Bail if we're not set to debug mode.
+    if (empty($this->configuration['debug'])) {
+      return;
+    }
+
+    // Get the channels we output debug data to.
+    // Statically cache this, as we'll likely come here several times in one
+    // connection request.
+    static $clients_debug_channels;
+    if (!isset($clients_debug_channels)) {
+      $clients_debug_channels = variable_get('clients_debug_channels', array(
+        'watchdog'  => TRUE,
+        'dpm'       => module_exists('devel'),
+        'ddl'       => module_exists('devel_debug_log'),
+      ));
+    }
+
+    // Drupal core watchdog().
+    if (isset($clients_debug_channels['watchdog'])) {
+      watchdog(get_class($this), $data, $variables, WATCHDOG_DEBUG);
+    }
+    // Devel dpm().
+    if (isset($clients_debug_channels['dpm'])) {
+      dpm($data, get_class($this));
+    }
+    // Devel dd().
+    if (isset($clients_debug_channels['dd'])) {
+      dd($data);
+    }
+    // Devel debug log ddl().
+    if (isset($clients_debug_channels['dd'])) {
+      ddl($data, get_class($this));
+    }
+  }
+
 }
 
 /**

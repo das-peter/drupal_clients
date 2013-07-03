@@ -91,6 +91,23 @@ If you need to make several calls, you can use the connection object yourself:
     drupal_set_message("Error calling method.name.");
   }
 
+Debugging mode
+==============
+
+Each connections may have a debug mode flag set. Note that at this time not all
+connection types support this (and may thus simply not provide any output).
+
+Debug output may be sent to the following channels:
+
+  - watchdog: The usual Drupal core watchdog. This may not be suitable for
+      large data.
+  - dpm: Devel module's dpm() function.
+  - ddl: Devel Debug Log module's ddl() function.
+  - dd: (Not used by default) Devel module's dd() function.
+
+The channels used can be overridden by defining an array of the above names
+as keys in the site variable 'clients_debug_channels'.
+
 Extending the testing system
 ===========================
 
