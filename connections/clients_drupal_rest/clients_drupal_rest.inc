@@ -209,6 +209,12 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
       'Cookie' => $this->cookie,
     );
 
+    // Add a CSRF token if the method is one that requires it.
+    $non_safe_method = !in_array($http_method, array('GET', 'HEAD', 'OPTIONS', 'TRACE')) || $resource_path == 'user/token';
+    if ($non_safe_method) {
+      $headers['X-CSRF-Token'] = $this->getXCSRFToken();
+    }
+
     $options = array(
       'headers' => $headers,
       'method'  => $http_method,
@@ -221,6 +227,50 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
 
     $result = json_decode($response->data);
     return $result;
+  }
+
+  /**
+   * Get the X-CSRF token.
+   *
+   * This calls the remote site to get the token, and caches it, so that
+   * multiple requests made with the same connection don't need to retrieve it
+   * again.
+   *
+   * This expects the 'user/token' action resource to be enabled on the
+   * endpoint. This only exists in Services 3.5 and later. We do not support
+   * earlier versions.
+   *
+   * @return
+   *  The X-CSRF token.
+   *
+   * @throws
+   *  An exception if the remote site does not return a token.
+   */
+  function getXCSRFToken() {
+    if (isset($this->CSRFToken)) {
+      return $this->CSRFToken;
+    }
+
+    $headers = array(
+      'Accept' => 'application/json',
+      // Pass in the login cookie we received previously.
+      'Cookie' => $this->cookie,
+    );
+
+    $options = array(
+      'headers' => $headers,
+      'method'  => 'POST',
+    );
+
+    $response = drupal_http_request($this->endpoint . '/user/token', $options);
+    if ($response->code == 200) {
+      $data = json_decode($response->data);
+      $this->CSRFToken = $data->token;
+      return $this->CSRFToken;
+    }
+    else {
+      throw new Exception(t("Unable to get a CSRF token from the remote site."));
+    }
   }
 
 }

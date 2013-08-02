@@ -1,10 +1,12 @@
-
 Clients for Drupal Services REST Servers
 ==========================================
 
 This module contains client connection types for connecting to Services module
 on Drupal (http://drupal.org/project/services), for endpoints using the REST
 server.
+
+The remote Drupal site you are connecting to needs Services version 7.x-3.5 or
+higher.
 
 Setting up a client
 --------------------
@@ -32,6 +34,7 @@ Your Services endpoint must have:
     - 'application/x-www-form-urlencoded'
 - under 'Resources
   - the user resource's login action enabled
+  - the user resource's token action enabled
   - any other resources you want to use
 
 API
