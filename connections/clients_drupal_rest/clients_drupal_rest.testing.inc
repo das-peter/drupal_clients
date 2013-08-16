@@ -200,7 +200,7 @@ class ClientsConnectionDrupalRESTTestEntityCreate implements ClientsConnectionTe
     $sample_data = '{
   "type":"article",
   "title":"TITLE HERE",
-  "field_myfield":{"und":{"0":{"value":"VALUE"}}
+  "field_myfield":{"und":{"0":{"value":"VALUE"}}}
 }
 ';
     $element['params']['data'] = array(
