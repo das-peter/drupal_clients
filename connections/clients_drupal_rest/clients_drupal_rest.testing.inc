@@ -263,9 +263,7 @@ class ClientsConnectionDrupalRESTTestEntityCreate implements ClientsConnectionTe
       $result = $connection->makeRequest($path, 'POST', $data);
     }
     catch (Exception $e) {
-      drupal_set_message(t('Could not access the remote site, got error message "@message".', array(
-        '@message' => $e->getMessage(),
-      )), 'warning');
+      drupal_set_message($e->getMessage(), 'warning');
       //dsm($e);
 
       return;
