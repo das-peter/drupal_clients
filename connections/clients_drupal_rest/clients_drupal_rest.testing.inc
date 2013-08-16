@@ -253,6 +253,10 @@ class ClientsConnectionDrupalRESTTestEntityCreate implements ClientsConnectionTe
 
     if (module_exists('devel')) {
       dpm($data, 'POST data');
+      $json_error = json_last_error();
+      if ($json_error != JSON_ERROR_NONE) {
+        dpm($json_error, 'JSON error');
+      }
     }
 
     try {
