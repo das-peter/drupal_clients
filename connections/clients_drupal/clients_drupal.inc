@@ -156,6 +156,10 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
       ),
     ));
     $login_session_id = $login['sessid'];
+    $login_session_name = $login['session_name'];
+
+    // Set our cookie for subsequent requests.
+    $this->cookie = $login_session_name . '=' . $login_session_id;
 
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
@@ -163,14 +167,73 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
       return $login;
     }
 
+    $headers = array(
+      // Pass in the login cookie we received previously.
+      'Cookie' => $this->cookie,
+      // It would appear that with XMLRPC we always need the XCSRF token, no
+      // matter what the method.
+      'X-CSRF-Token' => $this->getXCSRFToken(),
+    );
+    $xmlrpc_options = array(
+      'headers' => $headers,
+    );
+
     $result = xmlrpc($this->endpoint, array(
-      $method => $method_params,
-    ));
+        $method => $method_params,
+      ),
+      $xmlrpc_options
+    );
 
     // Throw an exception for errors from the remote call.
     $this->handleXmlrpcError();
 
     return $result;
+  }
+
+  /**
+   * Get the X-CSRF token.
+   *
+   * This calls the remote site to get the token, and caches it, so that
+   * multiple requests made with the same connection don't need to retrieve it
+   * again.
+   *
+   * This expects the 'user.token' method to be enabled on the
+   * endpoint. This only exists in Services 3.5 and later. We do not support
+   * earlier versions.
+   *
+   * @return
+   *  The X-CSRF token.
+   *
+   * @throws
+   *  An exception if the remote site does not return a token.
+   */
+  function getXCSRFToken() {
+    if (isset($this->CSRFToken)) {
+      return $this->CSRFToken;
+    }
+
+    $headers = array(
+      // Pass in the login cookie we received previously.
+      'Cookie' => $this->cookie,
+    );
+
+    $options = array(
+      'headers' => $headers,
+    );
+
+    $response = xmlrpc($this->endpoint, array(
+      'user.token' => array(),
+    ), $options);
+
+    $this->handleXmlrpcError();
+
+    if (isset($response['token'])) {
+      $this->CSRFToken = $response['token'];
+      return $this->CSRFToken;
+    }
+    else {
+      throw new Exception(t("Unable to get a CSRF token from the remote site."));
+    }
   }
 
 }
