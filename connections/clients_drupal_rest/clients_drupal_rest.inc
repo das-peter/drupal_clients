@@ -133,10 +133,20 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
     );
 
     $response = drupal_http_request($this->endpoint . '/user/login', $options);
-    $data = json_decode($response->data);
 
     // Check if login was successful.
     $this->handleRestError($response);
+
+    $data = json_decode($response->data);
+
+    // It's possible for the response to have a 200, but the data to be
+    // malformed. This happens for example when the remote site is running a
+    // debugger.
+    if (!is_object($data) || json_last_error() != JSON_ERROR_NONE) {
+      throw new Exception(t("Clients connection error logging in. Data received was: '@data'.", array(
+        '@data' => $response->data,
+      )), $response->code);
+    }
 
     // Set our cookie for subsequent requests.
     $this->cookie = $data->session_name . '=' . $data->sessid;
