@@ -207,7 +207,26 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
    *  The data from the request response.
    */
   function makeRequest($resource_path, $http_method, $data = array()) {
-    if (!isset($this->cookie)) {
+    // Start by assuming we need to log in.
+    $login_needed = TRUE;
+
+    // If the cookie is already set, we don't need to log in.
+    if (isset($this->cookie)) {
+      $login_needed = FALSE;
+    }
+
+    // If the service is 'user/register' (or services_entity module's copy), we
+    // need to be anonymous.
+    // If you want to use this services as an authenticated user, then use the
+    // 'user/create' service, of which this is an alias.
+    if ($resource_path == 'user/register' || $resource_path == 'entity_user/register') {
+      $login_needed = FALSE;
+
+      // Zap any cookie we might have from a previous request.
+      $this->cookie = NULL;
+    }
+
+    if ($login_needed) {
       $this->userLogin();
     }
 

@@ -65,3 +65,12 @@ You can also call the makeRequest() method on the connection:
 
 $connection = clients_connection_load('my_connection');
 $result = $connection->makeRequest('node/1', 'GET');
+
+The 'user/register' service is a special case (and 'entity_user/register' if you
+are using Services Entity). Functionally, this is identical in Services to
+'user/create'. For both services, access is granted either if the
+user is anonymous, or if the user has the 'administer users' permission (see
+_user_resource_access()). To keep things simple, Clients assumes that for the
+'user/register' services you intend to be anonymous, and for the 'user/create'
+you are logging in as normal.
+
