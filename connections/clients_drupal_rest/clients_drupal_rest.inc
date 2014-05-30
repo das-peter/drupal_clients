@@ -91,11 +91,11 @@ class clients_connection_drupal_services_rest_7 extends clients_connection_base 
       watchdog('clients', 'Error with REST request. Error was code @code with error "@error" and message "@message".', array(
         '@code'     => $response->code,
         '@error'    => $response->error,
-        '@message'  => $response->status_message,
+        '@message'  => isset($response->status_message) ? $response->status_message : '(no message)',
       ));
 
       throw new Exception(t("Clients connection error, got message '@message'.", array(
-        '@message' => $response->status_message,
+        '@message' => isset($response->status_message) ? $response->status_message : $response->error,
       )), $response->code);
     }
   }
