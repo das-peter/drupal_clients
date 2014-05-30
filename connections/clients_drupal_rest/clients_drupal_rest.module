@@ -17,6 +17,7 @@ function clients_drupal_rest_clients_connection_type_info() {
         'login' => 'ClientsConnectionDrupalRESTTestLogin',
         'node_retrieve' => 'ClientsConnectionDrupalRESTTestNodeRetrieve',
         'entity_create' => 'ClientsConnectionDrupalRESTTestEntityCreate',
+        'generic' => 'ClientsConnectionDrupalRESTTestGeneric',
       ),
     ),
   );
