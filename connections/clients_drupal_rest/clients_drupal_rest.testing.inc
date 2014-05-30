@@ -411,6 +411,9 @@ class ClientsConnectionDrupalRESTTestGeneric implements ClientsConnectionTesting
         eval('$data = ' . $button_form_values['params']['data'] . ';');
       }
     }
+    else {
+      $data = array();
+    }
 
     drupal_set_message(t("Making @method request to @path.", array(
       '@method' => $method,
