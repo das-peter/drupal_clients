@@ -132,6 +132,7 @@ class ClientsHandlerEntityUIController extends EntityDefaultUIController {
     if (get_class($entity) == $broken_class) {
       // If the handler is broken, there will be no type data for it.
       $type_label = $entity->type;
+      $type_label .= ' <span class="warning">' . t("Broken handler") . '</span>';
     }
     else {
       $handler_type = $handler_types[$entity->type];
