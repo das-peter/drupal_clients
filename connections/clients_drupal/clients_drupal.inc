@@ -507,6 +507,7 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
     //dsm($method);
 
     $config = $this->configuration;
+    $this->method = $method;
 
     $connect = xmlrpc($this->endpoint, array(
       'system.connect' => array(),
