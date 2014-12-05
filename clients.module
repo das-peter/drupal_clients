@@ -225,17 +225,32 @@ function clients_connection_get_substituted_name($connection_name) {
 /**
  * Load all connections.
  *
- * TODO! @param $types
- *  (optional) Specify a single type or a list of types to include.
- *  If omitted, all are returned.
- * @return
- *  An array of connection objects, keyed by name.
+ * @param array $types
+ *   (optional) Specify a single type or a list of types to include.
+ *   If omitted, all are returned.
+ *
+ * @return array
+ *   An array of connection objects, keyed by name.
  */
 function clients_connection_load_all($types = array()) {
-  $connections = entity_load_multiple_by_name('clients_connection', FALSE);
+  $conditions = array(
+    'type' => $types,
+  );
+  $connections = array();
 
-  // We generally want connections ordered by machine name.
-  ksort($connections);
+  $query = new EntityFieldQuery('clients_connection');
+  if (!empty($types)) {
+    $query->propertyCondition('type', $types);
+  }
+  $result = $query
+    ->entityCondition('entity_type', 'clients_connection')
+    ->propertyOrderBy('name')
+    ->execute();
+  if (!empty($result['clients_connection'])) {
+    $connections = entity_load_multiple_by_name('clients_connection', array_keys($result['clients_connection']));
+    // We generally want connections ordered by machine name.
+    ksort($connections);
+  }
 
   return $connections;
 }
