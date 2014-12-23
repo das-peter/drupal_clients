@@ -47,6 +47,8 @@ function clients_hook_entity_info() {
  *   Each type is itself an array, with following keys:
  *     'label': the human-readable label.
  *     'description': (optional) A more detailed description of the type.
+ *     'class': (optional) Use if you don't want to use another class than the
+ *        automatically used one.
  *     'tests': (optional) An array of test classes that this connection type
  *        can use for the testing UI. The keys should be the test IDs, and the
  *        values the name of the test class, which should implement

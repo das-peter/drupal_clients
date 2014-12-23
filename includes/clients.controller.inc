@@ -123,7 +123,13 @@ class ClientsHandlerEntityController extends EntityAPIControllerExportable {
     }
 
     $prefix = $this->entityInfo['factory']['class prefix'];
-    $class = $prefix . $type;
+    $connection_type = clients_get_connection_types($type);
+    if (empty($connection_type['class'])) {
+      $class = $prefix . $type;
+    }
+    else {
+      $class = $connection_type['class'];
+    }
 
     if (class_exists($class)) {
       return $class;
