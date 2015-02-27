@@ -390,8 +390,6 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     }
 
     $config = $this->configuration;
-    $endpoint = $this->endpoint;
-    $api_key = $this->configuration['servicekey'];
     $this->method = $method;
 
     // Connect to the remote system service to get an initial session id to log in with.
@@ -507,6 +505,7 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
     //dsm($method);
 
     $config = $this->configuration;
+    $this->method = $method;
 
     $connect = xmlrpc($this->endpoint, array(
       'system.connect' => array(),
