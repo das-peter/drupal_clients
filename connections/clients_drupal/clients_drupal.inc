@@ -563,10 +563,8 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
       // Call the xmlrpc method with our array of arguments.
       $result = xmlrpc($this->endpoint, array(
-          $method => $method_args,
-        ),
-        $xmlrpc_options
-      );
+        $method => $method_args,
+      ));
 
       // Throw an exception for errors from the remote call.
       $this->handleXmlrpcError();
@@ -586,10 +584,8 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
 
     // Call the xmlrpc method with our array of arguments.
     $result = xmlrpc($this->endpoint, array(
-        $method => $method_args,
-      ),
-      $xmlrpc_options
-    );
+      $method => $method_args,
+    ));
 
     // Throw an exception for errors from the remote call.
     $this->handleXmlrpcError();
