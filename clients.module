@@ -241,7 +241,6 @@ function clients_connection_load_all($types = array()) {
   }
   $result = $query
     ->entityCondition('entity_type', 'clients_connection')
-    ->propertyOrderBy('name')
     ->execute();
   if (!empty($result['clients_connection'])) {
     $connections = entity_load_multiple_by_name('clients_connection', array_keys($result['clients_connection']));
