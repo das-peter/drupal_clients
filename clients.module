@@ -233,12 +233,9 @@ function clients_connection_get_substituted_name($connection_name) {
  *   An array of connection objects, keyed by name.
  */
 function clients_connection_load_all($types = array()) {
-  $conditions = array(
-    'type' => $types,
-  );
   $connections = array();
 
-  $query = new EntityFieldQuery('clients_connection');
+  $query = new EntityFieldQuery();
   if (!empty($types)) {
     $query->propertyCondition('type', $types);
   }
