@@ -553,9 +553,8 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
       // method anyway.
       $method_params[0] = (int) $method_params[0];
 
-      // Build the array of connection arguments for the method we want to call.
-      $xmlrpc_args = array_merge(
-        array($this->endpoint, $method),
+      // Build the array of method arguments for node.load.
+      $method_args = array_merge(
         array($login_session_id),
         $method_params
       );
@@ -563,7 +562,11 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
       //dsm($xmlrpc_args);
 
       // Call the xmlrpc method with our array of arguments.
-      $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+      $result = xmlrpc($this->endpoint, array(
+          $method => $method_args,
+        ),
+        $xmlrpc_options
+      );
 
       // Throw an exception for errors from the remote call.
       $this->handleXmlrpcError();
@@ -574,16 +577,19 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
     // Get the API key-related arguments.
     $key_args = $this->xmlrpc_key_args($method);
 
-    // Build the array of connection arguments for the method we want to call.
-    $xmlrpc_args = array_merge(
-      array($this->endpoint, $method),
+    // Build the array of method arguments for the method we want to call.
+    $method_args = array_merge(
       $key_args,
       array($login_session_id),
       $method_params
     );
 
     // Call the xmlrpc method with our array of arguments.
-    $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+    $result = xmlrpc($this->endpoint, array(
+        $method => $method_args,
+      ),
+      $xmlrpc_options
+    );
 
     // Throw an exception for errors from the remote call.
     $this->handleXmlrpcError();
