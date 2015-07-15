@@ -138,9 +138,10 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     ));
     $session_id = $connect['sessid'];
 
+    $this->handleXmlrpcError();
+
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
-      $this->handleXmlrpcError();
       return $connect;
     }
 
@@ -161,9 +162,10 @@ class clients_connection_drupal_services_7_3 extends clients_connection_drupal_s
     // Set our cookie for subsequent requests.
     $this->cookie = $login_session_name . '=' . $login_session_id;
 
+    $this->handleXmlrpcError();
+
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
-      $this->handleXmlrpcError();
       return $login;
     }
 
@@ -398,9 +400,10 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     ));
     $session_id = $connect['sessid'];
 
+    $this->handleXmlrpcError();
+
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
-      $this->handleXmlrpcError();
       return $connect;
     }
 
@@ -408,9 +411,10 @@ class clients_connection_drupal_services_6_2 extends clients_connection_drupal_s
     $login = $this->call_user_login($session_id);
     $login_session_id = $login['sessid'];
 
+    $this->handleXmlrpcError();
+
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
-      $this->handleXmlrpcError();
       return $login;
     }
 
@@ -512,9 +516,10 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
     ));
     $session_id = $connect['sessid'];
 
+    $this->handleXmlrpcError();
+
     // We may want to call only system.connect for testing purposes.
     if ($method == 'system.connect') {
-      $this->handleXmlrpcError();
       return $connect;
     }
 
@@ -522,9 +527,10 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
     $login = $this->call_user_login($session_id);
     $login_session_id = $login['sessid'];
 
+    $this->handleXmlrpcError();
+
     // If the requested method is user.login, we're done.
     if ($method == 'user.login') {
-      $this->handleXmlrpcError();
       return $login;
     }
 
@@ -547,9 +553,8 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
       // method anyway.
       $method_params[0] = (int) $method_params[0];
 
-      // Build the array of connection arguments for the method we want to call.
-      $xmlrpc_args = array_merge(
-        array($this->endpoint, $method),
+      // Build the array of method arguments for node.load.
+      $method_args = array_merge(
         array($login_session_id),
         $method_params
       );
@@ -557,7 +562,9 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
       //dsm($xmlrpc_args);
 
       // Call the xmlrpc method with our array of arguments.
-      $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+      $result = xmlrpc($this->endpoint, array(
+        $method => $method_args,
+      ));
 
       // Throw an exception for errors from the remote call.
       $this->handleXmlrpcError();
@@ -568,16 +575,17 @@ class clients_connection_drupal_services_5 extends clients_connection_drupal_ser
     // Get the API key-related arguments.
     $key_args = $this->xmlrpc_key_args($method);
 
-    // Build the array of connection arguments for the method we want to call.
-    $xmlrpc_args = array_merge(
-      array($this->endpoint, $method),
+    // Build the array of method arguments for the method we want to call.
+    $method_args = array_merge(
       $key_args,
       array($login_session_id),
       $method_params
     );
 
     // Call the xmlrpc method with our array of arguments.
-    $result = call_user_func_array('xmlrpc', $xmlrpc_args);
+    $result = xmlrpc($this->endpoint, array(
+      $method => $method_args,
+    ));
 
     // Throw an exception for errors from the remote call.
     $this->handleXmlrpcError();
